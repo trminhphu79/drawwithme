@@ -46,6 +46,9 @@ export class DrawingStore {
   private readonly _participants = signal<Participant[]>([]);
   private readonly _cursors = signal<RemoteCursor[]>([]);
 
+  /** Set when another member seals the artwork (others get notified + redirected). */
+  private readonly _finished = signal<{ artworkId: string; by: string } | null>(null);
+
   private code = '';
   private myId = '';
 
@@ -60,6 +63,7 @@ export class DrawingStore {
   readonly referenceUrl = this._referenceUrl.asReadonly();
   readonly participants = this._participants.asReadonly();
   readonly cursors = this._cursors.asReadonly();
+  readonly finished = this._finished.asReadonly();
   readonly connected = this.socket.connected;
 
   readonly canUndo = computed(() => this._operations().length > 0);
@@ -125,6 +129,11 @@ export class DrawingStore {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(({ title }) => this._title.set(title));
 
+    this.socket
+      .on<{ artworkId: string; by: string }>('room:finished')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((e) => this._finished.set(e));
+
     // (Re)announce ourselves on every connect — incl. reconnects, where Socket.IO
     // assigns a fresh id. Without this a reconnected client drops out of the room
     // map and stops appearing in / receiving presence updates.
@@ -162,6 +171,15 @@ export class DrawingStore {
     } catch {
       /* API not available yet — start with an empty canvas. */
     }
+  }
+
+  /** Tell the room this artwork was sealed, so others can view the result. */
+  notifyFinished(artworkId: string): void {
+    this.socket.emit('room:finish', {
+      code: this.code,
+      artworkId,
+      by: this.prefs.displayName() || 'Someone',
+    });
   }
 
   /** Broadcast a changed display name / avatar to everyone in the room. */

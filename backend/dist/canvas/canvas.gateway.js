@@ -107,6 +107,15 @@ let CanvasGateway = class CanvasGateway {
             return;
         client.to(code).emit('reference:updated', { url: body.url });
     }
+    onFinish(client, body) {
+        const code = (body.code ?? '').toUpperCase();
+        if (!code || !body.artworkId)
+            return;
+        client.to(code).emit('room:finished', {
+            artworkId: body.artworkId,
+            by: body.by || 'Someone',
+        });
+    }
     onTitle(client, body) {
         const code = (body.code ?? '').toUpperCase();
         if (!code)
@@ -243,6 +252,14 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", void 0)
 ], CanvasGateway.prototype, "onReference", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('room:finish'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], CanvasGateway.prototype, "onFinish", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('title:set'),
     __param(0, (0, websockets_1.ConnectedSocket)()),

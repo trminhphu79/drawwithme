@@ -150,6 +150,20 @@ export class CanvasGateway implements OnGatewayDisconnect {
     client.to(code).emit('reference:updated', { url: body.url });
   }
 
+  @SubscribeMessage('room:finish')
+  onFinish(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { code: string; artworkId: string; by?: string },
+  ): void {
+    const code = (body.code ?? '').toUpperCase();
+    if (!code || !body.artworkId) return;
+    // Tell everyone else the session was sealed so they can view the result.
+    client.to(code).emit('room:finished', {
+      artworkId: body.artworkId,
+      by: body.by || 'Someone',
+    });
+  }
+
   @SubscribeMessage('title:set')
   onTitle(
     @ConnectedSocket() client: Socket,

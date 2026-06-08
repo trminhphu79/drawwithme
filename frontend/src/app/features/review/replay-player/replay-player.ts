@@ -110,8 +110,8 @@ export class ReplayPlayer {
   private readonly tick = (): void => {
     const ctx = this.ctx;
     if (!ctx || !this.playing()) return;
-    // ~3s total regardless of stroke count.
-    let budget = Math.max(2, Math.round(this.totalPoints / 180));
+    // ~6s total regardless of stroke count (slower, more watchable pace).
+    let budget = Math.max(1, Math.round(this.totalPoints / 360));
     while (budget > 0 && this.opIndex < this.ops.length) {
       const op = this.ops[this.opIndex];
       if (op.type === 'fill') {

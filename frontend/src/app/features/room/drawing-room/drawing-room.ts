@@ -97,6 +97,9 @@ export class DrawingRoom {
   private readonly canvas = viewChild(CanvasStage);
   private entered = false;
 
+  /** Guards the one-shot redirect when another member finishes. */
+  private redirectingToArtwork = false;
+
   constructor() {
     effect(() => {
       const code = this.code();
@@ -105,6 +108,16 @@ export class DrawingRoom {
       // joining via a shared link), but skip it on refresh of the same tab.
       if (this.isConfirmed(code)) this.enter(code);
       else this.showNameGate.set(true);
+    });
+
+    // Another member sealed the artwork → alert everyone else, then send them
+    // to view the result.
+    effect(() => {
+      const done = this.store.finished();
+      if (!done || this.redirectingToArtwork) return;
+      this.redirectingToArtwork = true;
+      this.showToast(`🎉 ${done.by} finished the masterpiece! Opening the result…`);
+      setTimeout(() => this.router.navigate(['/artwork', done.artworkId]), 1800);
     });
   }
 
@@ -214,7 +227,11 @@ export class DrawingRoom {
     let target = this.code() || 'demo';
     if (dataUrl) {
       const id = await this.store.seal(dataUrl);
-      if (id) target = id;
+      if (id) {
+        target = id;
+        // Notify everyone else so they get redirected to the finished artwork.
+        this.store.notifyFinished(id);
+      }
     }
     this.router.navigate(['/artwork', target]);
   }
