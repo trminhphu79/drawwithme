@@ -5,6 +5,7 @@ import { ReviewStore } from '../review.store';
 import { ArtworkPreview } from '../artwork-preview/artwork-preview';
 import { ArtworkActions } from '../artwork-actions/artwork-actions';
 import { ReplayPlayer } from '../replay-player/replay-player';
+import { Toast } from '../../../core/toast';
 
 /**
  * SMART / container for the Final-Artwork review screen. Provides ReviewStore,
@@ -14,7 +15,7 @@ import { ReplayPlayer } from '../replay-player/replay-player';
   selector: 'app-review-artwork',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ReviewStore],
-  imports: [RouterLink, DatePipe, ArtworkPreview, ArtworkActions, ReplayPlayer],
+  imports: [RouterLink, DatePipe, ArtworkPreview, ArtworkActions, ReplayPlayer, Toast],
   templateUrl: './review-artwork.html',
 })
 export class ReviewArtwork {
@@ -25,6 +26,9 @@ export class ReviewArtwork {
 
   /** Replay overlay visibility. */
   protected readonly showReplay = signal(false);
+  /** Transient toast (e.g. after copying the share link). */
+  protected readonly toast = signal<string | null>(null);
+  private toastTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
     let started = false;
@@ -35,6 +39,23 @@ export class ReviewArtwork {
         void this.store.load(id);
       }
     });
+  }
+
+  /** Copy the shareable link to this artwork. */
+  protected onCopyLink(): void {
+    const url = `${location.origin}/artwork/${this.id()}`;
+    const done = () => this.showToast('Link copied — anyone with it can view & replay 🎨');
+    try {
+      navigator.clipboard?.writeText(url).then(done, done) ?? done();
+    } catch {
+      done();
+    }
+  }
+
+  private showToast(message: string): void {
+    this.toast.set(message);
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => this.toast.set(null), 3200);
   }
 
   /**

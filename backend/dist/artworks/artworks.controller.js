@@ -20,7 +20,10 @@ let ArtworksController = class ArtworksController {
         this.artworks = artworks;
     }
     get(id) {
-        return this.artworks.getByRoomCode(id);
+        return this.artworks.get(id);
+    }
+    operations(id) {
+        return this.artworks.getOperations(id);
     }
 };
 exports.ArtworksController = ArtworksController;
@@ -31,6 +34,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], ArtworksController.prototype, "get", null);
+__decorate([
+    (0, common_1.Get)(':id/operations'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ArtworksController.prototype, "operations", null);
 exports.ArtworksController = ArtworksController = __decorate([
     (0, common_1.Controller)('artworks'),
     __metadata("design:paramtypes", [artworks_service_1.ArtworksService])

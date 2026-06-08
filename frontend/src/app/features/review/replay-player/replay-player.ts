@@ -11,7 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { RoomService } from '../../room/room.service';
+import { ArtworkService } from '../artwork.service';
 import { DrawOperation, Point } from '../../room/operation.model';
 
 const W = 1600;
@@ -40,7 +40,7 @@ export class ReplayPlayer {
   readonly id = input.required<string>();
   readonly close = output<void>();
 
-  private readonly rooms = inject(RoomService);
+  private readonly artworks = inject(ArtworkService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private ctx: CanvasRenderingContext2D | null = null;
@@ -70,7 +70,7 @@ export class ReplayPlayer {
 
   private async load(): Promise<void> {
     try {
-      this.ops = (await firstValueFrom(this.rooms.getOperations(this.id()))) ?? [];
+      this.ops = (await firstValueFrom(this.artworks.getOperations(this.id()))) ?? [];
     } catch {
       this.ops = [];
     }

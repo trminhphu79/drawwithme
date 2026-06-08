@@ -36,12 +36,16 @@
 
       <app-artwork-actions
         [canDownload]="store.hasImage()"
+        [canReplay]="store.replayable()"
         (download)="onDownload()"
-        (replay)="showReplay.set(true)" />
+        (replay)="showReplay.set(true)"
+        (copyLink)="onCopyLink()" />
     </div>
   </main>
 
   @if (showReplay()) {
     <app-replay-player [id]="id()" (close)="showReplay.set(false)" />
   }
+
+  <app-toast [message]="toast()" />
 </div>

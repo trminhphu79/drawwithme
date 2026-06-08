@@ -18,6 +18,7 @@ export class ReviewStore {
   readonly artwork = this._artwork.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly hasImage = computed(() => !!this._artwork()?.imageUrl);
+  readonly replayable = computed(() => this._artwork()?.replayable ?? false);
 
   async load(id: string): Promise<void> {
     this._loading.set(true);
@@ -37,6 +38,7 @@ export class ReviewStore {
       title: 'Untitled Masterpiece',
       imageUrl: null,
       participants: ['You'],
+      replayable: false,
       createdAt: new Date().toISOString(),
     };
   }

@@ -18,6 +18,8 @@ model Room {
   createdAt      DateTime    @default(now())
   /// Bumped on any join / draw op / chat message; used by the 24h cleanup cron.
   lastActivityAt DateTime    @default(now())
+  /// Shared reference image (R2 URL or data URL fallback).
+  referenceImageUrl String?
   operations   Operation[]
   artworks     Artwork[]
   messages     Message[]
@@ -56,13 +58,18 @@ model Operation {
 }
 
 /// A sealed, completed artwork from a finished session.
+/// Sealed artwork — self-contained so its share link survives room cleanup.
 model Artwork {
   id           String   @id @default(uuid())
-  roomId       String
-  room         Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  /// Nullable + SetNull so a purged room doesn't delete the shared artwork.
+  roomId       String?
+  room         Room?    @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  roomCode     String? // kept for reference after the room is gone
   title        String   @default("Untitled Masterpiece")
-  imageUrl     String? // data URL / R2 URL of the rasterized snapshot
+  imageUrl     String? // R2 URL (or data URL fallback) of the rasterized snapshot
   participants String[]
+  /// Snapshot of the operation log at finish time — powers replay via the link.
+  operations   Json?
   createdAt    DateTime @default(now())
 
   @@index([roomId])

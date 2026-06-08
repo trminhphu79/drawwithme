@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const schedule_1 = require("@nestjs/schedule");
 const prisma_module_1 = require("./prisma/prisma.module");
+const storage_module_1 = require("./storage/storage.module");
 const rooms_module_1 = require("./rooms/rooms.module");
 const canvas_module_1 = require("./canvas/canvas.module");
 const artworks_module_1 = require("./artworks/artworks.module");
@@ -24,6 +25,7 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             schedule_1.ScheduleModule.forRoot(),
             prisma_module_1.PrismaModule,
+            storage_module_1.StorageModule,
             rooms_module_1.RoomsModule,
             canvas_module_1.CanvasModule,
             artworks_module_1.ArtworksModule,

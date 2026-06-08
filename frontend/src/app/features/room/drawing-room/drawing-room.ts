@@ -176,8 +176,12 @@ export class DrawingRoom {
 
   protected async onFinish(): Promise<void> {
     const dataUrl = this.canvas()?.captureDataUrl();
-    if (dataUrl) await this.store.seal(dataUrl);
-    this.router.navigate(['/artwork', this.code() || 'demo']);
+    let target = this.code() || 'demo';
+    if (dataUrl) {
+      const id = await this.store.seal(dataUrl);
+      if (id) target = id;
+    }
+    this.router.navigate(['/artwork', target]);
   }
 
   protected onKeydown(event: KeyboardEvent): void {

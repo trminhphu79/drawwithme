@@ -43,9 +43,12 @@ export class RoomsController {
     return this.messages.listByRoom(code);
   }
 
-  /** Persist a rasterized snapshot (final artwork). */
+  /** Persist a rasterized snapshot (final artwork); returns the shareable id. */
   @Post(':code/snapshot')
-  snapshot(@Param('code') code: string, @Body() dto: SnapshotDto): Promise<{ url: string }> {
+  snapshot(
+    @Param('code') code: string,
+    @Body() dto: SnapshotDto,
+  ): Promise<{ url: string; id: string }> {
     return this.artworks.saveSnapshot(code, dto.dataUrl, dto.title, dto.participants);
   }
 }

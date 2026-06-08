@@ -15,14 +15,14 @@ export class RoomService {
     return this.http.get<DrawOperation[]>(`${this.base}/${code}/operations`);
   }
 
-  /** Persist a rasterized snapshot (final artwork) + optional title/participants. */
+  /** Persist a rasterized snapshot; returns the public URL + shareable artwork id. */
   saveSnapshot(
     code: string,
     dataUrl: string,
     title?: string,
     participants?: string[],
-  ): Observable<{ url: string }> {
-    return this.http.post<{ url: string }>(`${this.base}/${code}/snapshot`, {
+  ): Observable<{ url: string; id: string }> {
+    return this.http.post<{ url: string; id: string }>(`${this.base}/${code}/snapshot`, {
       dataUrl,
       title,
       participants,

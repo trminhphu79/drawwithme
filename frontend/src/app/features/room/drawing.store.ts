@@ -186,19 +186,23 @@ export class DrawingStore {
     this.socket.emit('cursor:move', { code: this.code, ...point });
   }
 
-  /** Persist a rasterized snapshot of the finished artwork (best-effort). */
-  async seal(dataUrl: string): Promise<void> {
+  /**
+   * Persist a rasterized snapshot of the finished artwork (best-effort).
+   * Returns the shareable artwork id, or null if persistence failed.
+   */
+  async seal(dataUrl: string): Promise<string | null> {
     // Usernames of everyone currently in the room (deduped).
     const names = this._participants().map((p) => p.name).filter(Boolean);
     const participants = names.length
       ? [...new Set(names)]
       : [this.prefs.displayName() || 'You'];
     try {
-      await firstValueFrom(
+      const res = await firstValueFrom(
         this.rooms.saveSnapshot(this.code, dataUrl, this._title(), participants),
       );
+      return res.id;
     } catch {
-      /* API unavailable — skip persistence, navigation still proceeds. */
+      return null;
     }
   }
 
