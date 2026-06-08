@@ -105,7 +105,7 @@ export class ChatStore {
     // Match the 2.8s float-up animation, then drop it.
     setTimeout(() => {
       this._reactions.update((list) => list.filter((e) => e.id !== event.id));
-    }, 2900);
+    }, 4000);
   }
 
   private setMyId(id: string): void {
