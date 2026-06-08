@@ -5,6 +5,8 @@
     [connected]="store.connected()"
     [leftPanelOpen]="!chatCollapsed()"
     [rightPanelOpen]="!propsCollapsed()"
+    [title]="store.title()"
+    (titleChange)="store.setTitle($event)"
     (invite)="onInvite()"
     (finish)="onFinish()"
     (chatToggle)="toggleChat()"

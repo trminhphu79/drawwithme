@@ -44,7 +44,7 @@ let RoomsController = class RoomsController {
         return this.messages.listByRoom(code);
     }
     snapshot(code, dto) {
-        return this.artworks.saveSnapshot(code, dto.dataUrl);
+        return this.artworks.saveSnapshot(code, dto.dataUrl, dto.title);
     }
 };
 exports.RoomsController = RoomsController;

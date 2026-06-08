@@ -39,6 +39,7 @@ export class DrawingStore {
   private readonly _opacity = signal(this.prefs.defaultOpacity());
   private readonly _color = signal(this.prefs.recentColors()[0] ?? '#6f583c');
   private readonly _pencilStyle = signal<PencilStyle>('hard');
+  private readonly _title = signal('Untitled');
 
   // ---- presence ----
   private readonly _participants = signal<Participant[]>([]);
@@ -54,6 +55,7 @@ export class DrawingStore {
   readonly opacity = this._opacity.asReadonly();
   readonly color = this._color.asReadonly();
   readonly pencilStyle = this._pencilStyle.asReadonly();
+  readonly title = this._title.asReadonly();
   readonly participants = this._participants.asReadonly();
   readonly cursors = this._cursors.asReadonly();
   readonly connected = this.socket.connected;
@@ -137,6 +139,9 @@ export class DrawingStore {
     this._pencilStyle.set(style);
     this._tool.set('pencil');
   }
+  setTitle(title: string): void {
+    this._title.set(title);
+  }
   // ---- drawing actions ----
   /** Commit a finished stroke/erase/fill from the canvas (optimistic local). */
   commit(op: Omit<DrawOperation, 'id' | 'authorId'>): void {
@@ -184,7 +189,7 @@ export class DrawingStore {
   /** Persist a rasterized snapshot of the finished artwork (best-effort). */
   async seal(dataUrl: string): Promise<void> {
     try {
-      await firstValueFrom(this.rooms.saveSnapshot(this.code, dataUrl));
+      await firstValueFrom(this.rooms.saveSnapshot(this.code, dataUrl, this._title()));
     } catch {
       /* API unavailable — skip persistence, navigation still proceeds. */
     }

@@ -53,7 +53,7 @@ import { PencilStyle, PencilStyleDef, ToolDef, ToolId } from '../tool.model';
       </button>
       <button type="button" (click)="clear.emit()" title="Clear canvas"
         class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error/10 hover:text-error hover:scale-110 active:scale-95 transition-all">
-        <span class="material-symbols-outlined">delete</span>
+        <span class="material-symbols-outlined">delete_sweep</span>
       </button>
     </nav>
   `,

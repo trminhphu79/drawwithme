@@ -46,6 +46,6 @@ export class RoomsController {
   /** Persist a rasterized snapshot (final artwork). */
   @Post(':code/snapshot')
   snapshot(@Param('code') code: string, @Body() dto: SnapshotDto): Promise<{ url: string }> {
-    return this.artworks.saveSnapshot(code, dto.dataUrl);
+    return this.artworks.saveSnapshot(code, dto.dataUrl, dto.title);
   }
 }

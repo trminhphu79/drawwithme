@@ -2,10 +2,10 @@
   <main class="flex-grow flex flex-col items-center justify-center p-margin-mobile md:p-margin-desktop relative z-10">
     <!-- Back -->
     <div class="absolute top-margin-mobile md:top-margin-desktop left-margin-mobile md:left-margin-desktop">
-      <a routerLink="/join"
+      <a [routerLink]="['/room', id()]"
         class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-body-sm text-body-sm group">
         <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
-        Back to Gallery
+        Back
       </a>
     </div>
 

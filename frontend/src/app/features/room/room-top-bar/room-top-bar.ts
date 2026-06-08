@@ -28,11 +28,19 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           <span class="text-headline-md font-extrabold text-primary hidden sm:inline">DrawWithMe</span>
         </button>
         <span
-          class="hidden md:inline text-label-sm text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full border border-outline-variant">
-          Room #{{ roomCode() }}
+          class="hidden lg:inline text-label-sm text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full border border-outline-variant">
+          #{{ roomCode() }}
         </span>
+        <!-- Editable artwork title (used for the saved file name) -->
+        <input
+          [value]="title()"
+          (input)="titleChange.emit($any($event.target).value)"
+          placeholder="Untitled"
+          maxlength="120"
+          title="Artwork title (used when you save)"
+          class="min-w-0 w-28 sm:w-40 md:w-56 bg-transparent border-b border-transparent hover:border-outline-variant/60 focus:border-secondary text-on-surface font-label-md py-1 outline-none transition-colors placeholder:text-on-surface-variant/50" />
         <span
-          class="w-2 h-2 rounded-full"
+          class="w-2 h-2 rounded-full shrink-0"
           [class]="connected() ? 'bg-secondary-container' : 'bg-outline'"
           [title]="connected() ? 'Connected' : 'Offline'"></span>
       </div>
@@ -65,13 +73,6 @@ import { ThemeToggle } from '../../../core/theme-toggle';
         </button>
         <button
           type="button"
-          (click)="reset.emit()"
-          title="Clear the whole canvas"
-          class="w-10 h-10 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-error/10 hover:text-error transition-colors">
-          <span class="material-symbols-outlined">delete_sweep</span>
-        </button>
-        <button
-          type="button"
           (click)="finish.emit()"
           title="Finish"
           class="glass-panel px-3 sm:px-4 py-2 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 transition-colors flex items-center gap-1">
@@ -99,6 +100,7 @@ export class RoomTopBar {
   readonly connected = input(false);
   readonly leftPanelOpen = input(true);
   readonly rightPanelOpen = input(true);
+  readonly title = input('Untitled');
 
   readonly invite = output<void>();
   readonly finish = output<void>();
@@ -108,4 +110,5 @@ export class RoomTopBar {
   readonly reset = output<void>();
   readonly home = output<void>();
   readonly propsToggle = output<void>();
+  readonly titleChange = output<string>();
 }

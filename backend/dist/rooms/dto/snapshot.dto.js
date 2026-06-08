@@ -18,4 +18,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], SnapshotDto.prototype, "dataUrl", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], SnapshotDto.prototype, "title", void 0);
 //# sourceMappingURL=snapshot.dto.js.map
