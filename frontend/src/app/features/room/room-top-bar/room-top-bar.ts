@@ -25,7 +25,7 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           title="Back to home"
           class="flex items-center gap-2 hover:opacity-80 active:scale-95 transition-all">
           <img src="logo.png" alt="" class="w-8 h-8 rounded-lg object-contain" />
-          <span class="text-headline-md font-extrabold text-primary hidden sm:inline">DrawWithMe</span>
+          <span class="text-headline-md font-extrabold brand-gradient hidden sm:inline">DrawWithMe</span>
         </button>
         <span
           class="hidden lg:inline text-label-sm text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full border border-outline-variant">
