@@ -36,26 +36,34 @@ export class ArtworksService {
     return this.toDto(artwork, room.code);
   }
 
-  /** Store a rasterized snapshot (+ optional title) as the room's artwork. */
-  async saveSnapshot(code: string, dataUrl: string, title?: string): Promise<{ url: string }> {
+  /** Store a rasterized snapshot (+ optional title/participants) as the artwork. */
+  async saveSnapshot(
+    code: string,
+    dataUrl: string,
+    title?: string,
+    participants?: string[],
+  ): Promise<{ url: string }> {
     const room = await this.roomByCode(code);
     const cleanTitle = title?.trim();
+    const update: { imageUrl: string; title?: string; participants?: string[] } = {
+      imageUrl: dataUrl,
+    };
+    if (cleanTitle) update.title = cleanTitle;
+    if (participants?.length) update.participants = participants;
+
     const existing = await this.prisma.artwork.findFirst({
       where: { roomId: room.id },
       orderBy: { createdAt: 'desc' },
     });
     if (existing) {
-      await this.prisma.artwork.update({
-        where: { id: existing.id },
-        data: cleanTitle ? { imageUrl: dataUrl, title: cleanTitle } : { imageUrl: dataUrl },
-      });
+      await this.prisma.artwork.update({ where: { id: existing.id }, data: update });
     } else {
       await this.prisma.artwork.create({
         data: {
           roomId: room.id,
           title: cleanTitle || room.name,
           imageUrl: dataUrl,
-          participants: [],
+          participants: participants ?? [],
         },
       });
     }

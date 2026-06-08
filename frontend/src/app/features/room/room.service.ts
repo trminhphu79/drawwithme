@@ -15,8 +15,17 @@ export class RoomService {
     return this.http.get<DrawOperation[]>(`${this.base}/${code}/operations`);
   }
 
-  /** Persist a rasterized snapshot (final artwork) + optional title. */
-  saveSnapshot(code: string, dataUrl: string, title?: string): Observable<{ url: string }> {
-    return this.http.post<{ url: string }>(`${this.base}/${code}/snapshot`, { dataUrl, title });
+  /** Persist a rasterized snapshot (final artwork) + optional title/participants. */
+  saveSnapshot(
+    code: string,
+    dataUrl: string,
+    title?: string,
+    participants?: string[],
+  ): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${this.base}/${code}/snapshot`, {
+      dataUrl,
+      title,
+      participants,
+    });
   }
 }

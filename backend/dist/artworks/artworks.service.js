@@ -35,18 +35,22 @@ let ArtworksService = class ArtworksService {
         }
         return this.toDto(artwork, room.code);
     }
-    async saveSnapshot(code, dataUrl, title) {
+    async saveSnapshot(code, dataUrl, title, participants) {
         const room = await this.roomByCode(code);
         const cleanTitle = title?.trim();
+        const update = {
+            imageUrl: dataUrl,
+        };
+        if (cleanTitle)
+            update.title = cleanTitle;
+        if (participants?.length)
+            update.participants = participants;
         const existing = await this.prisma.artwork.findFirst({
             where: { roomId: room.id },
             orderBy: { createdAt: 'desc' },
         });
         if (existing) {
-            await this.prisma.artwork.update({
-                where: { id: existing.id },
-                data: cleanTitle ? { imageUrl: dataUrl, title: cleanTitle } : { imageUrl: dataUrl },
-            });
+            await this.prisma.artwork.update({ where: { id: existing.id }, data: update });
         }
         else {
             await this.prisma.artwork.create({
@@ -54,7 +58,7 @@ let ArtworksService = class ArtworksService {
                     roomId: room.id,
                     title: cleanTitle || room.name,
                     imageUrl: dataUrl,
-                    participants: [],
+                    participants: participants ?? [],
                 },
             });
         }

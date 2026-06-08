@@ -188,8 +188,13 @@ export class DrawingStore {
 
   /** Persist a rasterized snapshot of the finished artwork (best-effort). */
   async seal(dataUrl: string): Promise<void> {
+    // Anonymised labels for everyone currently in the room.
+    const count = Math.max(1, this._participants().length);
+    const participants = Array.from({ length: count }, (_, i) => `Participant ${i + 1}`);
     try {
-      await firstValueFrom(this.rooms.saveSnapshot(this.code, dataUrl, this._title()));
+      await firstValueFrom(
+        this.rooms.saveSnapshot(this.code, dataUrl, this._title(), participants),
+      );
     } catch {
       /* API unavailable — skip persistence, navigation still proceeds. */
     }
