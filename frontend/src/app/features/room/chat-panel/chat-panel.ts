@@ -9,11 +9,11 @@ import {
   viewChild,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ChatMessage, REACTION_EMOJIS } from '../chat.model';
+import { ChatMessage } from '../chat.model';
 
 /**
- * DUMB. Room chat: message list (self vs others), reaction bar, input + mute.
- * All data via inputs; emits send/react/toggleMute. Auto-scrolls on new messages.
+ * DUMB. Room chat: message list (self vs others), input + mute. Reactions live
+ * in the on-canvas reaction bar, not here. Auto-scrolls on new messages.
  */
 @Component({
   selector: 'app-chat-panel',
@@ -27,10 +27,8 @@ export class ChatPanel {
   readonly muted = input(false);
 
   readonly send = output<string>();
-  readonly react = output<string>();
   readonly toggleMute = output<void>();
 
-  protected readonly emojis = REACTION_EMOJIS;
   protected readonly draft = signal('');
 
   private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');

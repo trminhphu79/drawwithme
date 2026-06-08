@@ -20,9 +20,9 @@
 
       <app-reaction-overlay [reactions]="chat.reactions()" />
 
-      <!-- Quick reactions, floating just above the undo/redo controls -->
+      <!-- Quick reactions, floating above the undo/redo controls (extra gap) -->
       <app-reaction-bar
-        class="absolute bottom-20 left-1/2 -translate-x-1/2 z-30"
+        class="absolute bottom-32 left-1/2 -translate-x-1/2 z-30"
         (react)="chat.react($event)" />
 
       <app-canvas-controls
@@ -59,7 +59,6 @@
         [myId]="chat.myIdSig()"
         [muted]="chat.isMuted()"
         (send)="chat.send($event)"
-        (react)="chat.react($event)"
         (toggleMute)="chat.toggleMute()" />
     </aside>
 
