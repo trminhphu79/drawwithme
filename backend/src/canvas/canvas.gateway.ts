@@ -65,6 +65,14 @@ export class CanvasGateway implements OnGatewayDisconnect {
     this.emitPresence(code);
     void this.operations.touch(code).catch(() => undefined);
 
+    // Send the current shared reference image to the new joiner.
+    void this.operations
+      .getReference(code)
+      .then((url) => {
+        if (url) client.emit('reference:updated', { url });
+      })
+      .catch(() => undefined);
+
     // Announce the arrival as a system chat message (ephemeral, not persisted).
     this.server.to(code).emit('chat:message', {
       id: `sys-${this.sysSeq++}`,
@@ -133,6 +141,17 @@ export class CanvasGateway implements OnGatewayDisconnect {
     }
     // Clear everyone's canvas (including the sender, for consistency).
     this.server.to(code).emit('op:reset');
+  }
+
+  @SubscribeMessage('reference:set')
+  onReference(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { code: string; url: string },
+  ): void {
+    const code = (body.code ?? '').toUpperCase();
+    if (!code || !body.url) return;
+    // Persistence happens via the REST upload; just notify everyone else.
+    client.to(code).emit('reference:updated', { url: body.url });
   }
 
   @SubscribeMessage('cursor:move')

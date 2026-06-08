@@ -40,6 +40,7 @@ export class DrawingStore {
   private readonly _color = signal(this.prefs.recentColors()[0] ?? '#6f583c');
   private readonly _pencilStyle = signal<PencilStyle>('hard');
   private readonly _title = signal('Untitled');
+  private readonly _referenceUrl = signal<string | null>(null);
 
   // ---- presence ----
   private readonly _participants = signal<Participant[]>([]);
@@ -56,6 +57,7 @@ export class DrawingStore {
   readonly color = this._color.asReadonly();
   readonly pencilStyle = this._pencilStyle.asReadonly();
   readonly title = this._title.asReadonly();
+  readonly referenceUrl = this._referenceUrl.asReadonly();
   readonly participants = this._participants.asReadonly();
   readonly cursors = this._cursors.asReadonly();
   readonly connected = this.socket.connected;
@@ -119,6 +121,22 @@ export class DrawingStore {
       .on<void>('op:reset')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.clearLocal());
+
+    this.socket
+      .on<{ url: string }>('reference:updated')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ url }) => this._referenceUrl.set(url));
+  }
+
+  /** Upload/replace the shared reference image and broadcast it. */
+  async setReference(dataUrl: string): Promise<void> {
+    try {
+      const { url } = await firstValueFrom(this.rooms.uploadReference(this.code, dataUrl));
+      this._referenceUrl.set(url);
+      this.socket.emit('reference:set', { code: this.code, url });
+    } catch {
+      /* upload failed — ignore */
+    }
   }
 
   // ---- tool actions ----

@@ -18,15 +18,18 @@ const rooms_service_1 = require("./rooms.service");
 const operations_service_1 = require("../canvas/operations.service");
 const artworks_service_1 = require("../artworks/artworks.service");
 const messages_service_1 = require("../messages/messages.service");
+const storage_service_1 = require("../storage/storage.service");
 const create_room_dto_1 = require("./dto/create-room.dto");
 const join_room_dto_1 = require("./dto/join-room.dto");
 const snapshot_dto_1 = require("./dto/snapshot.dto");
+const reference_dto_1 = require("./dto/reference.dto");
 let RoomsController = class RoomsController {
-    constructor(rooms, operations, artworks, messages) {
+    constructor(rooms, operations, artworks, messages, storage) {
         this.rooms = rooms;
         this.operations = operations;
         this.artworks = artworks;
         this.messages = messages;
+        this.storage = storage;
     }
     create(dto) {
         return this.rooms.create(dto);
@@ -45,6 +48,12 @@ let RoomsController = class RoomsController {
     }
     snapshot(code, dto) {
         return this.artworks.saveSnapshot(code, dto.dataUrl, dto.title, dto.participants);
+    }
+    async reference(code, dto) {
+        const key = `rooms/${code.toUpperCase()}/reference-${Date.now()}.png`;
+        const url = await this.storage.putDataUrl(key, dto.dataUrl);
+        await this.operations.setReference(code, url);
+        return { url };
     }
 };
 exports.RoomsController = RoomsController;
@@ -91,11 +100,20 @@ __decorate([
     __metadata("design:paramtypes", [String, snapshot_dto_1.SnapshotDto]),
     __metadata("design:returntype", Promise)
 ], RoomsController.prototype, "snapshot", null);
+__decorate([
+    (0, common_1.Post)(':code/reference'),
+    __param(0, (0, common_1.Param)('code')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, reference_dto_1.ReferenceDto]),
+    __metadata("design:returntype", Promise)
+], RoomsController.prototype, "reference", null);
 exports.RoomsController = RoomsController = __decorate([
     (0, common_1.Controller)('rooms'),
     __metadata("design:paramtypes", [rooms_service_1.RoomsService,
         operations_service_1.OperationsService,
         artworks_service_1.ArtworksService,
-        messages_service_1.MessagesService])
+        messages_service_1.MessagesService,
+        storage_service_1.StorageService])
 ], RoomsController);
 //# sourceMappingURL=rooms.controller.js.map

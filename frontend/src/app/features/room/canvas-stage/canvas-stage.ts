@@ -48,6 +48,9 @@ export class CanvasStage {
   readonly operations = input<DrawOperation[]>([]);
   readonly brush = input.required<BrushSettings>();
   readonly cursors = input<RemoteCursor[]>([]);
+  readonly referenceUrl = input<string | null>(null);
+  readonly referenceVisible = input(true);
+  readonly referenceOpacity = input(0.5);
 
   readonly strokeComplete = output<CommittedOp>();
   readonly cursorMove = output<Point>();

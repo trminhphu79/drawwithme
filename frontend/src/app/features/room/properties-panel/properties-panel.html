@@ -2,6 +2,54 @@
   <h3 class="text-label-md font-bold mb-6 uppercase tracking-widest text-on-surface-variant">Properties</h3>
 
   <div class="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
+    <!-- Reference image (shared) -->
+    <div>
+      <label class="text-label-sm font-bold uppercase tracking-tighter mb-3 block opacity-60">Reference</label>
+      @if (referenceUrl()) {
+        <div class="relative rounded-lg overflow-hidden border border-outline-variant/30 group">
+          <img
+            [src]="referenceUrl()"
+            alt="Reference"
+            class="w-full h-28 object-cover cursor-zoom-in"
+            (click)="previewReference.emit()" />
+          <button
+            type="button"
+            (click)="previewReference.emit()"
+            class="absolute inset-0 flex items-center justify-center bg-on-surface/30 opacity-0 group-hover:opacity-100 transition-opacity text-white">
+            <span class="material-symbols-outlined">zoom_in</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-2 mt-3">
+          <button
+            type="button"
+            (click)="toggleReference.emit()"
+            [title]="referenceVisible() ? 'Hide on canvas' : 'Show on canvas'"
+            class="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-on-surface/5 transition-colors">
+            <span class="material-symbols-outlined text-[20px]">
+              {{ referenceVisible() ? 'visibility' : 'visibility_off' }}
+            </span>
+          </button>
+          <input
+            type="range" min="10" max="100" [value]="referenceOpacity()" (input)="onReferenceOpacity($event)"
+            class="range-soft flex-1" [style.background]="trackBg(referenceOpacity(), 10, 100)"
+            aria-label="Reference opacity" />
+          <label
+            class="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-on-surface/5 transition-colors cursor-pointer"
+            title="Replace reference">
+            <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
+            <input type="file" accept="image/*" (change)="onReferenceFile($event)" class="hidden" />
+          </label>
+        </div>
+      } @else {
+        <label
+          class="flex flex-col items-center justify-center gap-1 h-24 rounded-lg border-2 border-dashed border-outline-variant/50 text-on-surface-variant hover:bg-on-surface/5 hover:border-secondary cursor-pointer transition-colors">
+          <span class="material-symbols-outlined">add_photo_alternate</span>
+          <span class="text-body-sm">Upload reference</span>
+          <input type="file" accept="image/*" (change)="onReferenceFile($event)" class="hidden" />
+        </label>
+      }
+    </div>
+
     <!-- Stroke weight -->
     <div>
       <div class="flex justify-between items-center mb-4">

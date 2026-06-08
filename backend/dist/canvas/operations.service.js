@@ -46,6 +46,20 @@ let OperationsService = class OperationsService {
     async touch(code) {
         await this.bumpActivity(await this.roomIdByCode(code));
     }
+    async getReference(code) {
+        const room = await this.prisma.room.findUnique({
+            where: { code: code.toUpperCase() },
+            select: { referenceImageUrl: true },
+        });
+        return room?.referenceImageUrl ?? null;
+    }
+    async setReference(code, url) {
+        const roomId = await this.roomIdByCode(code);
+        await this.prisma.room.update({
+            where: { id: roomId },
+            data: { referenceImageUrl: url, lastActivityAt: new Date() },
+        });
+    }
     async clear(code) {
         const roomId = await this.roomIdByCode(code);
         await this.prisma.operation.deleteMany({ where: { roomId } });

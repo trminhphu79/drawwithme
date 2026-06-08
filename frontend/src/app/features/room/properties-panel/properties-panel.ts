@@ -17,10 +17,17 @@ export class PropertiesPanel {
   readonly color = input.required<string>();
   readonly palette = input<string[]>([]);
   readonly recentColors = input<string[]>([]);
+  readonly referenceUrl = input<string | null>(null);
+  readonly referenceVisible = input(true);
+  readonly referenceOpacity = input(50);
 
   readonly sizeChange = output<number>();
   readonly opacityChange = output<number>();
   readonly colorChange = output<string>();
+  readonly referenceFile = output<File>();
+  readonly toggleReference = output<void>();
+  readonly referenceOpacityChange = output<number>();
+  readonly previewReference = output<void>();
 
   protected onSize(event: Event): void {
     this.sizeChange.emit(Number((event.target as HTMLInputElement).value));
@@ -30,6 +37,15 @@ export class PropertiesPanel {
   }
   protected onColorInput(event: Event): void {
     this.colorChange.emit((event.target as HTMLInputElement).value);
+  }
+  protected onReferenceFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.referenceFile.emit(file);
+    input.value = '';
+  }
+  protected onReferenceOpacity(event: Event): void {
+    this.referenceOpacityChange.emit(Number((event.target as HTMLInputElement).value));
   }
 
   /** Filled-track background for the range slider (webkit). */

@@ -23,6 +23,9 @@
         [operations]="store.operations()"
         [brush]="store.brush()"
         [cursors]="store.cursors()"
+        [referenceUrl]="store.referenceUrl()"
+        [referenceVisible]="referenceVisible()"
+        [referenceOpacity]="referenceOpacity() / 100"
         (strokeComplete)="store.commit($event)"
         (cursorMove)="store.moveCursor($event)"
         (zoomChange)="zoomPercent.set($event)" />
@@ -129,9 +132,16 @@
         [color]="store.color()"
         [palette]="store.palette()"
         [recentColors]="store.recentColors()"
+        [referenceUrl]="store.referenceUrl()"
+        [referenceVisible]="referenceVisible()"
+        [referenceOpacity]="referenceOpacity()"
         (sizeChange)="store.setSize($event)"
         (opacityChange)="store.setOpacity($event)"
-        (colorChange)="store.setColor($event)" />
+        (colorChange)="store.setColor($event)"
+        (referenceFile)="onReferenceFile($event)"
+        (toggleReference)="referenceVisible.set(!referenceVisible())"
+        (referenceOpacityChange)="referenceOpacity.set($event)"
+        (previewReference)="showRefPreview.set(true)" />
     </aside>
   </main>
 
@@ -150,5 +160,20 @@
 
   <!-- Top toast (invite link copied, etc.) -->
   <app-toast [message]="toast()" />
+
+  @if (showRefPreview() && store.referenceUrl(); as ref) {
+    <div
+      class="fixed inset-0 z-[120] bg-on-surface/70 backdrop-blur-sm flex items-center justify-center p-margin-mobile"
+      (click)="showRefPreview.set(false)">
+      <img [src]="ref" alt="Reference preview" class="max-w-full max-h-full rounded-xl object-contain elevation-3" />
+      <button
+        type="button"
+        (click)="showRefPreview.set(false)"
+        class="fixed top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+        aria-label="Close preview">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  }
 </div>
 

@@ -46,6 +46,13 @@ let CanvasGateway = class CanvasGateway {
         client.data.code = code;
         this.emitPresence(code);
         void this.operations.touch(code).catch(() => undefined);
+        void this.operations
+            .getReference(code)
+            .then((url) => {
+            if (url)
+                client.emit('reference:updated', { url });
+        })
+            .catch(() => undefined);
         this.server.to(code).emit('chat:message', {
             id: `sys-${this.sysSeq++}`,
             authorId: 'system',
@@ -98,6 +105,12 @@ let CanvasGateway = class CanvasGateway {
         catch {
         }
         this.server.to(code).emit('op:reset');
+    }
+    onReference(client, body) {
+        const code = (body.code ?? '').toUpperCase();
+        if (!code || !body.url)
+            return;
+        client.to(code).emit('reference:updated', { url: body.url });
     }
     onCursor(client, body) {
         const code = (body.code ?? '').toUpperCase();
@@ -202,6 +215,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], CanvasGateway.prototype, "onReset", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('reference:set'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], CanvasGateway.prototype, "onReference", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('cursor:move'),
     __param(0, (0, websockets_1.ConnectedSocket)()),

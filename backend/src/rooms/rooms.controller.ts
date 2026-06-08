@@ -3,9 +3,11 @@ import { RoomsService, RoomDto } from './rooms.service';
 import { OperationsService, DrawOperationDto } from '../canvas/operations.service';
 import { ArtworksService } from '../artworks/artworks.service';
 import { MessagesService, ChatMessageDto } from '../messages/messages.service';
+import { StorageService } from '../storage/storage.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JoinRoomDto } from './dto/join-room.dto';
 import { SnapshotDto } from './dto/snapshot.dto';
+import { ReferenceDto } from './dto/reference.dto';
 
 @Controller('rooms')
 export class RoomsController {
@@ -14,6 +16,7 @@ export class RoomsController {
     private readonly operations: OperationsService,
     private readonly artworks: ArtworksService,
     private readonly messages: MessagesService,
+    private readonly storage: StorageService,
   ) {}
 
   @Post()
@@ -50,5 +53,17 @@ export class RoomsController {
     @Body() dto: SnapshotDto,
   ): Promise<{ url: string; id: string }> {
     return this.artworks.saveSnapshot(code, dto.dataUrl, dto.title, dto.participants);
+  }
+
+  /** Upload/replace the room's shared reference image. */
+  @Post(':code/reference')
+  async reference(
+    @Param('code') code: string,
+    @Body() dto: ReferenceDto,
+  ): Promise<{ url: string }> {
+    const key = `rooms/${code.toUpperCase()}/reference-${Date.now()}.png`;
+    const url = await this.storage.putDataUrl(key, dto.dataUrl);
+    await this.operations.setReference(code, url);
+    return { url };
   }
 }

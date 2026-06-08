@@ -21,6 +21,17 @@
       [style.width.px]="displayW"
       [style.height.px]="displayH"></canvas>
 
+    <!-- Shared reference image (guide overlay; never part of the artwork) -->
+    @if (referenceUrl() && referenceVisible()) {
+      <img
+        [src]="referenceUrl()"
+        alt="Reference"
+        class="absolute top-0 left-0 pointer-events-none select-none object-contain"
+        [style.width.px]="displayW"
+        [style.height.px]="displayH"
+        [style.opacity]="referenceOpacity()" />
+    }
+
     <!-- Remote cursors (smoothly interpolated; scale with the world) -->
     @for (cursor of cursors(); track cursor.id) {
       <div

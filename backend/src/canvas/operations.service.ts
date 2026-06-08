@@ -55,6 +55,24 @@ export class OperationsService {
     await this.bumpActivity(await this.roomIdByCode(code));
   }
 
+  /** Current shared reference image for a room. */
+  async getReference(code: string): Promise<string | null> {
+    const room = await this.prisma.room.findUnique({
+      where: { code: code.toUpperCase() },
+      select: { referenceImageUrl: true },
+    });
+    return room?.referenceImageUrl ?? null;
+  }
+
+  /** Set/replace the shared reference image. */
+  async setReference(code: string, url: string): Promise<void> {
+    const roomId = await this.roomIdByCode(code);
+    await this.prisma.room.update({
+      where: { id: roomId },
+      data: { referenceImageUrl: url, lastActivityAt: new Date() },
+    });
+  }
+
   /** Wipe the whole canvas for a room (reset). */
   async clear(code: string): Promise<void> {
     const roomId = await this.roomIdByCode(code);

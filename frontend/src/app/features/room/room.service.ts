@@ -15,6 +15,11 @@ export class RoomService {
     return this.http.get<DrawOperation[]>(`${this.base}/${code}/operations`);
   }
 
+  /** Upload/replace the shared reference image; returns its public URL. */
+  uploadReference(code: string, dataUrl: string): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${this.base}/${code}/reference`, { dataUrl });
+  }
+
   /** Persist a rasterized snapshot; returns the public URL + shareable artwork id. */
   saveSnapshot(
     code: string,

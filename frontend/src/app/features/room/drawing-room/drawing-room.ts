@@ -75,6 +75,10 @@ export class DrawingRoom {
   private weightTimer: ReturnType<typeof setTimeout> | undefined;
   /** Reset-canvas confirmation modal. */
   protected readonly confirmReset = signal(false);
+  /** Reference image view state (local, per-user) + fullscreen preview. */
+  protected readonly referenceVisible = signal(true);
+  protected readonly referenceOpacity = signal(50);
+  protected readonly showRefPreview = signal(false);
   /** Transient toast message (e.g. after copying the invite link). */
   protected readonly toast = signal<string | null>(null);
   private toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -166,6 +170,19 @@ export class DrawingRoom {
   protected onConfirmReset(): void {
     this.confirmReset.set(false);
     this.store.reset();
+  }
+
+  /** Read an uploaded reference file and share it with the room. */
+  protected onReferenceFile(file: File): void {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      if (dataUrl) {
+        void this.store.setReference(dataUrl);
+        this.referenceVisible.set(true);
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   private showToast(message: string): void {
