@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReviewStore } from '../review.store';
 import { ArtworkPreview } from '../artwork-preview/artwork-preview';
 import { ArtworkActions } from '../artwork-actions/artwork-actions';
+import { ReplayPlayer } from '../replay-player/replay-player';
 
 /**
  * SMART / container for the Final-Artwork review screen. Provides ReviewStore,
@@ -13,7 +14,7 @@ import { ArtworkActions } from '../artwork-actions/artwork-actions';
   selector: 'app-review-artwork',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ReviewStore],
-  imports: [RouterLink, DatePipe, ArtworkPreview, ArtworkActions],
+  imports: [RouterLink, DatePipe, ArtworkPreview, ArtworkActions, ReplayPlayer],
   templateUrl: './review-artwork.html',
 })
 export class ReviewArtwork {
@@ -21,6 +22,9 @@ export class ReviewArtwork {
 
   /** Route param `artwork/:id` via withComponentInputBinding(). */
   readonly id = input<string>('');
+
+  /** Replay overlay visibility. */
+  protected readonly showReplay = signal(false);
 
   constructor() {
     let started = false;

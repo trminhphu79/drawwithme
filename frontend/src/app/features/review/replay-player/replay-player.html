@@ -1,0 +1,58 @@
+<div
+  class="fixed inset-0 z-[120] bg-on-surface/60 backdrop-blur-sm flex items-center justify-center p-margin-mobile"
+  (click)="close.emit()">
+  <div class="w-full max-w-4xl flex flex-col gap-4" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between">
+      <h2 class="text-headline-md font-bold text-white flex items-center gap-2">
+        <span class="material-symbols-outlined">history</span> Replay
+      </h2>
+      <button
+        type="button"
+        (click)="close.emit()"
+        class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+        aria-label="Close replay">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="relative w-full aspect-[16/10] bg-surface-container-lowest rounded-xl overflow-hidden elevation-3">
+      <canvas #canvas [width]="canvasW" [height]="canvasH" class="w-full h-full"></canvas>
+
+      @if (loading()) {
+        <div class="absolute inset-0 flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined animate-spin">progress_activity</span>
+        </div>
+      } @else if (empty()) {
+        <div class="absolute inset-0 flex items-center justify-center text-on-surface-variant text-body-md">
+          Nothing to replay — the canvas was empty or cleared.
+        </div>
+      }
+    </div>
+
+    <!-- Progress -->
+    <div class="h-1.5 rounded-full bg-white/20 overflow-hidden">
+      <div class="h-full bg-secondary transition-[width] duration-100" [style.width.%]="progress() * 100"></div>
+    </div>
+
+    <!-- Controls -->
+    @if (!empty()) {
+      <div class="flex items-center justify-center gap-3">
+        <button
+          type="button"
+          (click)="togglePlay()"
+          class="w-12 h-12 flex items-center justify-center rounded-full bg-secondary text-on-secondary hover:brightness-110 active:scale-95 transition-all">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">
+            {{ finished() ? 'replay' : playing() ? 'pause' : 'play_arrow' }}
+          </span>
+        </button>
+        <button
+          type="button"
+          (click)="restart()"
+          title="Restart"
+          class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all">
+          <span class="material-symbols-outlined">restart_alt</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

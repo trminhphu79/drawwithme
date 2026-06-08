@@ -30,11 +30,18 @@
         }
       </div>
 
-      <app-artwork-preview [imageUrl]="store.artwork()?.imageUrl ?? null" />
+      <app-artwork-preview
+        [imageUrl]="store.artwork()?.imageUrl ?? null"
+        (replay)="showReplay.set(true)" />
 
       <app-artwork-actions
         [canDownload]="store.hasImage()"
-        (download)="onDownload()" />
+        (download)="onDownload()"
+        (replay)="showReplay.set(true)" />
     </div>
   </main>
+
+  @if (showReplay()) {
+    <app-replay-player [id]="id()" (close)="showReplay.set(false)" />
+  }
 </div>
