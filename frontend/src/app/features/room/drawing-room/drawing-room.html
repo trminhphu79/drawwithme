@@ -85,6 +85,7 @@
         [pencilStyles]="pencilStyles"
         [pencilStyle]="store.pencilStyle()"
         [color]="store.color()"
+        [canFinish]="store.canUndo()"
         (toolSelect)="onToolSelect($event)"
         (styleChange)="onStyleChange($event)"
         (preferences)="onPreferences()"

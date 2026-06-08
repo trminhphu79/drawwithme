@@ -113,7 +113,14 @@ export class DrawingRoom {
   constructor() {
     effect(() => {
       const code = this.code();
-      if (!code || this.entered || this.showNameGate()) return;
+      if (!code || this.entered || this.showNameGate() || this.leaving) return;
+      // If this session was already finished, don't let them back into the
+      // room — bounce to the result with a heads-up toast.
+      const done = this.completedArtwork(code);
+      if (done) {
+        this.redirectToCompleted(done);
+        return;
+      }
       // Show the avatar + name gate on the first entry to this room (incl.
       // joining via a shared link), but skip it on refresh of the same tab.
       if (this.isConfirmed(code)) this.enter(code);
@@ -127,6 +134,7 @@ export class DrawingRoom {
       if (!done || this.redirectingToArtwork) return;
       this.redirectingToArtwork = true;
       this.leaving = true; // auto-redirect — don't prompt the leave guard
+      this.markCompleted(this.code(), done.artworkId);
       this.showToast(`🎉 ${done.by} finished the masterpiece! Opening the result…`);
       setTimeout(() => this.router.navigate(['/view', done.artworkId]), 1800);
     });
@@ -261,6 +269,10 @@ export class DrawingRoom {
 
   /** Finish icon → confirm first (don't seal/redirect directly). */
   protected onFinish(): void {
+    if (!this.store.canUndo()) {
+      this.showToast('Draw something before finishing 🎨');
+      return;
+    }
     this.confirmFinish.set(true);
   }
 
@@ -279,6 +291,7 @@ export class DrawingRoom {
         target = id;
         // Notify everyone else so they get redirected to the finished artwork.
         this.store.notifyFinished(id);
+        this.markCompleted(this.code(), id);
       }
     }
     this.leaving = true; // skip the leave-confirm guard for the finish redirect
@@ -315,6 +328,32 @@ export class DrawingRoom {
     } catch {
       /* sessionStorage unavailable — gate will simply show again */
     }
+  }
+
+  /** Records that a room was finished (→ artwork id) so Back can't re-enter it. */
+  private completedKey(code: string): string {
+    return `dwm.completed.${code.toUpperCase()}`;
+  }
+  private completedArtwork(code: string): string | null {
+    try {
+      return localStorage.getItem(this.completedKey(code));
+    } catch {
+      return null;
+    }
+  }
+  private markCompleted(code: string, artworkId: string): void {
+    try {
+      localStorage.setItem(this.completedKey(code), artworkId);
+    } catch {
+      /* localStorage unavailable — best-effort only */
+    }
+  }
+
+  /** Session already done → toast, then gently send them to the result. */
+  private redirectToCompleted(artworkId: string): void {
+    this.leaving = true;
+    this.showToast('This session is already completed — taking you to the result…');
+    setTimeout(() => this.router.navigate(['/view', artworkId]), 2200);
   }
 
   private enter(code: string): void {
