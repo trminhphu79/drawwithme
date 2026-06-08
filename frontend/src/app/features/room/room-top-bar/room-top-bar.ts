@@ -19,7 +19,10 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           [class]="leftPanelOpen() ? 'text-rose-500 bg-rose-500/10' : 'text-on-surface-variant hover:bg-on-surface/5'">
           <span class="material-symbols-outlined">dock_to_right</span>
         </button>
-        <span class="text-headline-md font-extrabold text-primary">DrawWithMe</span>
+        <span class="flex items-center gap-2">
+          <img src="logo.png" alt="" class="w-8 h-8 rounded-lg object-contain" />
+          <span class="text-headline-md font-extrabold text-primary hidden sm:inline">DrawWithMe</span>
+        </span>
         <span
           class="hidden md:inline text-label-sm text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full border border-outline-variant">
           Room #{{ roomCode() }}

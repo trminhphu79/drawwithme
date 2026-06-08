@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1780931145568,
+  "timestamp": 1780932000202,
   "index": "/index.html",
   "assetGroups": [
     {
@@ -11,16 +11,16 @@
         "ignoreVary": true
       },
       "urls": [
+        "/chunk-B66ZjXnZ.js",
+        "/chunk-B_ab-JIh.js",
+        "/chunk-Brd5Z0Hy.js",
+        "/chunk-Bwv3-LNo.js",
         "/chunk-BzzeMo-r.js",
-        "/chunk-CNh1YDI3.js",
-        "/chunk-CgFVCnfv.js",
-        "/chunk-JaZjTVZz.js",
-        "/chunk-YALOeiln.js",
         "/favicon.ico",
         "/index.html",
-        "/main-XF7U7TEI.js",
+        "/main-IMFLL763.js",
         "/manifest.webmanifest",
-        "/styles-BSRIIPNS.css"
+        "/styles-Q7GHCIOU.css"
       ],
       "patterns": []
     },
@@ -32,6 +32,7 @@
         "ignoreVary": true
       },
       "urls": [
+        "/favicon-48.png",
         "/icons/icon-128x128.png",
         "/icons/icon-144x144.png",
         "/icons/icon-152x152.png",
@@ -39,31 +40,50 @@
         "/icons/icon-384x384.png",
         "/icons/icon-512x512.png",
         "/icons/icon-72x72.png",
-        "/icons/icon-96x96.png"
+        "/icons/icon-96x96.png",
+        "/icons/maskable-128x128.png",
+        "/icons/maskable-144x144.png",
+        "/icons/maskable-152x152.png",
+        "/icons/maskable-192x192.png",
+        "/icons/maskable-384x384.png",
+        "/icons/maskable-512x512.png",
+        "/icons/maskable-72x72.png",
+        "/icons/maskable-96x96.png",
+        "/logo.png"
       ],
       "patterns": []
     }
   ],
   "dataGroups": [],
   "hashTable": {
+    "/chunk-B66ZjXnZ.js": "91d4b896d80976749f546030a512dbec27c6b8f9",
+    "/chunk-B_ab-JIh.js": "45b70f39caed5944cb96d352dc96fa0676769c02",
+    "/chunk-Brd5Z0Hy.js": "d6fd1eebe10eeb206e3b1ab7e361f1fc8f737c33",
+    "/chunk-Bwv3-LNo.js": "28736cf0feca96481fe78e7348f4bacebfeb2eb3",
     "/chunk-BzzeMo-r.js": "0dae4a69351b95d8a6dccfcb3928075e2f08b919",
-    "/chunk-CNh1YDI3.js": "f0efc56122e8cc0ad930ffa59748b4d1a4239507",
-    "/chunk-CgFVCnfv.js": "cd440c17133e25a89654a2915ec4debdf5e5fdef",
-    "/chunk-JaZjTVZz.js": "c5d275fe30a47c97af2ecae7e462408badb052fa",
-    "/chunk-YALOeiln.js": "10de8a6982495b0295439209b06261fe27b113c8",
+    "/favicon-48.png": "64d0a5c988ac212b2515e92741a1643d80ec1205",
     "/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
-    "/icons/icon-128x128.png": "f912963bdc6d5a38d8f1dd0afbaab2ce8d657acb",
-    "/icons/icon-144x144.png": "b155fd5f2fd5d2ea7760721063003c4cd95fd783",
-    "/icons/icon-152x152.png": "eae6e0f0c8afb8aaae339e2a569b43e9238e5e6c",
-    "/icons/icon-192x192.png": "15c4180454633880d98674aa7394656196c91584",
-    "/icons/icon-384x384.png": "94a915751ef6c9282df9aea405ad679230631814",
-    "/icons/icon-512x512.png": "1de182f76f7329dfa8f9fcdd1fdcdd695bea6a99",
-    "/icons/icon-72x72.png": "aa88a6096bd973be7f6d7a5489bfa6bc2463f8c4",
-    "/icons/icon-96x96.png": "7fb8f59c30ce2ff12c700321a0b39e14b3dc8f95",
-    "/index.html": "e3d5d0435fd8d0a9c8a63f5b96a613d1c4b6b7eb",
-    "/main-XF7U7TEI.js": "b90c8877cd6b5e90ac07233d83253325e598563f",
-    "/manifest.webmanifest": "fd4fb1f1fac3fa2ac736234563f9f8fb58f5a80c",
-    "/styles-BSRIIPNS.css": "8340dfa1a80b98bb2f7b8d74639cf1df8a304d61"
+    "/icons/icon-128x128.png": "60ffbc2e47a811f7ccee3819a849f3364777e032",
+    "/icons/icon-144x144.png": "9db67216274c013d2ab6a6c7a3b74f3d4bc7528e",
+    "/icons/icon-152x152.png": "8c25881bbc821c2b4f0c40e462f3962e3ab631e2",
+    "/icons/icon-192x192.png": "3b2077fcf73de19309972168484cace2b90742a4",
+    "/icons/icon-384x384.png": "41e28a24033c2dec941bbf6d837597524c9584ca",
+    "/icons/icon-512x512.png": "e1a9af39220eb0ad0332314c856f849bf3812569",
+    "/icons/icon-72x72.png": "fb87fc27a3289294e2710324e21b7a5506d27ee5",
+    "/icons/icon-96x96.png": "3b5509b912654e3c67b6f07210e78f7b862845fe",
+    "/icons/maskable-128x128.png": "5bb06c9193ed750a4e50f8f63046fa8177f9ffb4",
+    "/icons/maskable-144x144.png": "d52868ca90a24da3601534797fbb008954e3e932",
+    "/icons/maskable-152x152.png": "66b15b4b16fcf254bcfda1455031f6e4b1726dd1",
+    "/icons/maskable-192x192.png": "c01ff883290b4c7ba8cdac653018059a18fc0f10",
+    "/icons/maskable-384x384.png": "ad0728d3a37188f75fdc60c994b438a3b350defc",
+    "/icons/maskable-512x512.png": "44c197a427ac96e2dfc6dee0a4b9b181a870088f",
+    "/icons/maskable-72x72.png": "2e254d067a85eb53effa0283d0a56ecde51cd46b",
+    "/icons/maskable-96x96.png": "d2d07ace55b1eee66f6f1e6f3587fde0819821cd",
+    "/index.html": "0e0201e294ba77785f47752f3531e16b105c0fe2",
+    "/logo.png": "61485832b22492d475d51cc0dffac4a20ca38ea1",
+    "/main-IMFLL763.js": "9ea3ff307c6eb653b485981a4ab775ce101acb02",
+    "/manifest.webmanifest": "a0489c1f4baac111de34e669ee297e359eff3171",
+    "/styles-Q7GHCIOU.css": "32900d7a16de593125a39d84473331ce726ee6a1"
   },
   "navigationUrls": [
     {
