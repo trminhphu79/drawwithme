@@ -132,6 +132,16 @@ export class DrawingRoom {
     void navigator.clipboard?.writeText(url);
   }
 
+  protected onHome(): void {
+    this.router.navigate(['/join']);
+  }
+
+  protected onReset(): void {
+    if (confirm('Clear the whole canvas for everyone? This cannot be undone.')) {
+      this.store.reset();
+    }
+  }
+
   protected async onFinish(): Promise<void> {
     const dataUrl = this.canvas()?.captureDataUrl();
     if (dataUrl) await this.store.seal(dataUrl);

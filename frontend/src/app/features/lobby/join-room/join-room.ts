@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { JoinRoomStore } from '../join-room.store';
 import { JoinRoomCard } from '../join-room-card/join-room-card';
 import { PreferencesStore } from '../../../core/preferences.store';
+import { InstallButton } from '../../../core/install-button';
 
 /**
  * SMART / container. Provides the JoinRoomStore, binds the display name to the
@@ -12,7 +13,7 @@ import { PreferencesStore } from '../../../core/preferences.store';
 @Component({
   selector: 'app-join-room',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [JoinRoomCard],
+  imports: [JoinRoomCard, InstallButton],
   providers: [JoinRoomStore],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-background text-on-background">
@@ -36,7 +37,11 @@ import { PreferencesStore } from '../../../core/preferences.store';
           (join)="onJoin()"
           (create)="onCreate()" />
 
-        <div class="mt-8 text-center flex gap-4 justify-center text-body-sm text-on-surface-variant">
+        <div class="mt-6 flex justify-center">
+          <app-install-button />
+        </div>
+
+        <div class="mt-6 text-center flex gap-4 justify-center text-body-sm text-on-surface-variant">
           <a class="hover:text-secondary transition-colors" href="#">Help</a>
           <span>·</span>
           <a class="hover:text-secondary transition-colors" href="#">Terms</a>

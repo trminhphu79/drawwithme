@@ -9,7 +9,9 @@
     (finish)="onFinish()"
     (chatToggle)="toggleChat()"
     (toggleLeftPanel)="chatCollapsed.set(!chatCollapsed())"
-    (toggleRightPanel)="propsCollapsed.set(!propsCollapsed())" />
+    (toggleRightPanel)="propsCollapsed.set(!propsCollapsed())"
+    (reset)="onReset()"
+    (home)="onHome()" />
 
   <main class="w-full h-full pt-16 relative">
     <!-- Canvas (fills the workspace; glass panels float over it) -->

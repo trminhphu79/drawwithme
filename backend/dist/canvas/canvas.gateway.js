@@ -88,6 +88,17 @@ let CanvasGateway = class CanvasGateway {
         }
         client.to(code).emit('op:applied', body.op);
     }
+    async onReset(body) {
+        const code = (body.code ?? '').toUpperCase();
+        if (!code)
+            return;
+        try {
+            await this.operations.clear(code);
+        }
+        catch {
+        }
+        this.server.to(code).emit('op:reset');
+    }
     onCursor(client, body) {
         const code = (body.code ?? '').toUpperCase();
         const presence = this.rooms.get(code)?.get(client.id);
@@ -184,6 +195,13 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", Promise)
 ], CanvasGateway.prototype, "onRedo", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('op:reset'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CanvasGateway.prototype, "onReset", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('cursor:move'),
     __param(0, (0, websockets_1.ConnectedSocket)()),

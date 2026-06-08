@@ -122,6 +122,19 @@ export class CanvasGateway implements OnGatewayDisconnect {
     client.to(code).emit('op:applied', body.op);
   }
 
+  @SubscribeMessage('op:reset')
+  async onReset(@MessageBody() body: { code: string }): Promise<void> {
+    const code = (body.code ?? '').toUpperCase();
+    if (!code) return;
+    try {
+      await this.operations.clear(code);
+    } catch {
+      /* ignore */
+    }
+    // Clear everyone's canvas (including the sender, for consistency).
+    this.server.to(code).emit('op:reset');
+  }
+
   @SubscribeMessage('cursor:move')
   onCursor(
     @ConnectedSocket() client: Socket,

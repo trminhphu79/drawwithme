@@ -19,10 +19,14 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           [class]="leftPanelOpen() ? 'text-rose-500 bg-rose-500/10' : 'text-on-surface-variant hover:bg-on-surface/5'">
           <span class="material-symbols-outlined">dock_to_right</span>
         </button>
-        <span class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="home.emit()"
+          title="Back to home"
+          class="flex items-center gap-2 hover:opacity-80 active:scale-95 transition-all">
           <img src="logo.png" alt="" class="w-8 h-8 rounded-lg object-contain" />
           <span class="text-headline-md font-extrabold text-primary hidden sm:inline">DrawWithMe</span>
-        </span>
+        </button>
         <span
           class="hidden md:inline text-label-sm text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full border border-outline-variant">
           Room #{{ roomCode() }}
@@ -61,6 +65,13 @@ import { ThemeToggle } from '../../../core/theme-toggle';
         </button>
         <button
           type="button"
+          (click)="reset.emit()"
+          title="Clear the whole canvas"
+          class="w-10 h-10 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-error/10 hover:text-error transition-colors">
+          <span class="material-symbols-outlined">delete_sweep</span>
+        </button>
+        <button
+          type="button"
           (click)="finish.emit()"
           class="glass-panel px-4 py-2 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 transition-colors hidden md:flex items-center gap-1">
           <span class="material-symbols-outlined text-[18px]">check_circle</span>
@@ -93,4 +104,6 @@ export class RoomTopBar {
   readonly chatToggle = output<void>();
   readonly toggleLeftPanel = output<void>();
   readonly toggleRightPanel = output<void>();
+  readonly reset = output<void>();
+  readonly home = output<void>();
 }

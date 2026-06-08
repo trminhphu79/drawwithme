@@ -343,14 +343,30 @@ export class CanvasStage {
       opacity: op.opacity,
       style: op.style ?? 'hard',
     };
-    // Replay the whole stroke as one path (clean soft/glow edges, no banding).
+    // Replay the whole stroke as one smooth path (quadratic through midpoints).
     ctx.save();
     this.applyStrokeStyle(ctx, settings);
-    ctx.beginPath();
-    ctx.moveTo(op.points[0].x, op.points[0].y);
-    for (let i = 1; i < op.points.length; i++) ctx.lineTo(op.points[i].x, op.points[i].y);
+    this.tracePath(ctx, op.points);
     ctx.stroke();
     ctx.restore();
+  }
+
+  /** Smooth path: quadratic curves through the midpoints of consecutive points. */
+  private tracePath(ctx: CanvasRenderingContext2D, pts: Point[]): void {
+    ctx.beginPath();
+    if (pts.length < 3) {
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      return;
+    }
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const midX = (pts[i].x + pts[i + 1].x) / 2;
+      const midY = (pts[i].y + pts[i + 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+    }
+    const last = pts[pts.length - 1];
+    ctx.quadraticCurveTo(pts[pts.length - 2].x, pts[pts.length - 2].y, last.x, last.y);
   }
 
   /** Configure ctx for the given brush incl. the 3 pencil styles. */

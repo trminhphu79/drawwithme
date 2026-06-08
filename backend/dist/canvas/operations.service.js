@@ -46,6 +46,11 @@ let OperationsService = class OperationsService {
     async touch(code) {
         await this.bumpActivity(await this.roomIdByCode(code));
     }
+    async clear(code) {
+        const roomId = await this.roomIdByCode(code);
+        await this.prisma.operation.deleteMany({ where: { roomId } });
+        await this.bumpActivity(roomId);
+    }
     async bumpActivity(roomId) {
         await this.prisma.room.update({
             where: { id: roomId },

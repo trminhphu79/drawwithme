@@ -55,6 +55,13 @@ export class OperationsService {
     await this.bumpActivity(await this.roomIdByCode(code));
   }
 
+  /** Wipe the whole canvas for a room (reset). */
+  async clear(code: string): Promise<void> {
+    const roomId = await this.roomIdByCode(code);
+    await this.prisma.operation.deleteMany({ where: { roomId } });
+    await this.bumpActivity(roomId);
+  }
+
   private async bumpActivity(roomId: string): Promise<void> {
     await this.prisma.room.update({
       where: { id: roomId },

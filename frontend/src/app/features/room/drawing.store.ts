@@ -112,6 +112,11 @@ export class DrawingStore {
       .on<RemoteCursor>('cursor:move')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((cursor) => this.upsertCursor(cursor));
+
+    this.socket
+      .on<void>('op:reset')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.clearLocal());
   }
 
   // ---- tool actions ----
@@ -158,6 +163,17 @@ export class DrawingStore {
     this._operations.update((ops) => (ops.some((o) => o.id === op.id) ? ops : [...ops, op]));
     // Restore (un-undo) on the server, which re-broadcasts to others automatically.
     this.socket.emit('op:redo', { code: this.code, op });
+  }
+
+  /** Clear the whole canvas for everyone in the room. */
+  reset(): void {
+    this.clearLocal();
+    this.socket.emit('op:reset', { code: this.code });
+  }
+
+  private clearLocal(): void {
+    this._operations.set([]);
+    this._redo.set([]);
   }
 
   /** Throttled cursor broadcast (called from the canvas component). */
