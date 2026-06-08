@@ -30,25 +30,25 @@
   --color-outline: #767680;
   --color-outline-variant: #c7c5d0;
 
-  --color-surface-tint: #545b8a;
-  --color-primary: #000110;
+  --color-surface-tint: #d6409f;
+  --color-primary: #d6409f;
   --color-on-primary: #ffffff;
-  --color-primary-container: #111844;
-  --color-on-primary-container: #7b81b3;
-  --color-inverse-primary: #bdc3f9;
-  --color-primary-fixed: #dfe0ff;
-  --color-primary-fixed-dim: #bdc3f9;
-  --color-on-primary-fixed: #101743;
-  --color-on-primary-fixed-variant: #3d4371;
+  --color-primary-container: #b81f86;
+  --color-on-primary-container: #ffffff;
+  --color-inverse-primary: #ffb0d8;
+  --color-primary-fixed: #ffd9ec;
+  --color-primary-fixed-dim: #ffb0d8;
+  --color-on-primary-fixed: #3a0021;
+  --color-on-primary-fixed-variant: #a01e6f;
 
-  --color-secondary: #4b41e1;
+  --color-secondary: #f0612e;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #645efb;
-  --color-on-secondary-container: #fffbff;
-  --color-secondary-fixed: #e2dfff;
-  --color-secondary-fixed-dim: #c3c0ff;
-  --color-on-secondary-fixed: #0f0069;
-  --color-on-secondary-fixed-variant: #3323cc;
+  --color-secondary-container: #fb923c;
+  --color-on-secondary-container: #4a1c00;
+  --color-secondary-fixed: #ffdcc2;
+  --color-secondary-fixed-dim: #ffb784;
+  --color-on-secondary-fixed: #2e1500;
+  --color-on-secondary-fixed-variant: #8a3d13;
 
   --color-tertiary: #060100;
   --color-on-tertiary: #ffffff;
@@ -180,17 +180,17 @@
   --color-outline: #90909a;
   --color-outline-variant: #46464f;
 
-  --color-surface-tint: #bdc3f9;
-  --color-primary: #bdc3f9;
-  --color-on-primary: #262d59;
-  --color-primary-container: #111844;
-  --color-on-primary-container: #7b81b3;
-  --color-inverse-primary: #545b8a;
+  --color-surface-tint: #ffb0d8;
+  --color-primary: #ffb0d8;
+  --color-on-primary: #5e0838;
+  --color-primary-container: #b81f86;
+  --color-on-primary-container: #ffd9ec;
+  --color-inverse-primary: #d6409f;
 
-  --color-secondary: #c3c0ff;
-  --color-on-secondary: #1d00a5;
-  --color-secondary-container: #3626ce;
-  --color-on-secondary-container: #b3b1ff;
+  --color-secondary: #ffb784;
+  --color-on-secondary: #4a1c00;
+  --color-secondary-container: #c2570a;
+  --color-on-secondary-container: #ffe7d3;
 
   --color-tertiary: #f8b995;
   --color-on-tertiary: #4d260d;
