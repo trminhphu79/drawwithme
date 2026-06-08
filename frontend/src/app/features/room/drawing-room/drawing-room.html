@@ -20,6 +20,11 @@
 
       <app-reaction-overlay [reactions]="chat.reactions()" />
 
+      <!-- Quick reactions, floating just above the undo/redo controls -->
+      <app-reaction-bar
+        class="absolute bottom-20 left-1/2 -translate-x-1/2 z-30"
+        (react)="chat.react($event)" />
+
       <app-canvas-controls
         [zoom]="store.zoom()"
         [canUndo]="store.canUndo()"

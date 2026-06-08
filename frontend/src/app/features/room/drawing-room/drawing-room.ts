@@ -17,6 +17,7 @@ import { RoomTopBar } from '../room-top-bar/room-top-bar';
 import { ToolRail } from '../tool-rail/tool-rail';
 import { CanvasStage } from '../canvas-stage/canvas-stage';
 import { CanvasControls } from '../canvas-controls/canvas-controls';
+import { ReactionBar } from '../reaction-bar/reaction-bar';
 import { PropertiesPanel } from '../properties-panel/properties-panel';
 import { ChatPanel } from '../chat-panel/chat-panel';
 import { ReactionOverlay } from '../reaction-overlay/reaction-overlay';
@@ -36,6 +37,7 @@ import { NameGate } from '../name-gate/name-gate';
     ToolRail,
     CanvasStage,
     CanvasControls,
+    ReactionBar,
     PropertiesPanel,
     ChatPanel,
     ReactionOverlay,
