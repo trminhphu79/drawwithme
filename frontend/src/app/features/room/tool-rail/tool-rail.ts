@@ -47,13 +47,13 @@ import { PencilStyle, PencilStyleDef, ToolDef, ToolId } from '../tool.model';
 
       <div class="w-px h-7 bg-outline-variant/40 mx-1"></div>
 
-      <button type="button" title="Layers (coming soon)"
-        class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant/40 cursor-not-allowed">
-        <span class="material-symbols-outlined">layers</span>
+      <button type="button" (click)="preferences.emit()" title="Properties"
+        class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all">
+        <span class="material-symbols-outlined">tune</span>
       </button>
-      <button type="button" title="Help"
-        class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white/20 hover:scale-110 transition-all">
-        <span class="material-symbols-outlined">help</span>
+      <button type="button" (click)="clear.emit()" title="Clear canvas"
+        class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error/10 hover:text-error hover:scale-110 active:scale-95 transition-all">
+        <span class="material-symbols-outlined">delete</span>
       </button>
     </nav>
   `,
@@ -66,4 +66,6 @@ export class ToolRail {
 
   readonly toolSelect = output<ToolId>();
   readonly styleChange = output<PencilStyle>();
+  readonly preferences = output<void>();
+  readonly clear = output<void>();
 }

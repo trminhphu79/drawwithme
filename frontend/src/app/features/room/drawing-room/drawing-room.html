@@ -82,7 +82,9 @@
         [pencilStyles]="pencilStyles"
         [pencilStyle]="store.pencilStyle()"
         (toolSelect)="onToolSelect($event)"
-        (styleChange)="onStyleChange($event)" />
+        (styleChange)="onStyleChange($event)"
+        (preferences)="onPreferences()"
+        (clear)="onReset()" />
     </div>
 
     <!-- Transient stroke-weight slider, below the tool bar (fades out on idle) -->

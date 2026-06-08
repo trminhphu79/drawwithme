@@ -45,13 +45,6 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors">
           <span class="material-symbols-outlined">forum</span>
         </button>
-        <button
-          type="button"
-          (click)="propsToggle.emit()"
-          title="Properties"
-          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-secondary hover:bg-secondary/10 transition-colors">
-          <span class="material-symbols-outlined">tune</span>
-        </button>
         <div class="flex -space-x-3 items-center mr-1">
           @for (p of participants(); track p.id) {
             <div
@@ -80,9 +73,10 @@ import { ThemeToggle } from '../../../core/theme-toggle';
         <button
           type="button"
           (click)="finish.emit()"
-          class="glass-panel px-4 py-2 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 transition-colors hidden md:flex items-center gap-1">
+          title="Finish"
+          class="glass-panel px-3 sm:px-4 py-2 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 transition-colors flex items-center gap-1">
           <span class="material-symbols-outlined text-[18px]">check_circle</span>
-          Finish
+          <span class="hidden sm:inline">Finish</span>
         </button>
 
         <button

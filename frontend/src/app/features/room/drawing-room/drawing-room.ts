@@ -156,6 +156,12 @@ export class DrawingRoom {
     this.confirmReset.set(true);
   }
 
+  /** Open the Properties panel (mobile drawer + ensure visible on desktop). */
+  protected onPreferences(): void {
+    this.propsOpen.set(true);
+    this.propsCollapsed.set(false);
+  }
+
   protected onConfirmReset(): void {
     this.confirmReset.set(false);
     this.store.reset();
