@@ -24,6 +24,7 @@ import { PropertiesPanel } from '../properties-panel/properties-panel';
 import { ChatPanel } from '../chat-panel/chat-panel';
 import { ReactionOverlay } from '../reaction-overlay/reaction-overlay';
 import { NameGate } from '../name-gate/name-gate';
+import { ConfirmDialog } from '../../../core/confirm-dialog';
 
 /**
  * SMART / container for the Drawing Room (new-main.html layout). Provides the
@@ -45,6 +46,7 @@ import { NameGate } from '../name-gate/name-gate';
     ChatPanel,
     ReactionOverlay,
     NameGate,
+    ConfirmDialog,
   ],
   templateUrl: './drawing-room.html',
   host: { '(window:keydown)': 'onKeydown($event)' },
@@ -67,6 +69,11 @@ export class DrawingRoom {
   /** Transient stroke-weight slider (shows on tool change, fades out after idle). */
   protected readonly weightVisible = signal(false);
   private weightTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Reset-canvas confirmation modal. */
+  protected readonly confirmReset = signal(false);
+  /** Transient toast message (e.g. after copying the invite link). */
+  protected readonly toast = signal<string | null>(null);
+  private toastTimer: ReturnType<typeof setTimeout> | undefined;
   /** Desktop collapse state for the side panels. */
   protected readonly chatCollapsed = signal(false);
   protected readonly propsCollapsed = signal(false);
@@ -129,7 +136,12 @@ export class DrawingRoom {
 
   protected onInvite(): void {
     const url = `${location.origin}/room/${this.code()}`;
-    void navigator.clipboard?.writeText(url);
+    const done = () => this.showToast('Link copied — share it with your friends! 🎉');
+    try {
+      navigator.clipboard?.writeText(url).then(done, done) ?? done();
+    } catch {
+      done();
+    }
   }
 
   protected onHome(): void {
@@ -137,9 +149,18 @@ export class DrawingRoom {
   }
 
   protected onReset(): void {
-    if (confirm('Clear the whole canvas for everyone? This cannot be undone.')) {
-      this.store.reset();
-    }
+    this.confirmReset.set(true);
+  }
+
+  protected onConfirmReset(): void {
+    this.confirmReset.set(false);
+    this.store.reset();
+  }
+
+  private showToast(message: string): void {
+    this.toast.set(message);
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => this.toast.set(null), 3200);
   }
 
   protected async onFinish(): Promise<void> {

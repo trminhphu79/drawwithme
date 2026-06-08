@@ -118,4 +118,25 @@
   @if (showNameGate()) {
     <app-name-gate [initial]="initialName()" (submitName)="onNameSubmit($event)" />
   }
+
+  @if (confirmReset()) {
+    <app-confirm-dialog
+      title="Clear the canvas?"
+      message="This wipes the whole drawing for everyone in the room and can't be undone."
+      confirmLabel="Clear canvas"
+      (confirm)="onConfirmReset()"
+      (cancel)="confirmReset.set(false)" />
+  }
+
+  <!-- Toast (invite link copied, etc.) -->
+  @if (toast(); as msg) {
+    <div
+      class="fixed left-1/2 -translate-x-1/2 z-[110] bottom-[calc(2rem_+_env(safe-area-inset-bottom))]
+             glass-panel rounded-full elevation-3 px-5 py-3 text-body-md font-semibold text-on-surface
+             flex items-center gap-2 max-w-[90vw]">
+      <span class="material-symbols-outlined text-secondary">link</span>
+      {{ msg }}
+    </div>
+  }
 </div>
+
