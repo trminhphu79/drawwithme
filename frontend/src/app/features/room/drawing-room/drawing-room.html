@@ -13,9 +13,9 @@
     (reset)="onReset()"
     (home)="onHome()" />
 
-  <main class="w-full h-full pt-16 relative">
+  <main class="w-full h-full pt-[var(--app-header-h)] relative">
     <!-- Canvas (fills the workspace; glass panels float over it) -->
-    <section class="absolute inset-0 pt-16 canvas-grid overflow-hidden">
+    <section class="absolute inset-0 pt-[var(--app-header-h)] canvas-grid overflow-hidden">
       <app-canvas-stage
         [operations]="store.operations()"
         [brush]="store.brush()"
@@ -43,12 +43,12 @@
 
     <!-- Mobile/tablet backdrop -->
     @if (chatOpen()) {
-      <div class="lg:hidden fixed inset-0 top-16 bg-on-surface/40 backdrop-blur-sm z-40" (click)="chatOpen.set(false)"></div>
+      <div class="lg:hidden fixed inset-0 top-[var(--app-header-h)] bg-on-surface/40 backdrop-blur-sm z-40" (click)="chatOpen.set(false)"></div>
     }
 
     <!-- Left: chat — slide-in drawer on mobile/tablet, fixed sidebar on desktop -->
     <aside
-      class="fixed z-50 top-16 bottom-0 left-0 w-80 max-w-[85vw] p-3 transition-all duration-300 ease-out
+      class="fixed z-50 top-[var(--app-header-h)] bottom-0 left-0 w-80 max-w-[85vw] p-3 transition-all duration-300 ease-out
              lg:z-40 lg:top-20 lg:bottom-4 lg:left-4 lg:w-72 lg:p-0 lg:max-w-none"
       [class.translate-x-0]="chatOpen()"
       [class.-translate-x-full]="!chatOpen()"
@@ -74,7 +74,7 @@
     </aside>
 
     <!-- Top-center: horizontal tool bar (sits just below the header) -->
-    <div class="fixed top-20 left-1/2 -translate-x-1/2 z-40">
+    <div class="fixed top-[calc(var(--app-header-h)_+_0.75rem)] left-1/2 -translate-x-1/2 z-40">
       <app-tool-rail
         [tools]="tools"
         [activeTool]="store.tool()"
@@ -86,7 +86,7 @@
 
     <!-- Transient stroke-weight slider, below the tool bar (fades out on idle) -->
     <div
-      class="fixed top-36 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out"
+      class="fixed top-[calc(var(--app-header-h)_+_5rem)] left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out"
       [class.opacity-100]="weightVisible()"
       [class.opacity-0]="!weightVisible()"
       [class.-translate-y-2]="!weightVisible()"

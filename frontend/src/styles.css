@@ -147,6 +147,9 @@
 
 /* Non-token theming vars (glass + canvas) — overridden in .dark below. */
 :root {
+  /* Top bar is 4rem tall + the device safe-area (notch/Dynamic Island) when
+     running as an installed PWA. 0 on desktop / normal browser tabs. */
+  --app-header-h: calc(4rem + env(safe-area-inset-top));
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-blur-bg: rgba(255, 255, 255, 0.22);
   --glass-border: rgba(255, 255, 255, 0.55);

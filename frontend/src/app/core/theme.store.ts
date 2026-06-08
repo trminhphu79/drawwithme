@@ -16,8 +16,6 @@ export class ThemeStore {
   private readonly storage = inject(StorageService);
 
   private readonly _mode = signal<ThemeMode>(this.initialMode());
-  /** Whether the user has explicitly chosen (vs. following the system). */
-  private readonly _explicit = signal<boolean>(this.storage.read<ThemeMode | null>(STORAGE_KEY, null) !== null);
 
   readonly mode = this._mode.asReadonly();
   readonly isDark = computed(() => this._mode() === 'dark');
@@ -25,11 +23,6 @@ export class ThemeStore {
   constructor() {
     // Reflect the mode onto <html> whenever it changes.
     effect(() => this.applyClass(this._mode()));
-
-    // Follow OS changes only while the user hasn't made an explicit choice.
-    this.media()?.addEventListener('change', (e) => {
-      if (!this._explicit()) this._mode.set(e.matches ? 'dark' : 'light');
-    });
   }
 
   toggle(): void {
@@ -37,32 +30,20 @@ export class ThemeStore {
   }
 
   set(mode: ThemeMode): void {
-    this._explicit.set(true);
     this._mode.set(mode);
     this.storage.write(STORAGE_KEY, mode);
   }
 
-  /** Forget the explicit choice and follow the system again. */
-  useSystem(): void {
-    this._explicit.set(false);
+  /** Reset to the default (light) and forget the saved choice. */
+  useDefault(): void {
     this.storage.remove(STORAGE_KEY);
-    this._mode.set(this.systemPrefersDark() ? 'dark' : 'light');
+    this._mode.set('light');
   }
 
   private initialMode(): ThemeMode {
     const saved = this.storage.read<ThemeMode | null>(STORAGE_KEY, null);
-    if (saved === 'light' || saved === 'dark') return saved;
-    return this.systemPrefersDark() ? 'dark' : 'light';
-  }
-
-  private systemPrefersDark(): boolean {
-    return this.media()?.matches ?? false;
-  }
-
-  private media(): MediaQueryList | null {
-    return typeof window !== 'undefined' && window.matchMedia
-      ? window.matchMedia('(prefers-color-scheme: dark)')
-      : null;
+    // Default to light unless the user explicitly saved a preference.
+    return saved === 'dark' ? 'dark' : 'light';
   }
 
   private applyClass(mode: ThemeMode): void {

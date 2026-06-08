@@ -9,7 +9,7 @@ import { ThemeToggle } from '../../../core/theme-toggle';
   imports: [ThemeToggle],
   template: `
     <nav
-      class="glass-panel border-b border-white/20 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full z-50 fixed top-0">
+      class="glass-panel border-b border-white/20 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop w-full z-50 fixed top-0 h-[var(--app-header-h)] pt-[env(safe-area-inset-top)]">
       <div class="flex items-center gap-3">
         <button
           type="button"
