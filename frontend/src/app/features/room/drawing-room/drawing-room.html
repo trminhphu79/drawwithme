@@ -71,13 +71,13 @@
         (toggleMute)="chat.toggleMute()" />
     </aside>
 
-    <!-- Left-center: tool dock -->
-    <aside class="fixed left-3 lg:left-76 top-20 bottom-4 z-40 flex items-stretch">
+    <!-- Top-center: horizontal tool bar (sits just below the header) -->
+    <div class="fixed top-20 left-1/2 -translate-x-1/2 z-40">
       <app-tool-rail
         [tools]="tools"
         [activeTool]="store.tool()"
         (toolSelect)="store.setTool($event)" />
-    </aside>
+    </div>
 
     <!-- Right: properties sidebar (collapsible on desktop, animated) -->
     <aside
