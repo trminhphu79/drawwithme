@@ -51,7 +51,7 @@ interface Social {
               rel="noopener noreferrer"
               [title]="s.label"
               [attr.aria-label]="s.label"
-              class="w-12 h-12 flex items-center justify-center rounded-full glass-panel border border-outline-variant/40 text-on-surface hover:bg-secondary hover:text-on-secondary hover:scale-110 active:scale-95 transition-all">
+              class="w-12 h-12 flex items-center justify-center rounded-full glass-panel border border-outline-variant/40 text-on-surface-variant hover:text-secondary hover:border-secondary/60 hover:scale-110 active:scale-95 transition-all">
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true">
                 <path [attr.d]="s.path" />
               </svg>
