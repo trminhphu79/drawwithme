@@ -78,8 +78,10 @@ export class DrawingRoom {
   private weightTimer: ReturnType<typeof setTimeout> | undefined;
   /** Reset-canvas confirmation modal. */
   protected readonly confirmReset = signal(false);
-  /** Reference image view state (local, per-user) + fullscreen preview. */
-  protected readonly referenceVisible = signal(true);
+  /** Reference image view state (local, per-user) + fullscreen preview.
+   *  Off by default — the reference only renders on the canvas once the user
+   *  chooses to show it. */
+  protected readonly referenceVisible = signal(false);
   protected readonly referenceOpacity = signal(50);
   protected readonly showRefPreview = signal(false);
   /** Transient toast message (e.g. after copying the invite link). */
