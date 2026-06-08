@@ -43,13 +43,19 @@
           </div>
         </div>
       } @else {
-        <div class="flex flex-col gap-1.5">
-          <div class="flex justify-between items-center px-1">
-            <span class="text-[11px] font-bold text-pink-500 dark:text-pink-300">{{ m.author }}</span>
-            <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>
-          </div>
-          <div class="bg-rose-500/10 border border-rose-300/25 text-on-surface p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm max-w-[85%] break-words">
-            {{ m.text }}
+        <div class="flex items-end gap-2">
+          <img
+            [src]="url(m.avatar)"
+            [alt]="m.author"
+            class="w-7 h-7 rounded-full object-cover shrink-0 bg-surface-variant ring-1 ring-black/5" />
+          <div class="flex flex-col gap-1 min-w-0">
+            <div class="flex items-center gap-2 px-1">
+              <span class="text-[11px] font-bold text-pink-500 dark:text-pink-300">{{ m.author }}</span>
+              <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>
+            </div>
+            <div class="bg-rose-500/10 border border-rose-300/25 text-on-surface p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm break-words">
+              {{ m.text }}
+            </div>
           </div>
         </div>
       }

@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ChatMessage } from '../chat.model';
+import { avatarUrl } from '../../../core/models/avatars';
 
 /**
  * DUMB. Room chat: message list (self vs others), input + mute. Reactions live
@@ -32,6 +33,7 @@ export class ChatPanel {
   readonly close = output<void>();
 
   protected readonly draft = signal('');
+  protected readonly url = avatarUrl;
 
   private readonly scroller = viewChild<ElementRef<HTMLElement>>('scroller');
 

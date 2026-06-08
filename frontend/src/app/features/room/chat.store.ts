@@ -1,9 +1,9 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SocketService } from '../../core/socket.service';
-import { PreferencesStore } from '../../core/preferences.store';
-import { SoundService } from '../../core/sound.service';
+import { SocketService } from '../../core/services/socket.service';
+import { PreferencesStore } from '../../core/stores/preferences.store';
+import { SoundService } from '../../core/services/sound.service';
 import { ChatService } from './chat.service';
 import { ChatMessage, ReactionEvent } from './chat.model';
 
@@ -63,7 +63,12 @@ export class ChatStore {
   send(text: string): void {
     const body = text.trim();
     if (!body) return;
-    this.socket.emit('chat:send', { code: this.code, text: body, name: this.prefs.displayName() });
+    this.socket.emit('chat:send', {
+      code: this.code,
+      text: body,
+      name: this.prefs.displayName(),
+      avatar: this.prefs.avatar(),
+    });
     this.sound.sendMessage();
   }
 

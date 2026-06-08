@@ -5,6 +5,7 @@ export interface ChatMessageDto {
   id: string;
   authorId: string;
   author: string;
+  avatar?: string;
   text: string;
   at: string;
 }
@@ -26,14 +27,27 @@ export class MessagesService {
 
   async create(
     code: string,
-    data: { authorId: string; author: string; text: string },
+    data: { authorId: string; author: string; avatar?: string; text: string },
   ): Promise<ChatMessageDto> {
     const roomId = await this.roomIdByCode(code);
     const msg = await this.prisma.message.create({
-      data: { roomId, authorId: data.authorId, author: data.author, text: data.text.slice(0, 2000) },
+      data: {
+        roomId,
+        authorId: data.authorId,
+        author: data.author,
+        avatar: data.avatar ?? null,
+        text: data.text.slice(0, 2000),
+      },
     });
     await this.prisma.room.update({ where: { id: roomId }, data: { lastActivityAt: new Date() } });
-    return { id: msg.id, authorId: msg.authorId, author: msg.author, text: msg.text, at: msg.createdAt.toISOString() };
+    return {
+      id: msg.id,
+      authorId: msg.authorId,
+      author: msg.author,
+      avatar: msg.avatar ?? undefined,
+      text: msg.text,
+      at: msg.createdAt.toISOString(),
+    };
   }
 
   async listByRoom(code: string): Promise<ChatMessageDto[]> {
@@ -47,6 +61,7 @@ export class MessagesService {
       id: m.id,
       authorId: m.authorId,
       author: m.author,
+      avatar: m.avatar ?? undefined,
       text: m.text,
       at: m.createdAt.toISOString(),
     }));

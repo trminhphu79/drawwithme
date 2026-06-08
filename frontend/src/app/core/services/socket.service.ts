@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
-import { SOCKET_URL } from './api.config';
+import { SOCKET_URL } from '../config/api.config';
 
 /**
  * App-wide Socket.IO wrapper. Lazily connects on first use, mirrors connection

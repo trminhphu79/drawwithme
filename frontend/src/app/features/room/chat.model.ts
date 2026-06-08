@@ -3,6 +3,8 @@ export interface ChatMessage {
   id: string;
   authorId: string;
   author: string;
+  /** Avatar key (filename in public/avatars). */
+  avatar?: string;
   text: string;
   /** ISO timestamp. */
   at: string;

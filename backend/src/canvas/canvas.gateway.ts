@@ -13,6 +13,7 @@ import { MessagesService } from '../messages/messages.service';
 interface Presence {
   name: string;
   colorClass: string;
+  avatar?: string;
 }
 
 const CURSOR_COLORS = [
@@ -47,7 +48,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
   @SubscribeMessage('room:join')
   onJoin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { code: string; name?: string },
+    @MessageBody() body: { code: string; name?: string; avatar?: string },
   ): void {
     const code = (body.code ?? '').toUpperCase();
     if (!code) return;
@@ -58,6 +59,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
     members.set(client.id, {
       name,
       colorClass: CURSOR_COLORS[members.size % CURSOR_COLORS.length],
+      avatar: body.avatar,
     });
     this.rooms.set(code, members);
     (client.data as { code?: string }).code = code;
@@ -171,17 +173,32 @@ export class CanvasGateway implements OnGatewayDisconnect {
     });
   }
 
+  @SubscribeMessage('profile:update')
+  onProfileUpdate(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { code: string; name?: string; avatar?: string },
+  ): void {
+    const code = (body.code ?? '').toUpperCase();
+    const member = this.rooms.get(code)?.get(client.id);
+    if (!member) return;
+    if (body.name) member.name = body.name;
+    member.avatar = body.avatar ?? member.avatar;
+    this.emitPresence(code);
+  }
+
   @SubscribeMessage('chat:send')
   async onChat(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { code: string; text: string; name?: string },
+    @MessageBody() body: { code: string; text: string; name?: string; avatar?: string },
   ): Promise<void> {
     const code = (body.code ?? '').toUpperCase();
     const text = (body.text ?? '').trim();
     if (!code || !text) return;
-    const author = this.rooms.get(code)?.get(client.id)?.name ?? body.name ?? 'Guest';
+    const presence = this.rooms.get(code)?.get(client.id);
+    const author = presence?.name ?? body.name ?? 'Guest';
+    const avatar = presence?.avatar ?? body.avatar;
     try {
-      const saved = await this.messages.create(code, { authorId: client.id, author, text });
+      const saved = await this.messages.create(code, { authorId: client.id, author, avatar, text });
       // Broadcast to EVERYONE (incl. sender) for consistent ordering.
       this.server.to(code).emit('chat:message', saved);
     } catch {
@@ -220,7 +237,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
   private emitPresence(code: string): void {
     const members = this.rooms.get(code);
     const list = members
-      ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorClass: p.colorClass }))
+      ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorClass: p.colorClass, avatar: p.avatar }))
       : [];
     this.server.to(code).emit('presence:update', list);
   }

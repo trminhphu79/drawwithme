@@ -11,7 +11,7 @@ import {
 import { Router } from '@angular/router';
 import { DrawingStore } from '../drawing.store';
 import { ChatStore } from '../chat.store';
-import { PreferencesStore } from '../../../core/preferences.store';
+import { PreferencesStore } from '../../../core/stores/preferences.store';
 import { DRAWING_TOOLS, PENCIL_STYLES } from '../tool.model';
 import { RoomTopBar } from '../room-top-bar/room-top-bar';
 import { ToolRail } from '../tool-rail/tool-rail';
@@ -23,9 +23,9 @@ import { PencilStyle, ToolId } from '../tool.model';
 import { PropertiesPanel } from '../properties-panel/properties-panel';
 import { ChatPanel } from '../chat-panel/chat-panel';
 import { ReactionOverlay } from '../reaction-overlay/reaction-overlay';
-import { NameGate } from '../name-gate/name-gate';
-import { ConfirmDialog } from '../../../core/confirm-dialog';
-import { Toast } from '../../../core/toast';
+import { ProfileGate, Profile } from '../profile-gate/profile-gate';
+import { ConfirmDialog } from '../../../core/ui/confirm-dialog';
+import { Toast } from '../../../core/ui/toast';
 
 /**
  * SMART / container for the Drawing Room (new-main.html layout). Provides the
@@ -46,7 +46,7 @@ import { Toast } from '../../../core/toast';
     PropertiesPanel,
     ChatPanel,
     ReactionOverlay,
-    NameGate,
+    ProfileGate,
     ConfirmDialog,
     Toast,
   ],
@@ -63,7 +63,10 @@ export class DrawingRoom {
 
   protected readonly tools = DRAWING_TOOLS;
   protected readonly pencilStyles = PENCIL_STYLES;
+  /** Blocking entry gate (pick avatar + name before joining). */
   protected readonly showNameGate = signal(false);
+  /** Header "edit profile" modal (re-pick avatar + name mid-session). */
+  protected readonly editProfileOpen = signal(false);
   /** Mobile/tablet chat drawer open state (always visible on lg+). */
   protected readonly chatOpen = signal(false);
   /** Mobile/tablet properties drawer open state (always visible on lg+). */
@@ -87,6 +90,9 @@ export class DrawingRoom {
   protected readonly initialName = computed(() =>
     this.prefs.hasProfile() ? this.prefs.displayName() : '',
   );
+  /** The current user's own avatar + name (for the header profile button). */
+  protected readonly myAvatar = this.prefs.avatar;
+  protected readonly myName = this.prefs.displayName;
 
   private readonly canvas = viewChild(CanvasStage);
   private entered = false;
@@ -100,10 +106,20 @@ export class DrawingRoom {
     });
   }
 
-  protected onNameSubmit(name: string): void {
-    this.prefs.setDisplayName(name);
+  /** Entry gate "Done" — save profile then connect. */
+  protected onNameSubmit(profile: Profile): void {
+    this.prefs.setDisplayName(profile.name);
+    this.prefs.setAvatar(profile.avatar);
     this.showNameGate.set(false);
     this.enter(this.code());
+  }
+
+  /** Header profile "Done" — save then broadcast the change to everyone. */
+  protected onProfileSave(profile: Profile): void {
+    this.prefs.setDisplayName(profile.name);
+    this.prefs.setAvatar(profile.avatar);
+    this.editProfileOpen.set(false);
+    this.store.updateProfile();
   }
 
   protected toggleChat(): void {

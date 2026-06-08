@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { InstallService } from './install.service';
+import { InstallService } from '../services/install.service';
 
 /** Shows an Install button (Android/Chrome) or an iOS "Add to Home Screen" hint. */
 @Component({

@@ -17,6 +17,14 @@
       }
     },
     {
+      "name": "avatars",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/avatars/**", "/logo.png"]
+      }
+    },
+    {
       "name": "assets",
       "installMode": "lazy",
       "updateMode": "prefetch",

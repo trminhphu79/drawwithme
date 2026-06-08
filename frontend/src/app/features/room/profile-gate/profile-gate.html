@@ -1,0 +1,51 @@
+<div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-on-surface/50 backdrop-blur-sm">
+  <div
+    class="glass-panel rounded-2xl elevation-3 w-full max-w-md p-6 sm:p-8 flex flex-col gap-5 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div class="text-center flex flex-col gap-1">
+      <h2 class="text-headline-md font-bold text-on-surface">{{ heading() }}</h2>
+      <p class="text-body-md text-on-surface-variant">Pick an avatar and your name.</p>
+    </div>
+
+    <!-- Avatar grid -->
+    <div class="grid grid-cols-6 gap-2.5">
+      @for (a of avatars; track a) {
+        <button
+          type="button"
+          (click)="avatar.set(a)"
+          [attr.aria-pressed]="avatar() === a"
+          class="rounded-full overflow-hidden aspect-square ring-2 transition-transform hover:scale-110 active:scale-95"
+          [class.ring-secondary]="avatar() === a"
+          [class.ring-transparent]="avatar() !== a">
+          <img [src]="url(a)" [alt]="a" class="w-full h-full object-cover" />
+        </button>
+      }
+    </div>
+
+    <!-- Name -->
+    <input
+      class="w-full bg-on-surface/5 border-0 border-b-2 border-secondary/40 focus:border-secondary focus:ring-0 text-body-lg py-2.5 px-3 rounded-t-lg transition-all outline-none placeholder:text-on-surface-variant/50 text-on-surface text-center"
+      placeholder="Your name"
+      type="text"
+      maxlength="24"
+      [value]="name()"
+      (input)="name.set($any($event.target).value)"
+      (keyup.enter)="submit()" />
+
+    <!-- Actions -->
+    <div class="grid grid-cols-2 gap-3 pt-1">
+      <button
+        type="button"
+        (click)="back.emit()"
+        class="px-5 py-2.5 rounded-xl text-label-lg font-semibold border border-outline-variant text-on-surface-variant hover:bg-on-surface/10 active:scale-95 transition-all">
+        {{ backLabel() }}
+      </button>
+      <button
+        type="button"
+        (click)="submit()"
+        [disabled]="!valid()"
+        class="px-5 py-2.5 rounded-xl text-label-lg font-bold bg-secondary text-on-secondary shadow-sm hover:brightness-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        Done
+      </button>
+    </div>
+  </div>
+</div>

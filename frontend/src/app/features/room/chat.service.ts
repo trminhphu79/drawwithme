@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_URL } from '../../core/api.config';
+import { API_URL } from '../../core/config/api.config';
 import { ChatMessage } from './chat.model';
 
 /** REST client for chat history. */

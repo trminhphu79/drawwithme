@@ -5,7 +5,7 @@ import { ReviewStore } from '../review.store';
 import { ArtworkPreview } from '../artwork-preview/artwork-preview';
 import { ArtworkActions } from '../artwork-actions/artwork-actions';
 import { ReplayPlayer } from '../replay-player/replay-player';
-import { Toast } from '../../../core/toast';
+import { Toast } from '../../../core/ui/toast';
 
 /**
  * SMART / container for the Final-Artwork review screen. Provides ReviewStore,

@@ -1,11 +1,12 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { StorageService } from './storage.service';
+import { StorageService } from '../services/storage.service';
 import {
   DEFAULT_PREFERENCES,
   MAX_RECENT_COLORS,
   ReferenceLayout,
   UserPreferences,
-} from './user-preferences.model';
+} from '../models/user-preferences.model';
+import { randomAvatar } from '../models/avatars';
 
 const STORAGE_KEY = 'dwm.preferences';
 
@@ -31,13 +32,22 @@ export class PreferencesStore {
   readonly defaultBrushSize = computed(() => this._prefs().defaultBrushSize);
   readonly defaultOpacity = computed(() => this._prefs().defaultOpacity);
   readonly referenceLayout = computed(() => this._prefs().referenceLayout);
+  readonly avatar = computed(() => this._prefs().avatar);
 
   constructor() {
+    // Assign a random avatar on first use so members differ by default.
+    if (!this._prefs().avatar) {
+      this._prefs.update((p) => ({ ...p, avatar: randomAvatar() }));
+    }
     effect(() => this.storage.write(STORAGE_KEY, this._prefs()));
   }
 
   setDisplayName(name: string): void {
     this._prefs.update((p) => ({ ...p, displayName: name }));
+  }
+
+  setAvatar(avatar: string): void {
+    this._prefs.update((p) => ({ ...p, avatar }));
   }
 
   setReferenceLayout(layout: ReferenceLayout): void {

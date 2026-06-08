@@ -4,9 +4,11 @@
     [participants]="store.participants()"
     [connected]="store.connected()"
     [title]="store.title()"
+    [myAvatar]="myAvatar()"
+    [myName]="myName()"
     (titleChange)="store.setTitle($event)"
     (invite)="onInvite()"
-    (finish)="onFinish()"
+    (editProfile)="editProfileOpen.set(true)"
     (home)="onHome()" />
 
   <main class="w-full h-full pt-[var(--app-header-h)] relative">
@@ -85,7 +87,8 @@
         (toolSelect)="onToolSelect($event)"
         (styleChange)="onStyleChange($event)"
         (preferences)="onPreferences()"
-        (clear)="onReset()" />
+        (clear)="onReset()"
+        (finish)="onFinish()" />
     </div>
 
     <!-- Transient stroke-weight slider, below the tool bar (fades out on idle) -->
@@ -142,7 +145,23 @@
   </main>
 
   @if (showNameGate()) {
-    <app-name-gate [initial]="initialName()" (submitName)="onNameSubmit($event)" />
+    <app-profile-gate
+      heading="Join the room"
+      backLabel="Back"
+      [initialName]="initialName()"
+      [initialAvatar]="myAvatar()"
+      (save)="onNameSubmit($event)"
+      (back)="onHome()" />
+  }
+
+  @if (editProfileOpen()) {
+    <app-profile-gate
+      heading="Edit your profile"
+      backLabel="Cancel"
+      [initialName]="myName()"
+      [initialAvatar]="myAvatar()"
+      (save)="onProfileSave($event)"
+      (back)="editProfileOpen.set(false)" />
   }
 
   @if (confirmReset()) {

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_URL } from '../../core/api.config';
+import { API_URL } from '../../core/config/api.config';
 import { CreateRoomRequest, JoinRoomRequest, Room } from './room.model';
 
 /** REST client for room lifecycle (create / join / fetch). */

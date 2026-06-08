@@ -1,14 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { JoinRoomStore } from '../join-room.store';
 import { JoinRoomCard } from '../join-room-card/join-room-card';
-import { PreferencesStore } from '../../../core/preferences.store';
-import { InstallButton } from '../../../core/install-button';
+import { InstallButton } from '../../../core/ui/install-button';
 
 /**
- * SMART / container. Provides the JoinRoomStore, binds the display name to the
- * global PreferencesStore, requires a name before entering, and navigates on
- * success.
+ * SMART / container. Provides the JoinRoomStore and navigates on success. The
+ * display name + avatar are collected later, inside the room's profile gate.
  */
 @Component({
   selector: 'app-join-room',
@@ -26,13 +24,11 @@ import { InstallButton } from '../../../core/install-button';
 
       <main class="relative z-10 w-full max-w-md px-margin-mobile md:px-0">
         <app-join-room-card
-          [name]="name()"
           [code]="store.code()"
-          [canJoin]="canJoin()"
-          [canCreate]="nameValid()"
+          [canJoin]="store.canJoin()"
+          [canCreate]="!store.busy()"
           [busy]="store.busy()"
           [error]="store.error()"
-          (nameChange)="setName($event)"
           (codeChange)="store.setCode($event)"
           (join)="onJoin()"
           (create)="onCreate()" />
@@ -52,37 +48,15 @@ import { InstallButton } from '../../../core/install-button';
 })
 export class JoinRoom {
   protected readonly store = inject(JoinRoomStore);
-  private readonly prefs = inject(PreferencesStore);
   private readonly router = inject(Router);
 
-  protected readonly name = signal(this.initialName());
-  protected readonly nameValid = computed(() => this.name().trim().length >= 2);
-  protected readonly canJoin = computed(() => this.store.canJoin() && this.nameValid());
-
-  protected setName(value: string): void {
-    this.name.set(value);
-  }
-
   protected async onJoin(): Promise<void> {
-    if (!this.commitName()) return;
     const room = await this.store.join();
     if (room) this.router.navigate(['/room', room.code]);
   }
 
   protected async onCreate(): Promise<void> {
-    if (!this.commitName()) return;
     const room = await this.store.create();
     if (room) this.router.navigate(['/room', room.code]);
-  }
-
-  private commitName(): boolean {
-    const name = this.name().trim();
-    if (name.length < 2) return false;
-    this.prefs.setDisplayName(name);
-    return true;
-  }
-
-  private initialName(): string {
-    return this.prefs.hasProfile() ? this.prefs.displayName() : '';
   }
 }

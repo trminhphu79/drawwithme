@@ -1,8 +1,8 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
-import { SocketService } from '../../core/socket.service';
-import { PreferencesStore } from '../../core/preferences.store';
+import { SocketService } from '../../core/services/socket.service';
+import { PreferencesStore } from '../../core/stores/preferences.store';
 import { RoomService } from './room.service';
 import { BrushSettings, PencilStyle, ToolId } from './tool.model';
 import { DrawOperation, Point } from './operation.model';
@@ -87,7 +87,11 @@ export class DrawingStore {
     this.myId = socket.id ?? '';
     socket.on('connect', () => (this.myId = socket.id ?? ''));
 
-    this.socket.emit('room:join', { code, name: this.prefs.displayName() });
+    this.socket.emit('room:join', {
+      code,
+      name: this.prefs.displayName(),
+      avatar: this.prefs.avatar(),
+    });
 
     // History (best-effort — drawing works offline too).
     try {
@@ -126,6 +130,15 @@ export class DrawingStore {
       .on<{ url: string }>('reference:updated')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(({ url }) => this._referenceUrl.set(url));
+  }
+
+  /** Broadcast a changed display name / avatar to everyone in the room. */
+  updateProfile(): void {
+    this.socket.emit('profile:update', {
+      code: this.code,
+      name: this.prefs.displayName(),
+      avatar: this.prefs.avatar(),
+    });
   }
 
   /** Upload/replace the shared reference image and broadcast it. */

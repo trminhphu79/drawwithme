@@ -4,6 +4,8 @@ export interface Participant {
   name: string;
   /** Tailwind classes used to tint the avatar / cursor. */
   colorClass: string;
+  /** Avatar key (filename in public/avatars). */
+  avatar?: string;
 }
 
 /** A live remote cursor position (not persisted). */

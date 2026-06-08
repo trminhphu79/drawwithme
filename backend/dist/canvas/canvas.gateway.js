@@ -41,6 +41,7 @@ let CanvasGateway = class CanvasGateway {
         members.set(client.id, {
             name,
             colorClass: CURSOR_COLORS[members.size % CURSOR_COLORS.length],
+            avatar: body.avatar,
         });
         this.rooms.set(code, members);
         client.data.code = code;
@@ -125,14 +126,26 @@ let CanvasGateway = class CanvasGateway {
             y: body.y,
         });
     }
+    onProfileUpdate(client, body) {
+        const code = (body.code ?? '').toUpperCase();
+        const member = this.rooms.get(code)?.get(client.id);
+        if (!member)
+            return;
+        if (body.name)
+            member.name = body.name;
+        member.avatar = body.avatar ?? member.avatar;
+        this.emitPresence(code);
+    }
     async onChat(client, body) {
         const code = (body.code ?? '').toUpperCase();
         const text = (body.text ?? '').trim();
         if (!code || !text)
             return;
-        const author = this.rooms.get(code)?.get(client.id)?.name ?? body.name ?? 'Guest';
+        const presence = this.rooms.get(code)?.get(client.id);
+        const author = presence?.name ?? body.name ?? 'Guest';
+        const avatar = presence?.avatar ?? body.avatar;
         try {
-            const saved = await this.messages.create(code, { authorId: client.id, author, text });
+            const saved = await this.messages.create(code, { authorId: client.id, author, avatar, text });
             this.server.to(code).emit('chat:message', saved);
         }
         catch {
@@ -166,7 +179,7 @@ let CanvasGateway = class CanvasGateway {
     emitPresence(code) {
         const members = this.rooms.get(code);
         const list = members
-            ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorClass: p.colorClass }))
+            ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorClass: p.colorClass, avatar: p.avatar }))
             : [];
         this.server.to(code).emit('presence:update', list);
     }
@@ -231,6 +244,14 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", void 0)
 ], CanvasGateway.prototype, "onCursor", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('profile:update'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], CanvasGateway.prototype, "onProfileUpdate", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('chat:send'),
     __param(0, (0, websockets_1.ConnectedSocket)()),

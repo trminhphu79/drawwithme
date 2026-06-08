@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1780944407435,
+  "timestamp": 1780945544748,
   "index": "/index.html",
   "assetGroups": [
     {
@@ -11,23 +11,23 @@
         "ignoreVary": true
       },
       "urls": [
-        "/chunk-B9HSyClF.js",
+        "/chunk-Bi_yZhbQ.js",
         "/chunk-BzzeMo-r.js",
-        "/chunk-CNFjNqR_.js",
-        "/chunk-CwE7mJPv.js",
-        "/chunk-DenKddak.js",
-        "/chunk-jG4hAm3N.js",
+        "/chunk-CM0QkZiT.js",
+        "/chunk-CcicW7SV.js",
+        "/chunk-D2Dhk6zs.js",
+        "/chunk-DF3nKdMh.js",
         "/favicon.ico",
         "/index.html",
-        "/main-K2PZ2N6W.js",
+        "/main-Q4VL3UKQ.js",
         "/manifest.webmanifest",
-        "/styles-Y4S7URT6.css"
+        "/styles-PZJCZPRW.css"
       ],
       "patterns": []
     },
     {
-      "name": "assets",
-      "installMode": "lazy",
+      "name": "avatars",
+      "installMode": "prefetch",
       "updateMode": "prefetch",
       "cacheQueryOptions": {
         "ignoreVary": true
@@ -51,6 +51,18 @@
         "/avatars/male_7.png",
         "/avatars/male_8.png",
         "/avatars/male_9.png",
+        "/logo.png"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
         "/favicon-48.png",
         "/icons/icon-128x128.png",
         "/icons/icon-144x144.png",
@@ -68,7 +80,6 @@
         "/icons/maskable-512x512.png",
         "/icons/maskable-72x72.png",
         "/icons/maskable-96x96.png",
-        "/logo.png",
         "/og-image.png"
       ],
       "patterns": []
@@ -94,12 +105,12 @@
     "/avatars/male_7.png": "7cb76e67c2758075955f837ec3b55d17acd15c89",
     "/avatars/male_8.png": "9f4462a235b380dc6a4818c74384627b844b21c0",
     "/avatars/male_9.png": "d12b984bc55e0a6603354d38c2441651e37b5bbd",
-    "/chunk-B9HSyClF.js": "26c7023d9766360f9f1e33f1411e8f3215e0014a",
+    "/chunk-Bi_yZhbQ.js": "d285eb666d36516557b31a39d01b86b8f6dd06d5",
     "/chunk-BzzeMo-r.js": "0dae4a69351b95d8a6dccfcb3928075e2f08b919",
-    "/chunk-CNFjNqR_.js": "e82861cdd777055f6f88cf15012e2fc0955078dd",
-    "/chunk-CwE7mJPv.js": "c117a5bef3f38d25019991c51ccdc7950fa93f86",
-    "/chunk-DenKddak.js": "7962450b0ec2d7aea91b77f8f91870632010fcac",
-    "/chunk-jG4hAm3N.js": "764c86d127584196a430b6baf3215e041dd3aa66",
+    "/chunk-CM0QkZiT.js": "b5a672ba76a8eec44dd99b7d616ce0b5530f2747",
+    "/chunk-CcicW7SV.js": "03a7d79ebe62ce7f5fcb085945bc6a7baa63dd15",
+    "/chunk-D2Dhk6zs.js": "6927645696dc4e0248c6551c57aad5d1a65e8912",
+    "/chunk-DF3nKdMh.js": "f578e6ee60640904446bf46f2aa88ce7a86f9b51",
     "/favicon-48.png": "64d0a5c988ac212b2515e92741a1643d80ec1205",
     "/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
     "/icons/icon-128x128.png": "60ffbc2e47a811f7ccee3819a849f3364777e032",
@@ -118,12 +129,12 @@
     "/icons/maskable-512x512.png": "44c197a427ac96e2dfc6dee0a4b9b181a870088f",
     "/icons/maskable-72x72.png": "2e254d067a85eb53effa0283d0a56ecde51cd46b",
     "/icons/maskable-96x96.png": "d2d07ace55b1eee66f6f1e6f3587fde0819821cd",
-    "/index.html": "e59d8254035d89f2ef94ed06c973dd9971012945",
+    "/index.html": "bd1a495736ddad78fb165eb0c26372150f9d3c30",
     "/logo.png": "61485832b22492d475d51cc0dffac4a20ca38ea1",
-    "/main-K2PZ2N6W.js": "17ea39f3968ccc23db63002f2fa4a70f37fc38e1",
+    "/main-Q4VL3UKQ.js": "410c63aca21cc6f9b27b9384b0cb684ba2007581",
     "/manifest.webmanifest": "a1301eabb83e7a85458cbc0f36e2b2189eb5314d",
     "/og-image.png": "4ded17bf91837ebc8088267c59713c062956faef",
-    "/styles-Y4S7URT6.css": "e5e9f6f6bb8eec21e71aa80e35bf2e1709ecf8d2"
+    "/styles-PZJCZPRW.css": "74ac3454efc57e9bb36e5399b6c1b5d706d88539"
   },
   "navigationUrls": [
     {

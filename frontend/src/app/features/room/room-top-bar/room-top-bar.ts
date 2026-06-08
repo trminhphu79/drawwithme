@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Participant } from '../participant.model';
-import { ThemeToggle } from '../../../core/theme-toggle';
+import { ThemeToggle } from '../../../core/ui/theme-toggle';
+import { avatarUrl } from '../../../core/models/avatars';
 
 /** DUMB. Glassmorphism top navigation bar for the drawing room. */
 @Component({
@@ -40,12 +41,20 @@ import { ThemeToggle } from '../../../core/theme-toggle';
       <div class="flex items-center gap-3">
         <div class="flex -space-x-3 items-center mr-1">
           @for (p of participants(); track p.id) {
-            <div
-              class="w-8 h-8 rounded-full border-2 border-surface shadow-sm flex items-center justify-center text-xs font-bold"
-              [class]="p.colorClass"
-              [title]="p.name">
-              {{ p.name.charAt(0) }}
-            </div>
+            @if (p.avatar) {
+              <img
+                [src]="url(p.avatar)"
+                [alt]="p.name"
+                [title]="p.name"
+                class="w-8 h-8 rounded-full border-2 border-surface shadow-sm object-cover bg-surface-variant" />
+            } @else {
+              <div
+                class="w-8 h-8 rounded-full border-2 border-surface shadow-sm flex items-center justify-center text-xs font-bold"
+                [class]="p.colorClass"
+                [title]="p.name">
+                {{ p.name.charAt(0) }}
+              </div>
+            }
           }
         </div>
 
@@ -56,28 +65,36 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           <span class="material-symbols-outlined text-[18px]">person_add</span>
           <span class="hidden sm:inline">Invite</span>
         </button>
-        <button
-          type="button"
-          (click)="finish.emit()"
-          title="Finish"
-          class="glass-panel px-3 sm:px-4 py-2 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 transition-colors flex items-center gap-1">
-          <span class="material-symbols-outlined text-[18px]">check_circle</span>
-          <span class="hidden sm:inline">Finish</span>
-        </button>
 
         <app-theme-toggle />
+
+        <!-- Your profile — click to edit avatar + name -->
+        <button
+          type="button"
+          (click)="editProfile.emit()"
+          [title]="(myName() || 'You') + ' — edit profile'"
+          class="rounded-full ring-2 ring-secondary/40 hover:ring-secondary active:scale-95 transition-all shrink-0">
+          <img
+            [src]="url(myAvatar())"
+            [alt]="myName()"
+            class="w-9 h-9 rounded-full object-cover bg-surface-variant" />
+        </button>
       </div>
     </nav>
   `,
 })
 export class RoomTopBar {
+  protected readonly url = avatarUrl;
+
   readonly roomCode = input.required<string>();
   readonly participants = input<Participant[]>([]);
   readonly connected = input(false);
   readonly title = input('Untitled');
+  readonly myAvatar = input('');
+  readonly myName = input('');
 
   readonly invite = output<void>();
-  readonly finish = output<void>();
+  readonly editProfile = output<void>();
   readonly home = output<void>();
   readonly titleChange = output<string>();
 }

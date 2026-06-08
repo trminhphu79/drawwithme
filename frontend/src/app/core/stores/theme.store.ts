@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { StorageService } from './storage.service';
+import { StorageService } from '../services/storage.service';
 
 export type ThemeMode = 'light' | 'dark';
 const STORAGE_KEY = 'dwm.theme';

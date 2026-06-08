@@ -55,6 +55,13 @@ import { PencilStyle, PencilStyleDef, ToolDef, ToolId } from '../tool.model';
         class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error/10 hover:text-error hover:scale-110 active:scale-95 transition-all">
         <span class="material-symbols-outlined">delete_sweep</span>
       </button>
+
+      <div class="w-px h-7 bg-outline-variant/40 mx-1"></div>
+
+      <button type="button" (click)="finish.emit()" title="Finish & save"
+        class="w-11 h-11 flex items-center justify-center rounded-full bg-secondary text-on-secondary shadow-md hover:brightness-105 hover:scale-110 active:scale-95 transition-all">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
+      </button>
     </nav>
   `,
 })
@@ -68,4 +75,5 @@ export class ToolRail {
   readonly styleChange = output<PencilStyle>();
   readonly preferences = output<void>();
   readonly clear = output<void>();
+  readonly finish = output<void>();
 }

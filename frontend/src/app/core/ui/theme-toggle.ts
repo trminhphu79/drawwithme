@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ThemeStore } from './theme.store';
+import { ThemeStore } from '../stores/theme.store';
 
 /** Small light/dark toggle button bound to the global ThemeStore. */
 @Component({
