@@ -3,18 +3,11 @@
     [roomCode]="code() || 'ROOM'"
     [participants]="store.participants()"
     [connected]="store.connected()"
-    [leftPanelOpen]="!chatCollapsed()"
-    [rightPanelOpen]="!propsCollapsed()"
     [title]="store.title()"
     (titleChange)="store.setTitle($event)"
     (invite)="onInvite()"
     (finish)="onFinish()"
-    (chatToggle)="toggleChat()"
-    (toggleLeftPanel)="chatCollapsed.set(!chatCollapsed())"
-    (toggleRightPanel)="propsCollapsed.set(!propsCollapsed())"
-    (reset)="onReset()"
-    (home)="onHome()"
-    (propsToggle)="propsOpen.set(!propsOpen())" />
+    (home)="onHome()" />
 
   <main class="w-full h-full pt-[var(--app-header-h)] relative">
     <!-- Canvas (fills the workspace; glass panels float over it) -->
@@ -47,37 +40,40 @@
         (zoomOut)="zoomOut()" />
     </section>
 
-    <!-- Mobile/tablet backdrop -->
-    @if (chatOpen()) {
-      <div class="lg:hidden fixed inset-0 top-[var(--app-header-h)] bg-on-surface/40 backdrop-blur-sm z-40" (click)="chatOpen.set(false)"></div>
-    }
+    <!-- Floating chat bubble (Messenger-style) — shown when the chat is closed -->
+    <button
+      type="button"
+      (click)="chatOpen.set(true)"
+      title="Open chat"
+      class="fixed left-4 z-50 w-14 h-14 rounded-full brand-bg shadow-lg flex items-center justify-center transition-all duration-200 ease-out
+             bottom-[calc(1.5rem_+_env(safe-area-inset-bottom))] hover:scale-105 active:scale-95"
+      [class.opacity-0]="chatOpen()"
+      [class.scale-50]="chatOpen()"
+      [class.pointer-events-none]="chatOpen()">
+      <span class="material-symbols-outlined text-[26px]" style="font-variation-settings:'FILL' 1;">chat</span>
+    </button>
 
-    <!-- Left: chat — slide-in drawer on mobile/tablet, fixed sidebar on desktop -->
-    <aside
-      class="fixed z-50 top-[var(--app-header-h)] bottom-0 left-0 w-80 max-w-[85vw] p-3 transition-all duration-300 ease-out
-             lg:z-40 lg:top-20 lg:bottom-4 lg:left-4 lg:w-72 lg:p-0 lg:max-w-none"
-      [class.translate-x-0]="chatOpen()"
-      [class.-translate-x-full]="!chatOpen()"
-      [class.lg:translate-x-0]="!chatCollapsed()"
-      [class.lg:opacity-100]="!chatCollapsed()"
-      [class.lg:-translate-x-full]="chatCollapsed()"
-      [class.lg:opacity-0]="chatCollapsed()"
-      [class.lg:pointer-events-none]="chatCollapsed()">
-      <!-- Close (mobile only) -->
-      <button
-        type="button"
-        (click)="chatOpen.set(false)"
-        class="lg:hidden absolute -right-2 top-1 z-10 w-9 h-9 rounded-full bg-surface-container-high text-on-surface shadow-lg flex items-center justify-center"
-        aria-label="Close chat">
-        <span class="material-symbols-outlined text-[20px]">close</span>
-      </button>
+    <!-- Chat panel — scales up from the bubble (origin bottom-left) -->
+    <div
+      class="fixed left-4 z-50 origin-bottom-left transition-all duration-200 ease-out
+             bottom-[calc(1.5rem_+_env(safe-area-inset-bottom))]
+             w-80 max-w-[85vw] md:w-[26rem] md:max-w-[90vw] lg:w-[30rem]
+             h-[70vh] max-h-[600px]"
+      [class.opacity-100]="chatOpen()"
+      [class.scale-100]="chatOpen()"
+      [class.opacity-0]="!chatOpen()"
+      [class.scale-90]="!chatOpen()"
+      [class.translate-y-3]="!chatOpen()"
+      [class.pointer-events-none]="!chatOpen()">
       <app-chat-panel
         [messages]="chat.messages()"
         [myId]="chat.myIdSig()"
         [muted]="chat.isMuted()"
+        [memberCount]="store.participants().length"
         (send)="chat.send($event)"
-        (toggleMute)="chat.toggleMute()" />
-    </aside>
+        (toggleMute)="chat.toggleMute()"
+        (close)="chatOpen.set(false)" />
+    </div>
 
     <!-- Top-center: horizontal tool bar (sits just below the header) -->
     <div class="fixed top-[calc(var(--app-header-h)_+_0.75rem)] left-1/2 -translate-x-1/2 z-40">

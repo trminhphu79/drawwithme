@@ -25,9 +25,11 @@ export class ChatPanel {
   readonly messages = input<ChatMessage[]>([]);
   readonly myId = input('');
   readonly muted = input(false);
+  readonly memberCount = input(0);
 
   readonly send = output<string>();
   readonly toggleMute = output<void>();
+  readonly close = output<void>();
 
   protected readonly draft = signal('');
 

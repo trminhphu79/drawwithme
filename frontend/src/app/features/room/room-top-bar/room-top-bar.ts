@@ -13,14 +13,6 @@ import { ThemeToggle } from '../../../core/theme-toggle';
       <div class="flex items-center gap-3">
         <button
           type="button"
-          (click)="toggleLeftPanel.emit()"
-          [title]="leftPanelOpen() ? 'Collapse chat' : 'Show chat'"
-          class="hidden lg:flex w-10 h-10 items-center justify-center rounded-lg transition-colors"
-          [class]="leftPanelOpen() ? 'text-rose-500 bg-rose-500/10' : 'text-on-surface-variant hover:bg-on-surface/5'">
-          <span class="material-symbols-outlined">chat</span>
-        </button>
-        <button
-          type="button"
           (click)="home.emit()"
           title="Back to home"
           class="flex items-center gap-2 hover:opacity-80 active:scale-95 transition-all">
@@ -46,13 +38,6 @@ import { ThemeToggle } from '../../../core/theme-toggle';
       </div>
 
       <div class="flex items-center gap-3">
-        <button
-          type="button"
-          (click)="chatToggle.emit()"
-          title="Toggle chat"
-          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors">
-          <span class="material-symbols-outlined">chat</span>
-        </button>
         <div class="flex -space-x-3 items-center mr-1">
           @for (p of participants(); track p.id) {
             <div
@@ -89,17 +74,10 @@ export class RoomTopBar {
   readonly roomCode = input.required<string>();
   readonly participants = input<Participant[]>([]);
   readonly connected = input(false);
-  readonly leftPanelOpen = input(true);
-  readonly rightPanelOpen = input(true);
   readonly title = input('Untitled');
 
   readonly invite = output<void>();
   readonly finish = output<void>();
-  readonly chatToggle = output<void>();
-  readonly toggleLeftPanel = output<void>();
-  readonly toggleRightPanel = output<void>();
-  readonly reset = output<void>();
   readonly home = output<void>();
-  readonly propsToggle = output<void>();
   readonly titleChange = output<string>();
 }

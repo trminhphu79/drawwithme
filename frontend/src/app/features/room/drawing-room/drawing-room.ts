@@ -82,8 +82,7 @@ export class DrawingRoom {
   /** Transient toast message (e.g. after copying the invite link). */
   protected readonly toast = signal<string | null>(null);
   private toastTimer: ReturnType<typeof setTimeout> | undefined;
-  /** Desktop collapse state for the side panels. */
-  protected readonly chatCollapsed = signal(false);
+  /** Desktop collapse state for the properties panel. */
   protected readonly propsCollapsed = signal(false);
   protected readonly initialName = computed(() =>
     this.prefs.hasProfile() ? this.prefs.displayName() : '',
