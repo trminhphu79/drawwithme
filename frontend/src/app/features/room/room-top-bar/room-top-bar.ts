@@ -45,6 +45,13 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors">
           <span class="material-symbols-outlined">forum</span>
         </button>
+        <button
+          type="button"
+          (click)="propsToggle.emit()"
+          title="Properties"
+          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-secondary hover:bg-secondary/10 transition-colors">
+          <span class="material-symbols-outlined">tune</span>
+        </button>
         <div class="flex -space-x-3 items-center mr-1">
           @for (p of participants(); track p.id) {
             <div
@@ -106,4 +113,5 @@ export class RoomTopBar {
   readonly toggleRightPanel = output<void>();
   readonly reset = output<void>();
   readonly home = output<void>();
+  readonly propsToggle = output<void>();
 }

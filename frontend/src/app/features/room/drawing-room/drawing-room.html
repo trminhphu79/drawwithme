@@ -11,7 +11,8 @@
     (toggleLeftPanel)="chatCollapsed.set(!chatCollapsed())"
     (toggleRightPanel)="propsCollapsed.set(!propsCollapsed())"
     (reset)="onReset()"
-    (home)="onHome()" />
+    (home)="onHome()"
+    (propsToggle)="propsOpen.set(!propsOpen())" />
 
   <main class="w-full h-full pt-[var(--app-header-h)] relative">
     <!-- Canvas (fills the workspace; glass panels float over it) -->
@@ -94,14 +95,29 @@
       <app-stroke-weight [size]="store.size()" (sizeChange)="onSizeChange($event)" />
     </div>
 
-    <!-- Right: properties sidebar (collapsible on desktop, animated) -->
+    <!-- Mobile/tablet backdrop for properties -->
+    @if (propsOpen()) {
+      <div class="lg:hidden fixed inset-0 top-[var(--app-header-h)] bg-on-surface/40 backdrop-blur-sm z-40" (click)="propsOpen.set(false)"></div>
+    }
+
+    <!-- Right: properties — slide-in drawer on mobile/tablet, sidebar on desktop -->
     <aside
-      class="hidden lg:block fixed right-4 top-20 bottom-4 w-80 z-40 transition-all duration-300 ease-out"
+      class="fixed z-50 top-[var(--app-header-h)] bottom-0 right-0 w-80 max-w-[85vw] p-3 transition-all duration-300 ease-out
+             lg:z-40 lg:top-20 lg:bottom-4 lg:right-4 lg:p-0 lg:max-w-none"
+      [class.translate-x-0]="propsOpen()"
+      [class.translate-x-full]="!propsOpen()"
       [class.lg:translate-x-0]="!propsCollapsed()"
       [class.lg:opacity-100]="!propsCollapsed()"
       [class.lg:translate-x-full]="propsCollapsed()"
       [class.lg:opacity-0]="propsCollapsed()"
       [class.lg:pointer-events-none]="propsCollapsed()">
+      <button
+        type="button"
+        (click)="propsOpen.set(false)"
+        class="lg:hidden absolute -left-2 top-1 z-10 w-9 h-9 rounded-full bg-surface-container-high text-on-surface shadow-lg flex items-center justify-center"
+        aria-label="Close properties">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
       <app-properties-panel
         [tool]="store.tool()"
         [size]="store.size()"

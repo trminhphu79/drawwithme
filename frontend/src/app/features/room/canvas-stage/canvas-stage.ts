@@ -427,22 +427,48 @@ export class CanvasStage {
     const fill = this.hexToRgba(hex);
     if (this.colorsEqual(target, fill, 0)) return;
 
+    // STRICT = solid fill region; SOFT = feather the fill INTO the stroke's
+    // anti-aliased fringe so no white gap is left between line and fill.
+    const STRICT = FILL_TOLERANCE;
+    const SOFT = 160;
+    const visited = new Uint8Array(w * h);
     const stack: number[] = [sx, sy];
     while (stack.length) {
       const y = stack.pop()!;
       const x = stack.pop()!;
-      const idx = (y * w + x) * 4;
       if (x < 0 || y < 0 || x >= w || y >= h) continue;
-      if (!this.colorsEqual([data[idx], data[idx + 1], data[idx + 2], data[idx + 3]], target, FILL_TOLERANCE)) {
-        continue;
+      const p = y * w + x;
+      if (visited[p]) continue;
+      visited[p] = 1;
+      const idx = p * 4;
+      const d = this.colorDist(data, idx, target);
+      if (d <= STRICT) {
+        data[idx] = fill[0];
+        data[idx + 1] = fill[1];
+        data[idx + 2] = fill[2];
+        data[idx + 3] = 255;
+        stack.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
+      } else if (d <= SOFT) {
+        // Boundary fringe: blend the fill in proportionally, but stop here.
+        const f = 1 - (d - STRICT) / (SOFT - STRICT);
+        data[idx] = Math.round(fill[0] * f + data[idx] * (1 - f));
+        data[idx + 1] = Math.round(fill[1] * f + data[idx + 1] * (1 - f));
+        data[idx + 2] = Math.round(fill[2] * f + data[idx + 2] * (1 - f));
+        data[idx + 3] = Math.round(255 * f + data[idx + 3] * (1 - f));
       }
-      data[idx] = fill[0];
-      data[idx + 1] = fill[1];
-      data[idx + 2] = fill[2];
-      data[idx + 3] = fill[3];
-      stack.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
+      // else: stroke core — leave untouched.
     }
     ctx.putImageData(img, 0, 0);
+  }
+
+  /** Max per-channel (incl. alpha) distance between a pixel and a target color. */
+  private colorDist(data: Uint8ClampedArray, idx: number, target: number[]): number {
+    return Math.max(
+      Math.abs(data[idx] - target[0]),
+      Math.abs(data[idx + 1] - target[1]),
+      Math.abs(data[idx + 2] - target[2]),
+      Math.abs(data[idx + 3] - target[3]),
+    );
   }
 
   // ---- helpers ----

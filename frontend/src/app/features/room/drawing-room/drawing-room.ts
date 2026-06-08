@@ -66,6 +66,8 @@ export class DrawingRoom {
   protected readonly showNameGate = signal(false);
   /** Mobile/tablet chat drawer open state (always visible on lg+). */
   protected readonly chatOpen = signal(false);
+  /** Mobile/tablet properties drawer open state (always visible on lg+). */
+  protected readonly propsOpen = signal(false);
   /** Live zoom % reported by the canvas viewport (for the controls display). */
   protected readonly zoomPercent = signal(100);
   /** Transient stroke-weight slider (shows on tool change, fades out after idle). */
