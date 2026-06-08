@@ -21,6 +21,8 @@ export interface DrawOperation {
   opacity: number;
   /** Path points for stroke/erase; single seed point for fill. */
   points: Point[];
+  /** Pencil style for stroke ops: hard | soft | shadow. */
+  style?: 'hard' | 'soft' | 'shadow';
   /** Socket id / user id of the author. */
   authorId?: string;
 }

@@ -12,12 +12,14 @@ import { Router } from '@angular/router';
 import { DrawingStore } from '../drawing.store';
 import { ChatStore } from '../chat.store';
 import { PreferencesStore } from '../../../core/preferences.store';
-import { DRAWING_TOOLS } from '../tool.model';
+import { DRAWING_TOOLS, PENCIL_STYLES } from '../tool.model';
 import { RoomTopBar } from '../room-top-bar/room-top-bar';
 import { ToolRail } from '../tool-rail/tool-rail';
 import { CanvasStage } from '../canvas-stage/canvas-stage';
 import { CanvasControls } from '../canvas-controls/canvas-controls';
 import { ReactionBar } from '../reaction-bar/reaction-bar';
+import { StrokeWeight } from '../stroke-weight/stroke-weight';
+import { PencilStyle, ToolId } from '../tool.model';
 import { PropertiesPanel } from '../properties-panel/properties-panel';
 import { ChatPanel } from '../chat-panel/chat-panel';
 import { ReactionOverlay } from '../reaction-overlay/reaction-overlay';
@@ -38,6 +40,7 @@ import { NameGate } from '../name-gate/name-gate';
     CanvasStage,
     CanvasControls,
     ReactionBar,
+    StrokeWeight,
     PropertiesPanel,
     ChatPanel,
     ReactionOverlay,
@@ -55,11 +58,15 @@ export class DrawingRoom {
   readonly code = input<string>('');
 
   protected readonly tools = DRAWING_TOOLS;
+  protected readonly pencilStyles = PENCIL_STYLES;
   protected readonly showNameGate = signal(false);
   /** Mobile/tablet chat drawer open state (always visible on lg+). */
   protected readonly chatOpen = signal(false);
   /** Live zoom % reported by the canvas viewport (for the controls display). */
   protected readonly zoomPercent = signal(100);
+  /** Transient stroke-weight slider (shows on tool change, fades out after idle). */
+  protected readonly weightVisible = signal(false);
+  private weightTimer: ReturnType<typeof setTimeout> | undefined;
   /** Desktop collapse state for the side panels. */
   protected readonly chatCollapsed = signal(false);
   protected readonly propsCollapsed = signal(false);
@@ -87,6 +94,30 @@ export class DrawingRoom {
 
   protected toggleChat(): void {
     this.chatOpen.update((o) => !o);
+  }
+
+  /** Tool change → reveal the weight slider (hidden for the Hand tool). */
+  protected onToolSelect(tool: ToolId): void {
+    this.store.setTool(tool);
+    if (tool === 'hand') this.weightVisible.set(false);
+    else this.flashWeight();
+  }
+
+  protected onStyleChange(style: PencilStyle): void {
+    this.store.setPencilStyle(style);
+    this.flashWeight();
+  }
+
+  protected onSizeChange(size: number): void {
+    this.store.setSize(size);
+    this.flashWeight();
+  }
+
+  /** Show the slider, then auto-fade it out after a short idle. */
+  private flashWeight(): void {
+    this.weightVisible.set(true);
+    clearTimeout(this.weightTimer);
+    this.weightTimer = setTimeout(() => this.weightVisible.set(false), 2600);
   }
 
   protected zoomIn(): void {

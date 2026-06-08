@@ -219,6 +219,7 @@ export class CanvasStage {
         size: b.size,
         opacity: b.opacity,
         points,
+        style: b.tool === 'eraser' ? undefined : b.style,
       });
     }
     this.gesture = null;
@@ -269,10 +270,45 @@ export class CanvasStage {
       color: op.color,
       size: op.size,
       opacity: op.opacity,
+      style: op.style ?? 'hard',
     };
-    for (let i = 1; i < op.points.length; i++) {
-      this.strokeSegment(ctx, op.points[i - 1], op.points[i], settings);
+    // Replay the whole stroke as one path (clean soft/glow edges, no banding).
+    ctx.save();
+    this.applyStrokeStyle(ctx, settings);
+    ctx.beginPath();
+    ctx.moveTo(op.points[0].x, op.points[0].y);
+    for (let i = 1; i < op.points.length; i++) ctx.lineTo(op.points[i].x, op.points[i].y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** Configure ctx for the given brush incl. the 3 pencil styles. */
+  private applyStrokeStyle(ctx: CanvasRenderingContext2D, b: BrushSettings): void {
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = b.size;
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    if (b.tool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
+      ctx.globalAlpha = 1;
+      return;
     }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = b.opacity;
+    ctx.strokeStyle = b.color;
+    if (b.style === 'soft') {
+      // Marker / airbrush: translucent + heavily feathered edges.
+      ctx.globalAlpha = b.opacity * 0.55;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = Math.max(6, b.size * 1.3);
+    } else if (b.style === 'shadow') {
+      // Neon: solid core with a strong colored glow.
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = Math.max(12, b.size * 2.2);
+    }
+    // 'hard' → crisp, fully opaque, no blur (defaults above).
   }
 
   private strokeSegment(
@@ -282,17 +318,7 @@ export class CanvasStage {
     b: BrushSettings,
   ): void {
     ctx.save();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = b.size;
-    if (b.tool === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.strokeStyle = 'rgba(0,0,0,1)';
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = b.opacity;
-      ctx.strokeStyle = b.color;
-    }
+    this.applyStrokeStyle(ctx, b);
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);

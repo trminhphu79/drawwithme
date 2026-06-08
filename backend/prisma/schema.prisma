@@ -47,6 +47,7 @@ model Operation {
   size      Int
   opacity   Float
   points    Json
+  style     String? // pencil style: hard | soft | shadow
   authorId  String?
   isUndone  Boolean  @default(false)
   createdAt DateTime @default(now())

@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { SocketService } from '../../core/socket.service';
 import { PreferencesStore } from '../../core/preferences.store';
 import { RoomService } from './room.service';
-import { BrushSettings, ToolId } from './tool.model';
+import { BrushSettings, PencilStyle, ToolId } from './tool.model';
 import { DrawOperation, Point } from './operation.model';
 import { Participant, RemoteCursor } from './participant.model';
 
@@ -38,6 +38,7 @@ export class DrawingStore {
   private readonly _size = signal(this.prefs.defaultBrushSize());
   private readonly _opacity = signal(this.prefs.defaultOpacity());
   private readonly _color = signal(this.prefs.recentColors()[0] ?? '#6f583c');
+  private readonly _pencilStyle = signal<PencilStyle>('hard');
 
   // ---- presence ----
   private readonly _participants = signal<Participant[]>([]);
@@ -52,6 +53,7 @@ export class DrawingStore {
   readonly size = this._size.asReadonly();
   readonly opacity = this._opacity.asReadonly();
   readonly color = this._color.asReadonly();
+  readonly pencilStyle = this._pencilStyle.asReadonly();
   readonly participants = this._participants.asReadonly();
   readonly cursors = this._cursors.asReadonly();
   readonly connected = this.socket.connected;
@@ -70,6 +72,7 @@ export class DrawingStore {
     color: this._color(),
     size: this._size(),
     opacity: this._opacity() / 100,
+    style: this._pencilStyle(),
   }));
 
   // ---- lifecycle ----
@@ -124,6 +127,10 @@ export class DrawingStore {
   setColor(color: string): void {
     this._color.set(color);
     this.prefs.pushRecentColor(color);
+  }
+  setPencilStyle(style: PencilStyle): void {
+    this._pencilStyle.set(style);
+    this._tool.set('pencil');
   }
   // ---- drawing actions ----
   /** Commit a finished stroke/erase/fill from the canvas (optimistic local). */

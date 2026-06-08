@@ -9,6 +9,7 @@ export interface DrawOperationDto {
   size: number;
   opacity: number;
   points: { x: number; y: number }[];
+  style?: 'hard' | 'soft' | 'shadow';
   authorId?: string;
 }
 
@@ -41,6 +42,7 @@ export class OperationsService {
         size: Math.round(op.size),
         opacity: op.opacity,
         points: op.points as unknown as object,
+        style: op.style ?? null,
         authorId: op.authorId ?? null,
       },
     });
@@ -83,6 +85,7 @@ export class OperationsService {
       size: o.size,
       opacity: o.opacity,
       points: o.points as unknown as { x: number; y: number }[],
+      style: (o.style as DrawOperationDto['style']) ?? undefined,
       authorId: o.authorId ?? undefined,
     }));
   }

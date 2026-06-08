@@ -36,6 +36,7 @@ let OperationsService = class OperationsService {
                 size: Math.round(op.size),
                 opacity: op.opacity,
                 points: op.points,
+                style: op.style ?? null,
                 authorId: op.authorId ?? null,
             },
         });
@@ -71,6 +72,7 @@ let OperationsService = class OperationsService {
             size: o.size,
             opacity: o.opacity,
             points: o.points,
+            style: o.style ?? undefined,
             authorId: o.authorId ?? undefined,
         }));
     }

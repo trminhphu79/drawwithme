@@ -76,7 +76,20 @@
       <app-tool-rail
         [tools]="tools"
         [activeTool]="store.tool()"
-        (toolSelect)="store.setTool($event)" />
+        [pencilStyles]="pencilStyles"
+        [pencilStyle]="store.pencilStyle()"
+        (toolSelect)="onToolSelect($event)"
+        (styleChange)="onStyleChange($event)" />
+    </div>
+
+    <!-- Transient stroke-weight slider, below the tool bar (fades out on idle) -->
+    <div
+      class="fixed top-36 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out"
+      [class.opacity-100]="weightVisible()"
+      [class.opacity-0]="!weightVisible()"
+      [class.-translate-y-2]="!weightVisible()"
+      [class.pointer-events-none]="!weightVisible()">
+      <app-stroke-weight [size]="store.size()" (sizeChange)="onSizeChange($event)" />
     </div>
 
     <!-- Right: properties sidebar (collapsible on desktop, animated) -->
