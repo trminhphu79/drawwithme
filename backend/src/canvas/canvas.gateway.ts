@@ -12,16 +12,10 @@ import { MessagesService } from '../messages/messages.service';
 
 interface Presence {
   name: string;
-  colorClass: string;
+  /** Color slot; the frontend maps it to a distinct cursor/label color. */
+  colorIndex: number;
   avatar?: string;
 }
-
-const CURSOR_COLORS = [
-  'bg-secondary text-on-secondary',
-  'bg-tertiary text-on-tertiary',
-  'bg-primary text-on-primary',
-  'bg-primary-container text-on-primary-container',
-];
 
 /**
  * Real-time canvas gateway. Strokes are persisted via OperationsService then
@@ -58,7 +52,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
     const name = body.name || 'Guest';
     members.set(client.id, {
       name,
-      colorClass: CURSOR_COLORS[members.size % CURSOR_COLORS.length],
+      colorIndex: this.nextColorIndex(members),
       avatar: body.avatar,
     });
     this.rooms.set(code, members);
@@ -167,7 +161,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
     client.to(code).emit('cursor:move', {
       id: client.id,
       name: presence.name,
-      colorClass: presence.colorClass,
+      colorIndex: presence.colorIndex,
       x: body.x,
       y: body.y,
     });
@@ -234,10 +228,18 @@ export class CanvasGateway implements OnGatewayDisconnect {
     this.emitPresence(code);
   }
 
+  /** Smallest color slot not currently used in the room (keeps cursors distinct). */
+  private nextColorIndex(members: Map<string, Presence>): number {
+    const used = new Set([...members.values()].map((m) => m.colorIndex));
+    let i = 0;
+    while (used.has(i)) i++;
+    return i;
+  }
+
   private emitPresence(code: string): void {
     const members = this.rooms.get(code);
     const list = members
-      ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorClass: p.colorClass, avatar: p.avatar }))
+      ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorIndex: p.colorIndex, avatar: p.avatar }))
       : [];
     this.server.to(code).emit('presence:update', list);
   }

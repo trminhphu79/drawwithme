@@ -6,13 +6,13 @@ import { PencilStyle, PencilStyleDef, ToolDef, ToolId } from '../tool.model';
   selector: 'app-tool-rail',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <nav class="glass-blur rounded-full elevation-3 flex items-center gap-1 px-2 py-2 touch-manipulation select-none">
+    <nav class="glass-blur rounded-full elevation-3 flex flex-nowrap items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1.5 sm:py-2 touch-manipulation select-none max-w-[calc(100vw-1rem)] overflow-x-auto scrollbar-none">
       @for (tool of tools(); track tool.id) {
         <button
           type="button"
           (click)="toolSelect.emit(tool.id)"
           [title]="tool.label"
-          class="w-11 h-11 flex items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95"
+          class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95"
           [class]="
             activeTool() === tool.id
               ? 'bg-secondary text-on-secondary shadow-lg'
@@ -28,13 +28,13 @@ import { PencilStyle, PencilStyleDef, ToolDef, ToolId } from '../tool.model';
 
       <!-- Pencil styles (only while the Pencil tool is active) -->
       @if (activeTool() === 'pencil' && pencilStyles().length) {
-        <div class="w-px h-7 bg-outline-variant/40 mx-1"></div>
+        <div class="w-px h-7 bg-outline-variant/40 mx-0.5 sm:mx-1 shrink-0"></div>
         @for (s of pencilStyles(); track s.id) {
           <button
             type="button"
             (click)="styleChange.emit(s.id)"
             [title]="s.label"
-            class="w-11 h-11 flex items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95"
+            class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95"
             [class]="
               pencilStyle() === s.id
                 ? 'bg-secondary/20 text-secondary ring-1 ring-secondary/50'
@@ -45,21 +45,21 @@ import { PencilStyle, PencilStyleDef, ToolDef, ToolId } from '../tool.model';
         }
       }
 
-      <div class="w-px h-7 bg-outline-variant/40 mx-1"></div>
+      <div class="w-px h-7 bg-outline-variant/40 mx-0.5 sm:mx-1 shrink-0"></div>
 
       <button type="button" (click)="preferences.emit()" title="Properties"
-        class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all">
+        class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all">
         <span class="material-symbols-outlined">tune</span>
       </button>
       <button type="button" (click)="clear.emit()" title="Clear canvas"
-        class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error/10 hover:text-error hover:scale-110 active:scale-95 transition-all">
+        class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error/10 hover:text-error hover:scale-110 active:scale-95 transition-all">
         <span class="material-symbols-outlined">delete_sweep</span>
       </button>
 
-      <div class="w-px h-7 bg-outline-variant/40 mx-1"></div>
+      <div class="w-px h-7 bg-outline-variant/40 mx-0.5 sm:mx-1 shrink-0"></div>
 
       <button type="button" (click)="finish.emit()" title="Finish & save"
-        class="w-11 h-11 flex items-center justify-center rounded-full bg-secondary text-on-secondary shadow-md hover:brightness-105 hover:scale-110 active:scale-95 transition-all">
+        class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center rounded-full bg-secondary text-on-secondary shadow-md hover:brightness-105 hover:scale-110 active:scale-95 transition-all">
         <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
       </button>
     </nav>

@@ -17,12 +17,6 @@ const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const operations_service_1 = require("./operations.service");
 const messages_service_1 = require("../messages/messages.service");
-const CURSOR_COLORS = [
-    'bg-secondary text-on-secondary',
-    'bg-tertiary text-on-tertiary',
-    'bg-primary text-on-primary',
-    'bg-primary-container text-on-primary-container',
-];
 let CanvasGateway = class CanvasGateway {
     constructor(operations, messages) {
         this.operations = operations;
@@ -40,7 +34,7 @@ let CanvasGateway = class CanvasGateway {
         const name = body.name || 'Guest';
         members.set(client.id, {
             name,
-            colorClass: CURSOR_COLORS[members.size % CURSOR_COLORS.length],
+            colorIndex: this.nextColorIndex(members),
             avatar: body.avatar,
         });
         this.rooms.set(code, members);
@@ -121,7 +115,7 @@ let CanvasGateway = class CanvasGateway {
         client.to(code).emit('cursor:move', {
             id: client.id,
             name: presence.name,
-            colorClass: presence.colorClass,
+            colorIndex: presence.colorIndex,
             x: body.x,
             y: body.y,
         });
@@ -176,10 +170,17 @@ let CanvasGateway = class CanvasGateway {
             this.rooms.delete(code);
         this.emitPresence(code);
     }
+    nextColorIndex(members) {
+        const used = new Set([...members.values()].map((m) => m.colorIndex));
+        let i = 0;
+        while (used.has(i))
+            i++;
+        return i;
+    }
     emitPresence(code) {
         const members = this.rooms.get(code);
         const list = members
-            ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorClass: p.colorClass, avatar: p.avatar }))
+            ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorIndex: p.colorIndex, avatar: p.avatar }))
             : [];
         this.server.to(code).emit('presence:update', list);
     }

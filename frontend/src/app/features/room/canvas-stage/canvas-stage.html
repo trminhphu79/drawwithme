@@ -38,9 +38,9 @@
         class="cursor-smooth absolute pointer-events-none flex flex-col items-start z-10"
         [style.left.%]="(cursor.x / canvasW) * 100"
         [style.top.%]="(cursor.y / canvasH) * 100">
-        <span class="material-symbols-outlined text-2xl -ml-1 -mt-1 drop-shadow-md" [class]="cursor.colorClass.split(' ')[0]"
+        <span class="material-symbols-outlined text-2xl -ml-1 -mt-1 drop-shadow-md" [class]="color(cursor.colorIndex).arrow"
           style="font-variation-settings:'FILL' 1;">near_me</span>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap" [class]="cursor.colorClass">
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap" [class]="color(cursor.colorIndex).pill">
           {{ cursor.name }}
         </span>
       </div>

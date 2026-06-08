@@ -33,13 +33,19 @@
           </span>
         </div>
       } @else if (isSelf(m)) {
-        <div class="flex flex-col gap-1.5 items-end">
-          <div class="flex justify-between items-center w-full px-1">
-            <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>
-            <span class="text-[11px] font-bold text-rose-500 dark:text-rose-300">You</span>
-          </div>
-          <div class="bg-linear-to-br from-rose-400 to-pink-500 text-white p-3 rounded-tl-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm shadow-rose-500/20 max-w-[85%] break-words">
-            {{ m.text }}
+        <div class="flex items-end gap-2 flex-row-reverse">
+          <img
+            [src]="url(m.avatar)"
+            alt="You"
+            class="w-7 h-7 rounded-full object-cover shrink-0 bg-surface-variant ring-1 ring-black/5" />
+          <div class="flex flex-col gap-1 items-end min-w-0">
+            <div class="flex items-center gap-2 px-1">
+              <span class="text-[11px] font-bold text-rose-500 dark:text-rose-300">You</span>
+              <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>
+            </div>
+            <div class="bg-linear-to-br from-rose-400 to-pink-500 text-white p-3 rounded-tl-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm shadow-rose-500/20 max-w-[85%] break-words">
+              {{ m.text }}
+            </div>
           </div>
         </div>
       } @else {

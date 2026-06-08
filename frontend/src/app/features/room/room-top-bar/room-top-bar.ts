@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { Participant } from '../participant.model';
 import { ThemeToggle } from '../../../core/ui/theme-toggle';
 import { avatarUrl } from '../../../core/models/avatars';
+import { cursorColor } from '../../../core/models/cursor-colors';
 
 /** DUMB. Glassmorphism top navigation bar for the drawing room. */
 @Component({
@@ -10,7 +11,7 @@ import { avatarUrl } from '../../../core/models/avatars';
   imports: [ThemeToggle],
   template: `
     <nav
-      class="glass-panel border-b border-white/20 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop w-full z-50 fixed top-0 h-[var(--app-header-h)] pt-[env(safe-area-inset-top)]">
+      class="glass-panel border-b border-white/20 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop w-full z-50 fixed top-0 h-(--app-header-h) pt-[env(safe-area-inset-top)]">
       <div class="flex items-center gap-3">
         <button
           type="button"
@@ -50,7 +51,7 @@ import { avatarUrl } from '../../../core/models/avatars';
             } @else {
               <div
                 class="w-8 h-8 rounded-full border-2 border-surface shadow-sm flex items-center justify-center text-xs font-bold"
-                [class]="p.colorClass"
+                [class]="color(p.colorIndex).pill"
                 [title]="p.name">
                 {{ p.name.charAt(0) }}
               </div>
@@ -85,6 +86,7 @@ import { avatarUrl } from '../../../core/models/avatars';
 })
 export class RoomTopBar {
   protected readonly url = avatarUrl;
+  protected readonly color = cursorColor;
 
   readonly roomCode = input.required<string>();
   readonly participants = input<Participant[]>([]);

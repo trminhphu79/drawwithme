@@ -2,8 +2,8 @@
 export interface Participant {
   id: string;
   name: string;
-  /** Tailwind classes used to tint the avatar / cursor. */
-  colorClass: string;
+  /** Server-assigned color slot (see cursorColor() in core/models). */
+  colorIndex: number;
   /** Avatar key (filename in public/avatars). */
   avatar?: string;
 }
@@ -14,5 +14,5 @@ export interface RemoteCursor {
   name: string;
   x: number;
   y: number;
-  colorClass: string;
+  colorIndex: number;
 }

@@ -15,6 +15,7 @@ import {
 import { BrushSettings } from '../tool.model';
 import { DrawOperation, Point } from '../operation.model';
 import { RemoteCursor } from '../participant.model';
+import { cursorColor } from '../../../core/models/cursor-colors';
 
 /** Fixed internal canvas resolution. */
 const CANVAS_W = 1600;
@@ -45,6 +46,7 @@ type Gesture = 'draw' | 'pan' | 'zoom' | 'pinch' | null;
   templateUrl: './canvas-stage.html',
 })
 export class CanvasStage {
+  protected readonly color = cursorColor;
   readonly operations = input<DrawOperation[]>([]);
   readonly brush = input.required<BrushSettings>();
   readonly cursors = input<RemoteCursor[]>([]);
