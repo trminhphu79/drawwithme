@@ -10,6 +10,24 @@ as a finished artwork.
   Socket.IO gateway for live strokes (event-sourced operation log).
 - **Infra:** Docker Compose runs Postgres + the API.
 
+## Restrict access to Vietnam only
+
+`scripts/vn-firewall.sh` (run on the VPS as root) allows only Vietnamese IP
+ranges to reach the public web ports. Because the app runs in Docker, the rules
+go in the `DOCKER-USER` iptables chain (and `ip6tables` for IPv6); it also
+installs a systemd timer to refresh the IP list and re-apply on boot.
+
+```bash
+# on the VPS
+sudo apt-get install -y ipset
+sudo WEB_PORTS=80,443 ./scripts/vn-firewall.sh --install   # VN-only on 80/443 + timer
+# lock the whole host to VN (SSH still allowed): SCOPE=all SSH_PORT=24700 ...
+sudo ./scripts/vn-firewall.sh --clear                      # undo
+```
+
+IP data: ipdeny.com aggregated VN zones. Geo-IP is best-effort (VPNs/proxies can
+bypass it); pair with strong room passwords for real privacy.
+
 ## Architecture (frontend)
 
 ```
