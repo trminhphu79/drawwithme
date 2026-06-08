@@ -102,10 +102,10 @@ export class ChatStore {
     const event: ReactionEvent = { ...r, id: r.id || crypto.randomUUID() };
     this._reactions.update((list) => [...list, event]);
     this.sound.pop();
-    // Match the 2s float-up animation, then drop it.
+    // Match the 2.8s float-up animation, then drop it.
     setTimeout(() => {
       this._reactions.update((list) => list.filter((e) => e.id !== event.id));
-    }, 2000);
+    }, 2900);
   }
 
   private setMyId(id: string): void {

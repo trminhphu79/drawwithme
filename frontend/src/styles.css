@@ -259,7 +259,8 @@ body {
 .reaction-bubble {
   pointer-events: none;
   position: absolute;
-  animation: float-up 2s ease-out forwards;
+  /* Rises from bottom:12% up to ~80% of the screen, then fades near the top. */
+  animation: float-up 2.8s ease-out forwards;
   will-change: transform, opacity;
 }
 @keyframes float-up {
@@ -267,11 +268,18 @@ body {
     transform: translateY(0) scale(0.5);
     opacity: 0;
   }
-  20% {
+  10% {
+    transform: translateY(-3vh) scale(1.15);
     opacity: 1;
   }
+  /* Stay fully visible for most of the climb... */
+  78% {
+    transform: translateY(-66vh) scale(1.2);
+    opacity: 1;
+  }
+  /* ...then fade out over the last stretch near the top (~80%). */
   100% {
-    transform: translateY(-200px) scale(1.5);
+    transform: translateY(-72vh) scale(1.25);
     opacity: 0;
   }
 }
