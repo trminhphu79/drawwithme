@@ -1,13 +1,12 @@
 # Caddy serves the prebuilt Angular FE and reverse-proxies the API + Socket.IO.
-# With real domains in SITE_ADDRESS, Caddy automatically provisions and renews
-# Let's Encrypt TLS certs and redirects HTTP->HTTPS. For local/no-TLS testing,
-# set SITE_ADDRESS=:80 in .env.
+# Caddy automatically provisions and renews Let's Encrypt TLS for these domains
+# and redirects HTTP->HTTPS (both must have A records pointing at this VPS).
 {
 	# ACME contact — used for Let's Encrypt expiry notices.
 	email trminhphu79@gmail.com
 }
 
-{$SITE_ADDRESS} {
+tranminhphu.com, www.tranminhphu.com {
 	encode zstd gzip
 
 	# REST API -> NestJS (keeps the /api prefix the backend expects).

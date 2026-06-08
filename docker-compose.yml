@@ -42,10 +42,6 @@ services:
     restart: unless-stopped
     depends_on:
       - api
-    environment:
-      # Domains Caddy serves; with real domains it auto-provisions Let's Encrypt
-      # TLS. Use ":80" for local/no-TLS testing.
-      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
     volumes:
       - ./frontend/dist/frontend/browser:/srv:ro
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
