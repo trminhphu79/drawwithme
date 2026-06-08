@@ -148,6 +148,7 @@
 /* Non-token theming vars (glass + canvas) — overridden in .dark below. */
 :root {
   --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-blur-bg: rgba(255, 255, 255, 0.22);
   --glass-border: rgba(255, 255, 255, 0.55);
   --glass-shadow: 0 10px 40px rgba(17, 24, 68, 0.1);
   --canvas-bg: #f0f2f5;
@@ -199,6 +200,7 @@
   --color-on-error-container: #ffdad6;
 
   --glass-bg: rgba(29, 32, 34, 0.7);
+  --glass-blur-bg: rgba(20, 24, 30, 0.3);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
   --canvas-bg: #16191b;
@@ -226,6 +228,13 @@ body {
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+/* More translucent + stronger blur — for the floating toolbar / tool dock. */
+.glass-blur {
+  background-color: var(--glass-blur-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
 }
 .elevation-2 {
   box-shadow: 0 4px 20px rgba(17, 24, 68, 0.08);

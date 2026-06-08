@@ -7,7 +7,7 @@ import { ToolDef, ToolId } from '../tool.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <nav
-      class="glass-panel rounded-xl elevation-3 w-20 flex flex-col items-center py-6 gap-3 h-full">
+      class="glass-blur rounded-xl elevation-3 w-20 flex flex-col items-center py-6 gap-3 h-full">
       <div class="flex flex-col items-center gap-1 mb-2">
         <div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-lg ring-4 ring-white/10">
           <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">brush</span>
