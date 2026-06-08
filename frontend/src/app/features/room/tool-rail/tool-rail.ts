@@ -6,7 +6,7 @@ import { PencilStyle, PencilStyleDef, ToolDef, ToolId } from '../tool.model';
   selector: 'app-tool-rail',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <nav class="glass-blur rounded-full elevation-3 flex items-center gap-1 px-2 py-2">
+    <nav class="glass-blur rounded-full elevation-3 flex items-center gap-1 px-2 py-2 touch-manipulation select-none">
       @for (tool of tools(); track tool.id) {
         <button
           type="button"

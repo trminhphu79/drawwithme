@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
   template: `
     <!-- Undo / Redo -->
     <div
-      class="absolute bottom-margin-desktop left-1/2 -translate-x-1/2 glass-panel rounded-full elevation-2 border border-outline-variant/30 px-3 py-2 flex items-center gap-2">
+      class="absolute bottom-margin-desktop left-1/2 -translate-x-1/2 glass-panel rounded-full elevation-2 border border-outline-variant/30 px-3 py-2 flex items-center gap-2 touch-manipulation select-none">
       <button type="button" (click)="undo.emit()" [disabled]="!canUndo()"
         class="p-2 text-on-surface hover:bg-surface-variant rounded-full transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Undo">
         <span class="material-symbols-outlined">undo</span>
@@ -21,7 +21,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
     <!-- Zoom -->
     <div
-      class="absolute bottom-margin-desktop right-margin-mobile md:right-margin-desktop glass-panel rounded-full elevation-2 border border-outline-variant/30 flex flex-col items-center">
+      class="absolute bottom-margin-desktop right-margin-mobile md:right-margin-desktop glass-panel rounded-full elevation-2 border border-outline-variant/30 flex flex-col items-center touch-manipulation select-none">
       <button type="button" (click)="zoomIn.emit()" class="p-3 text-on-surface hover:bg-surface-variant rounded-t-full transition-colors" title="Zoom in">
         <span class="material-symbols-outlined">add</span>
       </button>

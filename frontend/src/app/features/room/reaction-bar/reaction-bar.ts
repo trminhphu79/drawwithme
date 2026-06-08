@@ -10,7 +10,7 @@ import { REACTION_EMOJIS } from '../chat.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      class="glass-panel rounded-full elevation-3 border border-white/20 px-2 py-1.5 flex items-center gap-1">
+      class="glass-panel rounded-full elevation-3 border border-white/20 px-2 py-1.5 flex items-center gap-1 touch-manipulation select-none">
       @for (emoji of emojis; track emoji) {
         <button
           type="button"

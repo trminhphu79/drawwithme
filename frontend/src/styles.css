@@ -220,6 +220,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Disable double-tap-to-zoom across the UI chrome (canvas sets its own). */
+  touch-action: manipulation;
 }
 
 /* ---- Glassmorphism panels (Level 2/3 elevation) ---- */

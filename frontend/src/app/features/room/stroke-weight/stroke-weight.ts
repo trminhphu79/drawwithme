@@ -8,7 +8,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
   selector: 'app-stroke-weight',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="glass-blur rounded-full elevation-3 px-4 py-2.5 flex items-center gap-3">
+    <div class="glass-blur rounded-full elevation-3 px-4 py-2.5 flex items-center gap-3 touch-manipulation select-none">
       <span class="material-symbols-outlined text-on-surface-variant text-[18px]">line_weight</span>
       <input
         type="range"
