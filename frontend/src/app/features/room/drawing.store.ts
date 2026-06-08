@@ -80,42 +80,16 @@ export class DrawingStore {
   }));
 
   // ---- lifecycle ----
-  /** Connect, join the room, load history and subscribe to live events. */
+  /** Connect, subscribe to live events, join the room, then load history. */
   async init(code: string): Promise<void> {
     this.code = code;
     const socket = this.socket.connect();
     this.myId = socket.id ?? '';
 
-    // (Re)announce ourselves on every connect — incl. reconnects, where Socket.IO
-    // assigns a fresh id. Without this a reconnected client drops out of the room
-    // map and stops appearing in / receiving presence updates.
-    const join = () => {
-      this.myId = socket.id ?? '';
-      this.socket.emit('room:join', {
-        code,
-        name: this.prefs.displayName(),
-        avatar: this.prefs.avatar(),
-      });
-    };
-    socket.on('connect', join);
-    if (socket.connected) join();
-
-    // Leaving the room (component destroyed) → tear down the shared socket so
-    // we don't leak the connection or its listeners. The rx subscriptions below
-    // are already cleaned up via takeUntilDestroyed.
-    this.destroyRef.onDestroy(() => {
-      socket.off('connect', join);
-      this.socket.disconnect();
-    });
-
-    // History (best-effort — drawing works offline too).
-    try {
-      const ops = await firstValueFrom(this.rooms.getOperations(code));
-      if (ops?.length) this._operations.set(ops);
-    } catch {
-      /* API not available yet — start with an empty canvas. */
-    }
-
+    // Register ALL listeners BEFORE joining. Otherwise the server's initial
+    // presence:update (sent in response to room:join) can arrive before we're
+    // subscribed and be dropped — leaving the member list empty until the next
+    // join/leave. Subscription setup is synchronous, so it's live before join().
     this.socket
       .on<DrawOperation>('op:applied')
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -150,6 +124,44 @@ export class DrawingStore {
       .on<{ title: string }>('title:updated')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(({ title }) => this._title.set(title));
+
+    // (Re)announce ourselves on every connect — incl. reconnects, where Socket.IO
+    // assigns a fresh id. Without this a reconnected client drops out of the room
+    // map and stops appearing in / receiving presence updates.
+    const join = () => {
+      this.myId = socket.id ?? '';
+      this.socket.emit('room:join', {
+        code,
+        name: this.prefs.displayName(),
+        avatar: this.prefs.avatar(),
+      });
+    };
+    socket.on('connect', join);
+    if (socket.connected) join();
+
+    // Leaving the room (component destroyed) → tear down the shared socket so
+    // we don't leak the connection or its listeners. The rx subscriptions above
+    // are already cleaned up via takeUntilDestroyed.
+    this.destroyRef.onDestroy(() => {
+      socket.off('connect', join);
+      this.socket.disconnect();
+    });
+
+    // History (best-effort — drawing works offline too). Done last so the await
+    // never delays listener registration or the join above.
+    try {
+      const ops = await firstValueFrom(this.rooms.getOperations(code));
+      if (ops?.length) {
+        // Keep history order, then append any live ops that arrived during the
+        // fetch and aren't already in the snapshot (dedup by id).
+        this._operations.update((live) => {
+          const ids = new Set(ops.map((o) => o.id));
+          return [...ops, ...live.filter((o) => !ids.has(o.id))];
+        });
+      }
+    } catch {
+      /* API not available yet — start with an empty canvas. */
+    }
   }
 
   /** Broadcast a changed display name / avatar to everyone in the room. */
