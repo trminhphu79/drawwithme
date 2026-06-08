@@ -18,6 +18,8 @@ const W = 1600;
 const H = 1000;
 const FILL_TOLERANCE = 32;
 const SOFT = 160;
+/** Replay pace: wall-clock time per drawn point (so total scales with size). */
+const MS_PER_POINT = 150;
 
 interface StrokeStyle {
   erase: boolean;
@@ -59,6 +61,10 @@ export class ReplayPlayer {
   private totalPoints = 0;
   private donePoints = 0;
   private raf = 0;
+  /** rAF timestamp of the previous frame (0 = first frame / just resumed). */
+  private lastFrame = 0;
+  /** Fractional points carried over between frames (time-based pacing). */
+  private pointCarry = 0;
 
   constructor() {
     afterNextRender(() => {
@@ -92,6 +98,8 @@ export class ReplayPlayer {
     this.opIndex = 0;
     this.ptIndex = 1;
     this.donePoints = 0;
+    this.lastFrame = 0;
+    this.pointCarry = 0;
     this.finished.set(false);
     this.progress.set(0);
     this.playing.set(true);
@@ -104,14 +112,22 @@ export class ReplayPlayer {
       return;
     }
     this.playing.update((p) => !p);
-    if (this.playing()) this.raf = requestAnimationFrame(this.tick);
+    if (this.playing()) {
+      this.lastFrame = 0; // don't count the paused gap as elapsed time
+      this.raf = requestAnimationFrame(this.tick);
+    }
   }
 
-  private readonly tick = (): void => {
+  private readonly tick = (now: number): void => {
     const ctx = this.ctx;
     if (!ctx || !this.playing()) return;
-    // ~6s total regardless of stroke count (slower, more watchable pace).
-    let budget = Math.max(1, Math.round(this.totalPoints / 360));
+    // Time-based pacing: draw points at a constant MS_PER_POINT rate, so the
+    // total replay length scales with the number of points (framerate-independent).
+    if (!this.lastFrame) this.lastFrame = now;
+    this.pointCarry += (now - this.lastFrame) / MS_PER_POINT;
+    this.lastFrame = now;
+    let budget = Math.floor(this.pointCarry);
+    this.pointCarry -= budget;
     while (budget > 0 && this.opIndex < this.ops.length) {
       const op = this.ops[this.opIndex];
       if (op.type === 'fill') {
