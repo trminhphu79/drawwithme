@@ -101,7 +101,9 @@ export class DrawingRoom {
     effect(() => {
       const code = this.code();
       if (!code || this.entered || this.showNameGate()) return;
-      if (this.hasName()) this.enter(code);
+      // Show the avatar + name gate on the first entry to this room (incl.
+      // joining via a shared link), but skip it on refresh of the same tab.
+      if (this.isConfirmed(code)) this.enter(code);
       else this.showNameGate.set(true);
     });
   }
@@ -110,6 +112,7 @@ export class DrawingRoom {
   protected onNameSubmit(profile: Profile): void {
     this.prefs.setDisplayName(profile.name);
     this.prefs.setAvatar(profile.avatar);
+    this.markConfirmed(this.code());
     this.showNameGate.set(false);
     this.enter(this.code());
   }
@@ -229,8 +232,23 @@ export class DrawingRoom {
     }
   }
 
-  private hasName(): boolean {
-    return this.prefs.hasProfile();
+  /** Per-tab marker: has this room's profile gate already been completed? */
+  private confirmKey(code: string): string {
+    return `dwm.joined.${code.toUpperCase()}`;
+  }
+  private isConfirmed(code: string): boolean {
+    try {
+      return sessionStorage.getItem(this.confirmKey(code)) === '1';
+    } catch {
+      return this.prefs.hasProfile();
+    }
+  }
+  private markConfirmed(code: string): void {
+    try {
+      sessionStorage.setItem(this.confirmKey(code), '1');
+    } catch {
+      /* sessionStorage unavailable — gate will simply show again */
+    }
   }
 
   private enter(code: string): void {
