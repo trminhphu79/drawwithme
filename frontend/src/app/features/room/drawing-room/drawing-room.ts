@@ -25,6 +25,7 @@ import { ChatPanel } from '../chat-panel/chat-panel';
 import { ReactionOverlay } from '../reaction-overlay/reaction-overlay';
 import { NameGate } from '../name-gate/name-gate';
 import { ConfirmDialog } from '../../../core/confirm-dialog';
+import { Toast } from '../../../core/toast';
 
 /**
  * SMART / container for the Drawing Room (new-main.html layout). Provides the
@@ -47,6 +48,7 @@ import { ConfirmDialog } from '../../../core/confirm-dialog';
     ReactionOverlay,
     NameGate,
     ConfirmDialog,
+    Toast,
   ],
   templateUrl: './drawing-room.html',
   host: { '(window:keydown)': 'onKeydown($event)' },
