@@ -8,11 +8,12 @@ node_modules/
 !.env.example
 !**/.env.example
 
-# ---- backend build (built inside Docker, not synced) ----
-/backend/dist/
+# NOTE: BOTH frontend/dist and backend/dist are intentionally tracked. The VPS
+# pulls the prebuilt output and the containers just run it — no compile on prod.
+# nginx serves frontend/dist; the API image COPYs backend/dist and runs it.
 
-# NOTE: frontend/dist IS intentionally tracked — the VPS pulls it and nginx
-# serves it directly (no Node build on the server). See frontend/.gitignore.
+# ---- TS incremental build cache (not needed at runtime) ----
+*.tsbuildinfo
 
 # ---- logs / tmp ----
 *.log
