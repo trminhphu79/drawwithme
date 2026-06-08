@@ -6,6 +6,8 @@ export interface ChatMessage {
   text: string;
   /** ISO timestamp. */
   at: string;
+  /** System notice (e.g. "X joined the room") — rendered centered, no sound. */
+  system?: boolean;
 }
 
 /** A transient emoji reaction broadcast to the whole room. */

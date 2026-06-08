@@ -10,7 +10,15 @@ import { ThemeToggle } from '../../../core/theme-toggle';
   template: `
     <nav
       class="glass-panel border-b border-white/20 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full z-50 fixed top-0">
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          (click)="toggleLeftPanel.emit()"
+          [title]="leftPanelOpen() ? 'Collapse chat' : 'Show chat'"
+          class="hidden lg:flex w-10 h-10 items-center justify-center rounded-lg transition-colors"
+          [class]="leftPanelOpen() ? 'text-rose-500 bg-rose-500/10' : 'text-on-surface-variant hover:bg-on-surface/5'">
+          <span class="material-symbols-outlined">dock_to_right</span>
+        </button>
         <span class="text-headline-md font-extrabold text-primary">DrawWithMe</span>
         <span
           class="hidden md:inline text-label-sm text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full border border-outline-variant">
@@ -56,6 +64,15 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           Finish
         </button>
 
+        <button
+          type="button"
+          (click)="toggleRightPanel.emit()"
+          [title]="rightPanelOpen() ? 'Collapse properties' : 'Show properties'"
+          class="hidden lg:flex w-10 h-10 items-center justify-center rounded-lg transition-colors"
+          [class]="rightPanelOpen() ? 'text-secondary bg-secondary/10' : 'text-on-surface-variant hover:bg-on-surface/5'">
+          <span class="material-symbols-outlined">dock_to_left</span>
+        </button>
+
         <app-theme-toggle />
       </div>
     </nav>
@@ -65,8 +82,12 @@ export class RoomTopBar {
   readonly roomCode = input.required<string>();
   readonly participants = input<Participant[]>([]);
   readonly connected = input(false);
+  readonly leftPanelOpen = input(true);
+  readonly rightPanelOpen = input(true);
 
   readonly invite = output<void>();
   readonly finish = output<void>();
   readonly chatToggle = output<void>();
+  readonly toggleLeftPanel = output<void>();
+  readonly toggleRightPanel = output<void>();
 }

@@ -44,7 +44,20 @@ export class OperationsService {
         authorId: op.authorId ?? null,
       },
     });
+    await this.bumpActivity(roomId);
     return { ...op };
+  }
+
+  /** Mark a room as active right now (resets the inactivity timer). */
+  async touch(code: string): Promise<void> {
+    await this.bumpActivity(await this.roomIdByCode(code));
+  }
+
+  private async bumpActivity(roomId: string): Promise<void> {
+    await this.prisma.room.update({
+      where: { id: roomId },
+      data: { lastActivityAt: new Date() },
+    });
   }
 
   /** Restore a previously-undone operation (redo). */

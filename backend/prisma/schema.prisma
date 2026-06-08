@@ -14,8 +14,10 @@ model Room {
   passwordHash String?
   width        Int         @default(1600)
   height       Int         @default(1000)
-  status       String      @default("active")
-  createdAt    DateTime    @default(now())
+  status         String      @default("active")
+  createdAt      DateTime    @default(now())
+  /// Bumped on any join / draw op / chat message; used by the 24h cleanup cron.
+  lastActivityAt DateTime    @default(now())
   operations   Operation[]
   artworks     Artwork[]
   messages     Message[]

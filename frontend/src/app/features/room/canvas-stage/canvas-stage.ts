@@ -1,31 +1,43 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
+  afterNextRender,
+  computed,
   effect,
+  inject,
   input,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 import { BrushSettings } from '../tool.model';
 import { DrawOperation, Point } from '../operation.model';
 import { RemoteCursor } from '../participant.model';
 
-/** Fixed internal canvas resolution; CSS scales it to fit the viewport. */
+/** Fixed internal canvas resolution. */
 const CANVAS_W = 1600;
 const CANVAS_H = 1000;
-/** Flood-fill color tolerance (0–255 per channel). */
+/** On-screen (unscaled) canvas size. */
+const DISPLAY_W = 1200;
+const DISPLAY_H = 750;
 const FILL_TOLERANCE = 32;
+const MIN_SCALE = 0.2;
+const MAX_SCALE = 5;
 
 type CommittedOp = Omit<DrawOperation, 'id' | 'authorId'>;
+type Gesture = 'draw' | 'pan' | 'zoom' | null;
 
 /**
- * DUMB / presentational canvas renderer + input surface.
+ * DUMB / presentational canvas with a pan/zoom viewport (Figma-style).
  *
- * Rendering is event-sourced: it replays the `operations` input onto a 2D
- * canvas, so remote ops / undo just re-render. Local pointer input is drawn
- * incrementally for responsiveness, then emitted as a completed operation via
- * `strokeComplete` — the parent commits it to the store. No injected services.
+ * Rendering is event-sourced (replays `operations`). The viewport supports:
+ *  - trackpad pinch / ⌘-scroll → zoom the stage (not the browser),
+ *  - two-finger scroll → pan,
+ *  - Hand tool or ⌘-drag → pan, Ctrl-drag → zoom.
+ * Pointer→canvas mapping uses the canvas' on-screen rect, so it stays correct
+ * under any pan/zoom transform.
  */
 @Component({
   selector: 'app-canvas-stage',
@@ -35,82 +47,208 @@ type CommittedOp = Omit<DrawOperation, 'id' | 'authorId'>;
 export class CanvasStage {
   readonly operations = input<DrawOperation[]>([]);
   readonly brush = input.required<BrushSettings>();
-  readonly zoom = input(100);
   readonly cursors = input<RemoteCursor[]>([]);
 
   readonly strokeComplete = output<CommittedOp>();
   readonly cursorMove = output<Point>();
+  readonly zoomChange = output<number>();
 
   protected readonly canvasW = CANVAS_W;
   protected readonly canvasH = CANVAS_H;
+  protected readonly displayW = DISPLAY_W;
+  protected readonly displayH = DISPLAY_H;
 
-  /** Export the current canvas as a PNG data URL (used when sealing artwork). */
-  captureDataUrl(): string | null {
-    return this.canvasRef()?.nativeElement.toDataURL('image/png') ?? null;
-  }
-
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly viewportRef = viewChild.required<ElementRef<HTMLElement>>('viewport');
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private ctx: CanvasRenderingContext2D | null = null;
 
-  /** In-progress freehand stroke (pencil / eraser). */
+  // ---- viewport (pan/zoom) ----
+  private readonly scale = signal(1);
+  private readonly panX = signal(0);
+  private readonly panY = signal(0);
+  protected readonly panning = signal(false);
+  protected readonly transform = computed(
+    () => `translate(${this.panX()}px, ${this.panY()}px) scale(${this.scale()})`,
+  );
+  protected readonly isPanTool = computed(() => this.brush().tool === 'hand');
+  /** Local pointer position within the viewport (for the tool-shaped cursor). */
+  protected readonly hoverPos = signal<{ x: number; y: number } | null>(null);
+  /** Material-symbol matching the active tool (mirrors the toolbar icon). */
+  protected readonly toolIcon = computed(() => {
+    switch (this.brush().tool) {
+      case 'eraser':
+        return 'ink_eraser';
+      case 'fill':
+        return 'format_color_fill';
+      default:
+        return 'draw';
+    }
+  });
+  /** Hand → grab/grabbing; drawing tools hide the native cursor (icon shown instead). */
+  protected readonly cursorStyle = computed(() =>
+    this.isPanTool() ? (this.panning() ? 'grabbing' : 'grab') : 'none',
+  );
+
+  // ---- gesture state ----
+  private gesture: Gesture = null;
   private drawing = false;
   private points: Point[] = [];
+  private last = { x: 0, y: 0 };
+  private zoomAnchor = { x: 0, y: 0 };
   private lastCursorEmit = 0;
 
   constructor() {
-    // Replay the operation log whenever it (or the canvas) changes.
     effect(() => {
       const el = this.canvasRef().nativeElement;
       const ops = this.operations();
       if (!this.ctx) this.ctx = el.getContext('2d', { willReadFrequently: true });
       this.redraw(ops);
     });
+
+    afterNextRender(() => {
+      const el = this.viewportRef().nativeElement;
+      // Non-passive so we can preventDefault the browser pinch-zoom / scroll.
+      const onWheel = (e: WheelEvent) => this.handleWheel(e);
+      el.addEventListener('wheel', onWheel, { passive: false });
+      this.destroyRef.onDestroy(() => el.removeEventListener('wheel', onWheel));
+      this.centerCanvas();
+    });
+  }
+
+  /** Export the current canvas as a PNG data URL (used when sealing artwork). */
+  captureDataUrl(): string | null {
+    return this.canvasRef()?.nativeElement.toDataURL('image/png') ?? null;
+  }
+
+  // ---- public zoom controls (driven by the +/- buttons) ----
+  zoomIn(): void {
+    const r = this.viewportRef().nativeElement.getBoundingClientRect();
+    this.zoomAt(1.15, r.left + r.width / 2, r.top + r.height / 2);
+  }
+  zoomOut(): void {
+    const r = this.viewportRef().nativeElement.getBoundingClientRect();
+    this.zoomAt(1 / 1.15, r.left + r.width / 2, r.top + r.height / 2);
+  }
+
+  // ---- wheel: pinch/⌘ = zoom, plain scroll = pan ----
+  private handleWheel(e: WheelEvent): void {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      this.zoomAt(Math.exp(-e.deltaY * 0.0025), e.clientX, e.clientY);
+    } else {
+      this.panX.update((x) => x - e.deltaX);
+      this.panY.update((y) => y - e.deltaY);
+    }
   }
 
   // ---- pointer handling ----
   protected onPointerDown(event: PointerEvent): void {
     const tool = this.brush().tool;
-    if (tool === 'select') return;
-    const p = this.toCanvasPoint(event);
+    const vp = this.viewportRef().nativeElement;
 
+    // Pan: Hand tool or ⌘-drag.
+    if (tool === 'hand' || event.metaKey) {
+      this.gesture = 'pan';
+      this.panning.set(true);
+      this.last = { x: event.clientX, y: event.clientY };
+      vp.setPointerCapture(event.pointerId);
+      return;
+    }
+    // Zoom: Ctrl-drag (drag vertically).
+    if (event.ctrlKey) {
+      this.gesture = 'zoom';
+      this.last = { x: event.clientX, y: event.clientY };
+      this.zoomAnchor = { x: event.clientX, y: event.clientY };
+      vp.setPointerCapture(event.pointerId);
+      return;
+    }
+
+    const p = this.toCanvasPoint(event);
     if (tool === 'fill') {
       this.strokeComplete.emit({ type: 'fill', color: this.brush().color, size: 0, opacity: 1, points: [p] });
       return;
     }
 
-    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    this.gesture = 'draw';
     this.drawing = true;
     this.points = [p];
+    vp.setPointerCapture(event.pointerId);
+  }
+
+  protected onPointerLeave(): void {
+    this.onPointerUp();
+    this.hoverPos.set(null);
   }
 
   protected onPointerMove(event: PointerEvent): void {
-    const now = event.timeStamp;
-    if (now - this.lastCursorEmit > 40) {
-      this.lastCursorEmit = now;
+    const vr = this.viewportRef().nativeElement.getBoundingClientRect();
+    this.hoverPos.set({ x: event.clientX - vr.left, y: event.clientY - vr.top });
+
+    if (event.timeStamp - this.lastCursorEmit > 40) {
+      this.lastCursorEmit = event.timeStamp;
       this.cursorMove.emit(this.toCanvasPoint(event));
     }
-    if (!this.drawing || !this.ctx) return;
 
-    const p = this.toCanvasPoint(event);
-    const prev = this.points[this.points.length - 1];
-    this.points.push(p);
-    this.strokeSegment(this.ctx, prev, p, this.brush());
+    if (this.gesture === 'pan') {
+      this.panX.update((x) => x + (event.clientX - this.last.x));
+      this.panY.update((y) => y + (event.clientY - this.last.y));
+      this.last = { x: event.clientX, y: event.clientY };
+      return;
+    }
+    if (this.gesture === 'zoom') {
+      this.zoomAt(Math.exp(-(event.clientY - this.last.y) * 0.01), this.zoomAnchor.x, this.zoomAnchor.y);
+      this.last = { x: event.clientX, y: event.clientY };
+      return;
+    }
+    if (this.gesture === 'draw' && this.ctx) {
+      const p = this.toCanvasPoint(event);
+      const prev = this.points[this.points.length - 1];
+      this.points.push(p);
+      this.strokeSegment(this.ctx, prev, p, this.brush());
+    }
   }
 
   protected onPointerUp(): void {
-    if (!this.drawing) return;
+    if (this.gesture === 'draw' && this.drawing) {
+      const b = this.brush();
+      const points = this.points.length === 1 ? [this.points[0], this.points[0]] : this.points;
+      this.strokeComplete.emit({
+        type: b.tool === 'eraser' ? 'erase' : 'stroke',
+        color: b.color,
+        size: b.size,
+        opacity: b.opacity,
+        points,
+      });
+    }
+    this.gesture = null;
     this.drawing = false;
-    const b = this.brush();
-    // A single click → a dot: duplicate the point so it renders on replay.
-    const points = this.points.length === 1 ? [this.points[0], this.points[0]] : this.points;
-    this.strokeComplete.emit({
-      type: b.tool === 'eraser' ? 'erase' : 'stroke',
-      color: b.color,
-      size: b.size,
-      opacity: b.opacity,
-      points,
-    });
     this.points = [];
+    this.panning.set(false);
+  }
+
+  // ---- viewport math ----
+  private zoomAt(factor: number, clientX: number, clientY: number): void {
+    const r = this.viewportRef().nativeElement.getBoundingClientRect();
+    const sx = clientX - r.left;
+    const sy = clientY - r.top;
+    const oldS = this.scale();
+    const newS = Math.min(MAX_SCALE, Math.max(MIN_SCALE, oldS * factor));
+    if (newS === oldS) return;
+    const wx = (sx - this.panX()) / oldS;
+    const wy = (sy - this.panY()) / oldS;
+    this.panX.set(sx - wx * newS);
+    this.panY.set(sy - wy * newS);
+    this.scale.set(newS);
+    this.zoomChange.emit(Math.round(newS * 100));
+  }
+
+  private centerCanvas(): void {
+    const r = this.viewportRef().nativeElement.getBoundingClientRect();
+    this.scale.set(1);
+    this.panX.set(Math.round((r.width - DISPLAY_W) / 2));
+    this.panY.set(Math.round((r.height - DISPLAY_H) / 2));
+    this.zoomChange.emit(100);
   }
 
   // ---- rendering ----
@@ -162,7 +300,6 @@ export class CanvasStage {
     ctx.restore();
   }
 
-  /** Scanline flood fill from a seed point. */
   private floodFill(ctx: CanvasRenderingContext2D, seed: Point, hex: string): void {
     const w = CANVAS_W;
     const h = CANVAS_H;
@@ -207,12 +344,7 @@ export class CanvasStage {
   private hexToRgba(hex: string): [number, number, number, number] {
     const v = hex.replace('#', '');
     const n = v.length === 3 ? v.split('').map((c) => c + c).join('') : v;
-    return [
-      parseInt(n.slice(0, 2), 16),
-      parseInt(n.slice(2, 4), 16),
-      parseInt(n.slice(4, 6), 16),
-      255,
-    ];
+    return [parseInt(n.slice(0, 2), 16), parseInt(n.slice(2, 4), 16), parseInt(n.slice(4, 6), 16), 255];
   }
 
   private colorsEqual(a: number[], b: number[], tol: number): boolean {

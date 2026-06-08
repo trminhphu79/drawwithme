@@ -32,4 +32,30 @@ export class ReviewArtwork {
       }
     });
   }
+
+  /** Download the artwork PNG to the device (works on desktop + mobile). */
+  protected async onDownload(): Promise<void> {
+    const art = this.store.artwork();
+    if (!art?.imageUrl) return;
+    const fileName = `${(art.title || 'artwork').replace(/\s+/g, '-').toLowerCase()}.png`;
+    try {
+      const blob = await (await fetch(art.imageUrl)).blob();
+      const url = URL.createObjectURL(blob);
+      this.triggerDownload(url, fileName);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: link straight to the (data) URL.
+      this.triggerDownload(art.imageUrl, fileName);
+    }
+  }
+
+  private triggerDownload(href: string, fileName: string): void {
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = fileName;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
 }

@@ -1,19 +1,27 @@
-<div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+<div
+  #viewport
+  class="absolute inset-0 overflow-hidden touch-none select-none"
+  [style.cursor]="cursorStyle()"
+  (pointerdown)="onPointerDown($event)"
+  (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerUp()"
+  (pointercancel)="onPointerUp()"
+  (pointerleave)="onPointerLeave()"
+  (contextmenu)="$event.preventDefault()">
+  <!-- Transformed "world": pans/zooms as one unit -->
   <div
-    class="relative shadow-inner origin-center transition-transform duration-150"
-    [style.transform]="'scale(' + zoom() / 100 + ')'">
+    #world
+    class="absolute top-0 left-0 origin-top-left will-change-transform"
+    [style.transform]="transform()">
     <canvas
       #canvas
       [width]="canvasW"
       [height]="canvasH"
-      class="bg-surface-container-lowest rounded-sm touch-none cursor-crosshair max-w-[80vw] max-h-[80vh]"
-      style="aspect-ratio: 1600 / 1000; width: 1200px;"
-      (pointerdown)="onPointerDown($event)"
-      (pointermove)="onPointerMove($event)"
-      (pointerup)="onPointerUp()"
-      (pointerleave)="onPointerUp()"></canvas>
+      class="block bg-surface-container-lowest rounded-sm shadow-2xl"
+      [style.width.px]="displayW"
+      [style.height.px]="displayH"></canvas>
 
-    <!-- Remote collaborator cursors (canvas-space → %, smoothly interpolated) -->
+    <!-- Remote cursors (smoothly interpolated; scale with the world) -->
     @for (cursor of cursors(); track cursor.id) {
       <div
         class="cursor-smooth absolute pointer-events-none flex flex-col items-start z-10"
@@ -27,4 +35,17 @@
       </div>
     }
   </div>
+
+  <!-- Tool-shaped cursor (mirrors the active toolbar icon) — not for Hand -->
+  @if (hoverPos(); as hp) {
+    @if (!isPanTool()) {
+      <div
+        class="pointer-events-none absolute z-20 text-on-surface drop-shadow"
+        [style.left.px]="hp.x"
+        [style.top.px]="hp.y"
+        style="transform: translate(-2px, -3px)">
+        <span class="material-symbols-outlined" style="font-size: 22px; font-variation-settings: 'FILL' 1;">{{ toolIcon() }}</span>
+      </div>
+    }
+  }
 </div>

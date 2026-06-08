@@ -23,7 +23,14 @@
   <!-- Messages -->
   <div #scroller class="flex-1 overflow-y-auto p-4 space-y-5 custom-scrollbar">
     @for (m of messages(); track m.id) {
-      @if (isSelf(m)) {
+      @if (m.system) {
+        <div class="flex justify-center">
+          <span class="text-[11px] font-semibold text-rose-500/80 dark:text-rose-300/80 bg-rose-500/10 px-3 py-1 rounded-full inline-flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">waving_hand</span>
+            {{ m.text }}
+          </span>
+        </div>
+      } @else if (isSelf(m)) {
         <div class="flex flex-col gap-1.5 items-end">
           <div class="flex justify-between items-center w-full px-1">
             <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>

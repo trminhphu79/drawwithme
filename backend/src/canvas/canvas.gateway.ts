@@ -35,8 +35,9 @@ export class CanvasGateway implements OnGatewayDisconnect {
 
   /** roomCode -> (socketId -> presence). */
   private readonly rooms = new Map<string, Map<string, Presence>>();
-  /** Monotonic counter for unique reaction ids. */
+  /** Monotonic counters for unique reaction / system-message ids. */
   private reactionSeq = 0;
+  private sysSeq = 0;
 
   constructor(
     private readonly operations: OperationsService,
@@ -53,14 +54,26 @@ export class CanvasGateway implements OnGatewayDisconnect {
     client.join(code);
 
     const members = this.rooms.get(code) ?? new Map<string, Presence>();
+    const name = body.name || 'Guest';
     members.set(client.id, {
-      name: body.name || 'Guest',
+      name,
       colorClass: CURSOR_COLORS[members.size % CURSOR_COLORS.length],
     });
     this.rooms.set(code, members);
     (client.data as { code?: string }).code = code;
 
     this.emitPresence(code);
+    void this.operations.touch(code).catch(() => undefined);
+
+    // Announce the arrival as a system chat message (ephemeral, not persisted).
+    this.server.to(code).emit('chat:message', {
+      id: `sys-${this.sysSeq++}`,
+      authorId: 'system',
+      author: name,
+      text: `${name} joined the room`,
+      at: new Date().toISOString(),
+      system: true,
+    });
   }
 
   @SubscribeMessage('op:commit')

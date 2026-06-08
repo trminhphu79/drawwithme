@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-/** DUMB. Download / Replay / Share action row. */
+/** DUMB. Download / Replay action row (Share/Invite intentionally hidden here). */
 @Component({
   selector: 'app-artwork-actions',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -9,7 +9,8 @@ import { ChangeDetectionStrategy, Component, output } from '@angular/core';
       <button
         type="button"
         (click)="download.emit()"
-        class="flex-1 flex items-center justify-center gap-2 bg-primary text-on-primary hover:bg-on-primary-fixed-variant transition-colors font-label-caps text-label-caps uppercase py-4 px-8 rounded-full elevation-2 active:scale-95 duration-150">
+        [disabled]="!canDownload()"
+        class="flex-1 flex items-center justify-center gap-2 bg-primary text-on-primary hover:bg-on-primary-fixed-variant transition-colors font-label-caps text-label-caps uppercase py-4 px-8 rounded-full elevation-2 active:scale-95 duration-150 disabled:opacity-40 disabled:cursor-not-allowed">
         <span class="material-symbols-outlined text-[20px]">download</span>
         Download
       </button>
@@ -20,18 +21,11 @@ import { ChangeDetectionStrategy, Component, output } from '@angular/core';
         <span class="material-symbols-outlined text-[20px]">history</span>
         Replay Drawing
       </button>
-      <button
-        type="button"
-        (click)="share.emit()"
-        class="flex-none flex items-center justify-center gap-2 border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-caps text-label-caps uppercase py-4 px-6 rounded-full elevation-2 active:scale-95 duration-150">
-        <span class="material-symbols-outlined text-[20px]">share</span>
-        Share
-      </button>
     </div>
   `,
 })
 export class ArtworkActions {
+  readonly canDownload = input(true);
   readonly download = output<void>();
   readonly replay = output<void>();
-  readonly share = output<void>();
 }

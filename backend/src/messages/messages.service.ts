@@ -32,6 +32,7 @@ export class MessagesService {
     const msg = await this.prisma.message.create({
       data: { roomId, authorId: data.authorId, author: data.author, text: data.text.slice(0, 2000) },
     });
+    await this.prisma.room.update({ where: { id: roomId }, data: { lastActivityAt: new Date() } });
     return { id: msg.id, authorId: msg.authorId, author: msg.author, text: msg.text, at: msg.createdAt.toISOString() };
   }
 

@@ -58,6 +58,11 @@ export class DrawingRoom {
   protected readonly showNameGate = signal(false);
   /** Mobile/tablet chat drawer open state (always visible on lg+). */
   protected readonly chatOpen = signal(false);
+  /** Live zoom % reported by the canvas viewport (for the controls display). */
+  protected readonly zoomPercent = signal(100);
+  /** Desktop collapse state for the side panels. */
+  protected readonly chatCollapsed = signal(false);
+  protected readonly propsCollapsed = signal(false);
   protected readonly initialName = computed(() =>
     this.prefs.hasProfile() ? this.prefs.displayName() : '',
   );
@@ -82,6 +87,13 @@ export class DrawingRoom {
 
   protected toggleChat(): void {
     this.chatOpen.update((o) => !o);
+  }
+
+  protected zoomIn(): void {
+    this.canvas()?.zoomIn();
+  }
+  protected zoomOut(): void {
+    this.canvas()?.zoomOut();
   }
 
   protected onInvite(): void {

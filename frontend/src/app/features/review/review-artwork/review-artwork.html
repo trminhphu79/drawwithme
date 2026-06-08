@@ -32,7 +32,9 @@
 
       <app-artwork-preview [imageUrl]="store.artwork()?.imageUrl ?? null" />
 
-      <app-artwork-actions />
+      <app-artwork-actions
+        [canDownload]="store.hasImage()"
+        (download)="onDownload()" />
     </div>
   </main>
 </div>

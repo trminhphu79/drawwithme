@@ -89,7 +89,7 @@ export class ChatStore {
   private onMessage(msg: ChatMessage): void {
     if (!msg) return;
     this._messages.update((list) => (list.some((m) => m.id === msg.id) ? list : [...list, msg]));
-    if (msg.authorId !== this.myId) this.sound.receiveMessage();
+    if (!msg.system && msg.authorId !== this.myId) this.sound.receiveMessage();
   }
 
   private onReaction(r: ReactionEvent): void {

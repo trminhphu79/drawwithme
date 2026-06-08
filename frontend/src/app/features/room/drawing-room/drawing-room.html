@@ -3,9 +3,13 @@
     [roomCode]="code() || 'ROOM'"
     [participants]="store.participants()"
     [connected]="store.connected()"
+    [leftPanelOpen]="!chatCollapsed()"
+    [rightPanelOpen]="!propsCollapsed()"
     (invite)="onInvite()"
     (finish)="onFinish()"
-    (chatToggle)="toggleChat()" />
+    (chatToggle)="toggleChat()"
+    (toggleLeftPanel)="chatCollapsed.set(!chatCollapsed())"
+    (toggleRightPanel)="propsCollapsed.set(!propsCollapsed())" />
 
   <main class="w-full h-full pt-16 relative">
     <!-- Canvas (fills the workspace; glass panels float over it) -->
@@ -13,10 +17,10 @@
       <app-canvas-stage
         [operations]="store.operations()"
         [brush]="store.brush()"
-        [zoom]="store.zoom()"
         [cursors]="store.cursors()"
         (strokeComplete)="store.commit($event)"
-        (cursorMove)="store.moveCursor($event)" />
+        (cursorMove)="store.moveCursor($event)"
+        (zoomChange)="zoomPercent.set($event)" />
 
       <app-reaction-overlay [reactions]="chat.reactions()" />
 
@@ -26,13 +30,13 @@
         (react)="chat.react($event)" />
 
       <app-canvas-controls
-        [zoom]="store.zoom()"
+        [zoom]="zoomPercent()"
         [canUndo]="store.canUndo()"
         [canRedo]="store.canRedo()"
         (undo)="store.undo()"
         (redo)="store.redo()"
-        (zoomIn)="store.zoomIn()"
-        (zoomOut)="store.zoomOut()" />
+        (zoomIn)="zoomIn()"
+        (zoomOut)="zoomOut()" />
     </section>
 
     <!-- Mobile/tablet backdrop -->
@@ -42,10 +46,15 @@
 
     <!-- Left: chat — slide-in drawer on mobile/tablet, fixed sidebar on desktop -->
     <aside
-      class="fixed z-50 top-16 bottom-0 left-0 w-80 max-w-[85vw] p-3 transition-transform duration-300 ease-out
-             lg:z-40 lg:top-20 lg:bottom-4 lg:left-4 lg:w-72 lg:p-0 lg:max-w-none lg:translate-x-0"
+      class="fixed z-50 top-16 bottom-0 left-0 w-80 max-w-[85vw] p-3 transition-all duration-300 ease-out
+             lg:z-40 lg:top-20 lg:bottom-4 lg:left-4 lg:w-72 lg:p-0 lg:max-w-none"
       [class.translate-x-0]="chatOpen()"
-      [class.-translate-x-full]="!chatOpen()">
+      [class.-translate-x-full]="!chatOpen()"
+      [class.lg:translate-x-0]="!chatCollapsed()"
+      [class.lg:opacity-100]="!chatCollapsed()"
+      [class.lg:-translate-x-full]="chatCollapsed()"
+      [class.lg:opacity-0]="chatCollapsed()"
+      [class.lg:pointer-events-none]="chatCollapsed()">
       <!-- Close (mobile only) -->
       <button
         type="button"
@@ -70,8 +79,14 @@
         (toolSelect)="store.setTool($event)" />
     </aside>
 
-    <!-- Right: properties sidebar -->
-    <aside class="hidden lg:block fixed right-4 top-20 bottom-4 w-80 z-40">
+    <!-- Right: properties sidebar (collapsible on desktop, animated) -->
+    <aside
+      class="hidden lg:block fixed right-4 top-20 bottom-4 w-80 z-40 transition-all duration-300 ease-out"
+      [class.lg:translate-x-0]="!propsCollapsed()"
+      [class.lg:opacity-100]="!propsCollapsed()"
+      [class.lg:translate-x-full]="propsCollapsed()"
+      [class.lg:opacity-0]="propsCollapsed()"
+      [class.lg:pointer-events-none]="propsCollapsed()">
       <app-properties-panel
         [tool]="store.tool()"
         [size]="store.size()"

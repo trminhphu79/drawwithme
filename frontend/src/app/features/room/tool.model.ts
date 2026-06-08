@@ -1,4 +1,4 @@
-export type ToolId = 'select' | 'pencil' | 'fill' | 'eraser';
+export type ToolId = 'hand' | 'pencil' | 'fill' | 'eraser';
 
 export interface ToolDef {
   id: ToolId;
@@ -7,7 +7,7 @@ export interface ToolDef {
 }
 
 export const DRAWING_TOOLS: ToolDef[] = [
-  { id: 'select', icon: 'near_me', label: 'Select / Pan' },
+  { id: 'hand', icon: 'pan_tool', label: 'Hand / Pan' },
   { id: 'pencil', icon: 'draw', label: 'Pencil' },
   { id: 'fill', icon: 'format_color_fill', label: 'Coloring / Fill' },
   { id: 'eraser', icon: 'ink_eraser', label: 'Eraser' },
