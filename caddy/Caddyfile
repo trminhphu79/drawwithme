@@ -1,0 +1,29 @@
+# Caddy serves the prebuilt Angular FE and reverse-proxies the API + Socket.IO.
+# With real domains in SITE_ADDRESS, Caddy automatically provisions and renews
+# Let's Encrypt TLS certs and redirects HTTP->HTTPS. For local/no-TLS testing,
+# set SITE_ADDRESS=:80 in .env.
+{
+	# ACME contact — used for Let's Encrypt expiry notices.
+	email trminhphu79@gmail.com
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# REST API -> NestJS (keeps the /api prefix the backend expects).
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	# Socket.IO (Caddy proxies the WebSocket upgrade automatically).
+	handle /socket.io/* {
+		reverse_proxy api:3000
+	}
+
+	# Angular SPA: long-cache hashed assets, fall back to index.html for routes.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
