@@ -1,4 +1,4 @@
-<div class="h-screen w-screen overflow-hidden relative bg-background text-on-background">
+<div class="h-dvh w-screen overflow-hidden relative bg-background text-on-background">
   <app-room-top-bar
     [roomCode]="code() || 'ROOM'"
     [participants]="store.participants()"
@@ -24,9 +24,9 @@
 
       <app-reaction-overlay [reactions]="chat.reactions()" />
 
-      <!-- Quick reactions, floating above the undo/redo controls (extra gap) -->
+      <!-- Quick reactions, floating above the undo/redo controls (safe-area aware) -->
       <app-reaction-bar
-        class="absolute bottom-32 left-1/2 -translate-x-1/2 z-30"
+        class="absolute left-1/2 -translate-x-1/2 z-30 bottom-[calc(5rem_+_env(safe-area-inset-bottom))] md:bottom-32"
         (react)="chat.react($event)" />
 
       <app-canvas-controls
