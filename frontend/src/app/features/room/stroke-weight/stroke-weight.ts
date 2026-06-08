@@ -37,7 +37,7 @@ export class StrokeWeight {
   /** Filled-track background (webkit). */
   protected readonly trackBg = computed(() => {
     const p = ((this.size() - this.min()) / (this.max() - this.min())) * 100;
-    return `linear-gradient(to right, var(--color-primary) ${p}%, var(--color-surface-variant) ${p}%)`;
+    return `linear-gradient(to right, var(--color-secondary) ${p}%, var(--color-surface-variant) ${p}%)`;
   });
 
   protected onInput(event: Event): void {

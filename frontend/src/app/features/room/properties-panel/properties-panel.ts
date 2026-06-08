@@ -1,13 +1,15 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { ToolId } from '../tool.model';
+import { ColorPicker } from '../color-picker/color-picker';
 
 /**
  * DUMB. Right "Properties" sidebar: stroke weight, opacity, color swatches +
- * recent + custom picker, and a (presentational) layers section.
+ * recent + a custom color picker, and a (presentational) layers section.
  */
 @Component({
   selector: 'app-properties-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ColorPicker],
   templateUrl: './properties-panel.html',
 })
 export class PropertiesPanel {
@@ -29,14 +31,14 @@ export class PropertiesPanel {
   readonly referenceOpacityChange = output<number>();
   readonly previewReference = output<void>();
 
+  /** Custom color-picker popover visibility. */
+  protected readonly pickerOpen = signal(false);
+
   protected onSize(event: Event): void {
     this.sizeChange.emit(Number((event.target as HTMLInputElement).value));
   }
   protected onOpacity(event: Event): void {
     this.opacityChange.emit(Number((event.target as HTMLInputElement).value));
-  }
-  protected onColorInput(event: Event): void {
-    this.colorChange.emit((event.target as HTMLInputElement).value);
   }
   protected onReferenceFile(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -51,7 +53,7 @@ export class PropertiesPanel {
   /** Filled-track background for the range slider (webkit). */
   protected trackBg(value: number, min: number, max: number): string {
     const p = ((value - min) / (max - min)) * 100;
-    return `linear-gradient(to right, var(--color-primary) ${p}%, var(--color-surface-variant) ${p}%)`;
+    return `linear-gradient(to right, var(--color-secondary) ${p}%, var(--color-surface-variant) ${p}%)`;
   }
 
   /** Perceived lightness — picks a contrasting check-mark color on a swatch. */

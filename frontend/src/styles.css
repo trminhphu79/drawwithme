@@ -332,7 +332,7 @@ body {
   margin-top: -5px;
   border-radius: 9999px;
   background: #fff;
-  border: 2px solid var(--color-primary);
+  border: 2px solid var(--color-secondary);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   transition: transform 0.12s ease;
 }
@@ -348,16 +348,55 @@ body {
 .range-soft::-moz-range-progress {
   height: 8px;
   border-radius: 9999px;
-  background: var(--color-primary);
+  background: var(--color-secondary);
 }
 .range-soft::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 9999px;
   background: #fff;
-  border: 2px solid var(--color-primary);
+  border: 2px solid var(--color-secondary);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   cursor: pointer;
+}
+
+/* Hue slider for the custom color picker. */
+.hue-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.hue-range::-webkit-slider-runnable-track {
+  height: 12px;
+  border-radius: 9999px;
+  background: transparent;
+}
+.hue-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -2px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.hue-range::-moz-range-track {
+  height: 12px;
+  border-radius: 9999px;
+  background: transparent;
+}
+.hue-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* ---- Material Symbols defaults ---- */

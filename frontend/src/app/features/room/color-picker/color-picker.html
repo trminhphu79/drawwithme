@@ -1,0 +1,49 @@
+<div class="glass-panel rounded-xl elevation-3 p-3 w-full flex flex-col gap-3 select-none">
+  <!-- Saturation / value -->
+  <div
+    #area
+    class="relative w-full h-40 rounded-lg cursor-crosshair touch-none overflow-hidden ring-1 ring-black/10 dark:ring-white/10"
+    [style.background-color]="hueColor()"
+    (pointerdown)="onAreaPointer($event)"
+    (pointermove)="onAreaMove($event)"
+    (pointerup)="onAreaUp()"
+    (pointerleave)="onAreaUp()">
+    <div class="absolute inset-0" style="background: linear-gradient(to right, #fff, transparent)"></div>
+    <div class="absolute inset-0" style="background: linear-gradient(to top, #000, transparent)"></div>
+    <div
+      class="absolute w-4 h-4 -ml-2 -mt-2 rounded-full border-2 border-white shadow-md pointer-events-none"
+      [style.left.%]="thumbX()"
+      [style.top.%]="thumbY()"></div>
+  </div>
+
+  <!-- Hue -->
+  <input type="range" min="0" max="360" [value]="h()" (input)="onHue($event)" class="hue-range w-full" aria-label="Hue" />
+
+  <!-- Preview + hex + eyedropper + done -->
+  <div class="flex items-center gap-2">
+    @if (hasEyeDropper) {
+      <button
+        type="button"
+        (click)="pickEyeDropper()"
+        title="Pick from screen"
+        class="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-on-surface/5 transition-colors">
+        <span class="material-symbols-outlined text-[20px]">colorize</span>
+      </button>
+    }
+    <span class="w-9 h-9 shrink-0 rounded-full ring-2 ring-black/10 dark:ring-white/15" [style.background-color]="hex()"></span>
+    <input
+      [value]="hex()"
+      (input)="onHex($event)"
+      maxlength="7"
+      spellcheck="false"
+      class="flex-1 min-w-0 bg-on-surface/5 rounded-lg px-3 py-2 font-mono-label text-mono-label uppercase text-on-surface outline-none focus:ring-1 focus:ring-secondary"
+      aria-label="Hex color" />
+    <button
+      type="button"
+      (click)="close.emit()"
+      title="Done"
+      class="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg bg-secondary text-on-secondary hover:brightness-110 active:scale-95 transition-all">
+      <span class="material-symbols-outlined text-[20px]">check</span>
+    </button>
+  </div>
+</div>

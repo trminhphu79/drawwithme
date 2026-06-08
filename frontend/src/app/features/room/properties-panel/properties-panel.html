@@ -84,15 +84,22 @@
         <!-- Current color + custom picker -->
         <div class="flex items-center justify-between">
           <label class="text-label-sm font-bold uppercase tracking-tighter opacity-60">Color</label>
-          <label class="flex items-center gap-2 cursor-pointer" title="Pick a custom color">
+          <button
+            type="button"
+            (click)="pickerOpen.set(!pickerOpen())"
+            class="flex items-center gap-2 cursor-pointer"
+            title="Pick a custom color">
             <span class="font-mono-label text-mono-label uppercase text-on-surface-variant">{{ color() }}</span>
-            <span class="relative w-9 h-9 rounded-full ring-2 ring-black/10 dark:ring-white/20 shadow-sm overflow-hidden">
-              <span class="absolute inset-0" [style.background-color]="color()"></span>
-              <input type="color" [value]="color()" (input)="onColorInput($event)"
-                class="absolute inset-0 opacity-0 cursor-pointer" aria-label="Custom color" />
-            </span>
-          </label>
+            <span class="w-9 h-9 rounded-full ring-2 ring-black/10 dark:ring-white/20 shadow-sm" [style.background-color]="color()"></span>
+          </button>
         </div>
+
+        @if (pickerOpen()) {
+          <app-color-picker
+            [color]="color()"
+            (colorChange)="colorChange.emit($event)"
+            (close)="pickerOpen.set(false)" />
+        }
 
         <!-- Swatch grid -->
         <div class="grid grid-cols-6 gap-2.5">
@@ -111,15 +118,15 @@
               }
             </button>
           }
-          <!-- Custom (rainbow) -->
-          <label
+          <!-- Custom (rainbow) → opens the custom picker -->
+          <button
+            type="button"
+            (click)="pickerOpen.set(true)"
             class="relative w-9 h-9 rounded-full cursor-pointer shadow-sm flex items-center justify-center transition-transform hover:scale-110 active:scale-95 ring-1 ring-black/10 dark:ring-white/15"
             style="background: conic-gradient(from 0deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #6366f1, #a855f7, #ef4444);"
             title="Custom color">
             <span class="material-symbols-outlined text-[16px] text-white drop-shadow">add</span>
-            <input type="color" [value]="color()" (input)="onColorInput($event)"
-              class="absolute inset-0 opacity-0 cursor-pointer" aria-label="Custom color" />
-          </label>
+          </button>
         </div>
 
         @if (recentColors().length) {
