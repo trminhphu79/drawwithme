@@ -1,0 +1,30 @@
+<div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+  <div
+    class="relative shadow-inner origin-center transition-transform duration-150"
+    [style.transform]="'scale(' + zoom() / 100 + ')'">
+    <canvas
+      #canvas
+      [width]="canvasW"
+      [height]="canvasH"
+      class="bg-surface-container-lowest rounded-sm touch-none cursor-crosshair max-w-[80vw] max-h-[80vh]"
+      style="aspect-ratio: 1600 / 1000; width: 1200px;"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp()"
+      (pointerleave)="onPointerUp()"></canvas>
+
+    <!-- Remote collaborator cursors (canvas-space → %, smoothly interpolated) -->
+    @for (cursor of cursors(); track cursor.id) {
+      <div
+        class="cursor-smooth absolute pointer-events-none flex flex-col items-start z-10"
+        [style.left.%]="(cursor.x / canvasW) * 100"
+        [style.top.%]="(cursor.y / canvasH) * 100">
+        <span class="material-symbols-outlined text-2xl -ml-1 -mt-1 drop-shadow-md" [class]="cursor.colorClass.split(' ')[0]"
+          style="font-variation-settings:'FILL' 1;">near_me</span>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap" [class]="cursor.colorClass">
+          {{ cursor.name }}
+        </span>
+      </div>
+    }
+  </div>
+</div>

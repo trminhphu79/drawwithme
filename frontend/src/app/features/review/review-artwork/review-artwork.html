@@ -1,0 +1,38 @@
+<div class="bg-surface text-on-surface min-h-screen flex flex-col relative overflow-x-hidden">
+  <main class="flex-grow flex flex-col items-center justify-center p-margin-mobile md:p-margin-desktop relative z-10">
+    <!-- Back -->
+    <div class="absolute top-margin-mobile md:top-margin-desktop left-margin-mobile md:left-margin-desktop">
+      <a routerLink="/join"
+        class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-body-sm text-body-sm group">
+        <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+        Back to Gallery
+      </a>
+    </div>
+
+    <div class="w-full max-w-5xl flex flex-col items-center gap-12 mt-16 md:mt-0">
+      <!-- Header -->
+      <div class="text-center space-y-4 max-w-2xl">
+        <h1 class="font-display-lg text-display-lg text-on-surface">
+          {{ store.artwork()?.title ?? 'Loading…' }}
+        </h1>
+        @if (store.artwork(); as art) {
+          <div class="flex flex-wrap justify-center items-center gap-4 text-on-surface-variant font-body-sm text-body-sm">
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+              {{ art.createdAt | date: 'mediumDate' }}
+            </span>
+            <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+            <span class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px]">group</span>
+              Participants: {{ art.participants.join(', ') }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <app-artwork-preview [imageUrl]="store.artwork()?.imageUrl ?? null" />
+
+      <app-artwork-actions />
+    </div>
+  </main>
+</div>

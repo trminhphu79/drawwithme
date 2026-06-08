@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            overflow: hidden;
+            background-color: #f7f9fb;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .canvas-grid {
+            background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .reaction-bubble {
+            pointer-events: none;
+            position: absolute;
+            animation: float-up 2s ease-out forwards;
+        }
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+        }
+        .cursor-smooth {
+            transition: transform 0.1s ease-out;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .accent-navy {
+            accent-color: #111844;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#673c21",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-low": "#f2f4f6",
+                    "on-tertiary-fixed": "#321200",
+                    "on-surface-variant": "#46464f",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#f8b995",
+                    "outline": "#767680",
+                    "secondary-fixed-dim": "#c3c0ff",
+                    "on-secondary-fixed-variant": "#3323cc",
+                    "surface-tint": "#545b8a",
+                    "surface-dim": "#d8dadc",
+                    "primary-fixed-dim": "#bdc3f9",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#dfe0ff",
+                    "on-error-container": "#93000a",
+                    "primary": "#000110",
+                    "inverse-surface": "#2d3133",
+                    "surface-container-high": "#e6e8ea",
+                    "tertiary-fixed": "#ffdbc9",
+                    "on-primary-fixed": "#101743",
+                    "tertiary": "#060100",
+                    "on-surface": "#191c1e",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#f7f9fb",
+                    "on-primary-fixed-variant": "#3d4371",
+                    "primary-container": "#111844",
+                    "secondary-fixed": "#e2dfff",
+                    "on-secondary-fixed": "#0f0069",
+                    "on-error": "#ffffff",
+                    "surface-container": "#eceef0",
+                    "secondary-container": "#645efb",
+                    "secondary": "#4b41e1",
+                    "on-background": "#191c1e",
+                    "on-secondary-container": "#fffbff",
+                    "surface-container-highest": "#e0e3e5",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-container": "#af7858",
+                    "outline-variant": "#c7c5d0",
+                    "surface-bright": "#f7f9fb",
+                    "background": "#f7f9fb",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "inverse-on-surface": "#eff1f3",
+                    "tertiary-container": "#341300",
+                    "inverse-primary": "#bdc3f9",
+                    "on-primary-container": "#7b81b3"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "32px",
+                    "toolbar-padding": "8px",
+                    "unit": "4px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Manrope"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "headline-lg": ["Manrope"],
+                    "body-md": ["Manrope"],
+                    "label-md": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "label-sm": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["32px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-background h-screen w-screen relative overflow-hidden">
+<!-- TopNavBar -->
+<nav class="bg-surface/70 dark:bg-primary-container/70 backdrop-blur-xl border-b border-white/20 shadow-sm flex justify-between items-center px-margin-desktop h-16 w-full z-50 fixed top-0">
+<div class="flex items-center gap-8">
+<span class="font-headline-md text-headline-md font-extrabold text-primary dark:text-primary-fixed">DrawWithMe</span>
+<div class="hidden md:flex gap-6">
+<a class="text-secondary dark:text-secondary-fixed-dim border-b-2 border-secondary font-label-md text-label-md py-1" href="#">Canvas</a>
+<a class="text-on-surface-variant dark:text-on-primary-container/70 hover:bg-on-surface/5 transition-colors font-label-md text-label-md py-1" href="#">Gallery</a>
+<a class="text-on-surface-variant dark:text-on-primary-container/70 hover:bg-on-surface/5 transition-colors font-label-md text-label-md py-1" href="#">Library</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-3 items-center mr-4">
+<img alt="User 1" class="w-8 h-8 rounded-full border-2 border-surface shadow-sm" data-alt="A clean, professional headshot of a creative professional with soft studio lighting against a minimal gradient background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7qc2_ZSUHTgTph0cB_9A_m8u6TePuIIIqSqfGQuQIX5oE8BcfCqzEgZRYEnAgYHdDQ0CZWf1qnU-coRnCkR2htHZNBTwbzLRHS9X7U5d_nJvU3dHyz3cyaHH85x8LRiUWrgVXBnbtibx6sqV7aTOeKU9dc9L9iPiCHm7PFEJTXERzWPJ1px8G8EfPZdNHocOM_iC0T6rmvu03-JTGguWVNfLR8qsMeFX7J8C14Y-mgCN4ctqt95_M6NjRr6ON3Pu5-u9eKc-a5BoM"/>
+<img alt="User 2" class="w-8 h-8 rounded-full border-2 border-surface shadow-sm" data-alt="A macro close-up of vibrant oil paint textures on a canvas." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD776_h0iN9vn0OzO8xjViE9WhdyoYeUkVCK6EmRLdsxIZWkFz74opSdJC8_95iqSG0_Iq9qYICHhJUg0iro5McSDBzk1RVpv-BCC6pu3GOJ8wg_yoDF9fDSY2I_Wpwt4BOcEM-uoQgRspnycV33ZZ2e3aMbcj_hwD5JfJGe5D_CP07nMo7AM8GgK5YRRxVOZQZezlYtYuQMfL0ZMrox8USgRCUlsOVi9IbbLM5NHyPix_FYoKZ4VkgMy8Oxh6HKQzyENGSV9ER52Bu"/>
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center text-xs font-bold border-2 border-surface">+4</div>
+</div>
+<span class="text-label-sm text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full border border-outline-variant">Shared Room #402</span>
+<button class="bg-primary-container text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:scale-95 active:scale-90 transition-transform">Invite</button>
+<button class="bg-surface/70 border border-white/20 backdrop-blur-xl px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-on-surface/5 transition-colors hover:scale-95 active:scale-90 transition-transform">Export</button>
+<div class="flex gap-2 ml-2">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-on-surface/5 p-2 rounded-lg" data-icon="save">save</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-on-surface/5 p-2 rounded-lg" data-icon="settings">settings</span>
+</div>
+</div>
+</nav>
+<!-- Main Drawing Workspace -->
+<main class="w-full h-full pt-16 flex overflow-hidden">
+<!-- Left Chat Sidebar -->
+<aside class="fixed left-4 top-20 bottom-4 w-72 bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-xl flex flex-col h-[calc(100vh-100px)] overflow-hidden z-40">
+<div class="p-4 border-b border-white/10">
+<div class="flex items-center gap-2 mb-1">
+<h2 class="text-label-md font-bold text-primary dark:text-primary-fixed uppercase tracking-wider">ROOM CHAT</h2>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<p class="text-[10px] text-on-surface-variant/70 font-semibold uppercase">Live Collaboration Active</p>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
+<!-- Message Alex -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center px-1">
+<span class="text-[11px] font-bold text-primary-container">Alex M.</span>
+<span class="text-[10px] opacity-50">12:04 PM</span>
+</div>
+<div class="bg-primary-container text-on-primary p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm">
+                        Should we try a darker navy for the header?
+                    </div>
+</div>
+<!-- Message You -->
+<div class="flex flex-col gap-1.5 items-end">
+<div class="flex justify-between items-center w-full px-1">
+<span class="text-[10px] opacity-50">12:05 PM</span>
+<span class="text-[11px] font-bold text-secondary">You</span>
+</div>
+<div class="bg-secondary text-on-secondary p-3 rounded-tl-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm">
+                        I'm testing the glassmorphism panels now!
+                    </div>
+</div>
+<!-- Message Sarah -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center px-1">
+<span class="text-[11px] font-bold text-on-surface">Sarah J.</span>
+<span class="text-[10px] opacity-50">12:07 PM</span>
+</div>
+<div class="bg-white/30 backdrop-blur-md border border-white/20 p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-body-md text-on-surface shadow-sm">
+                        Looks amazing Sarah! Love the blur effect.
+                    </div>
+</div>
+</div>
+<!-- Reactions Bar & Input -->
+<div class="p-4 bg-white/5 border-t border-white/10">
+<div class="flex justify-around mb-4 bg-black/5 rounded-full py-2 backdrop-blur-sm">
+<button class="text-xl hover:scale-150 active:scale-110 transition-transform duration-200" onclick="triggerReaction('🔥')">🔥</button>
+<button class="text-xl hover:scale-150 active:scale-110 transition-transform duration-200" onclick="triggerReaction('✨')">✨</button>
+<button class="text-xl hover:scale-150 active:scale-110 transition-transform duration-200" onclick="triggerReaction('❤️')">❤️</button>
+<button class="text-xl hover:scale-150 active:scale-110 transition-transform duration-200" onclick="triggerReaction('🚀')">🚀</button>
+<button class="text-xl hover:scale-150 active:scale-110 transition-transform duration-200" onclick="triggerReaction('👏')">👏</button>
+</div>
+<div class="relative group">
+<input class="w-full bg-white/20 border-0 border-b-2 border-outline-variant focus:border-primary-container focus:ring-0 text-sm py-2 px-3 rounded-t-lg transition-all outline-none placeholder:text-on-surface-variant/50" placeholder="Type a message..." type="text"/>
+<button class="absolute right-2 top-2 text-primary-container hover:scale-110 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-xl" data-icon="send">send</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Tool Sidebar (Left-Center) -->
+<aside class="fixed left-[304px] top-20 bottom-4 w-20 bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-xl flex flex-col items-center py-6 space-y-4 z-40">
+<div class="flex flex-col items-center space-y-1 mb-4">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-lg ring-4 ring-white/10">
+<span class="material-symbols-outlined" data-icon="brush" style="font-variation-settings: 'FILL' 1;">brush</span>
+</div>
+<span class="font-label-sm text-[9px] font-bold text-primary-container uppercase tracking-tighter mt-1">Tools</span>
+</div>
+<nav class="flex flex-col gap-3 flex-1">
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all rounded-xl" title="Pencil">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center bg-secondary text-on-secondary rounded-xl shadow-lg scale-105" title="Brush">
+<span class="material-symbols-outlined" data-icon="brush" style="font-variation-settings: 'FILL' 1;">brush</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all rounded-xl" title="Eraser">
+<span class="material-symbols-outlined" data-icon="ink_eraser">ink_eraser</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all rounded-xl" title="Shapes">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all rounded-xl" title="Text">
+<span class="material-symbols-outlined" data-icon="title">title</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all rounded-xl" title="Layers">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+</button>
+</nav>
+<div class="pt-4 border-t border-white/10 flex flex-col gap-3">
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:bg-white/20 hover:scale-110 rounded-xl transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center text-on-surface-variant hover:bg-white/20 hover:scale-110 rounded-xl transition-all">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+</aside>
+<!-- Main Drawing Canvas Area -->
+<section class="flex-1 h-full bg-[#f0f2f5] canvas-grid relative cursor-crosshair group overflow-hidden" id="canvas-area">
+<!-- Floating Cursors -->
+<!-- Alex M Cursor -->
+<div class="absolute top-1/3 left-1/2 cursor-smooth flex flex-col items-start pointer-events-none z-10 transition-all duration-300" id="cursor-alex" style="transform: translate(20px, 40px);">
+<div class="relative">
+<span class="material-symbols-outlined text-primary-container text-2xl -ml-2 -mt-2 drop-shadow-md" style="font-variation-settings: 'FILL' 1;">near_me</span>
+<!-- Color trail effect mock -->
+<div class="absolute -z-10 w-20 h-20 bg-primary-container/10 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2"></div>
+</div>
+<span class="bg-primary-container text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap">Alex M.</span>
+</div>
+<!-- Jamie Cursor -->
+<div class="absolute top-1/2 left-1/4 cursor-smooth flex flex-col items-start pointer-events-none z-10 transition-all duration-300" id="cursor-jamie" style="transform: translate(-30px, -20px);">
+<div class="relative">
+<span class="material-symbols-outlined text-secondary text-2xl -ml-2 -mt-2 drop-shadow-md" style="font-variation-settings: 'FILL' 1;">near_me</span>
+<div class="absolute -z-10 w-20 h-20 bg-secondary/10 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2"></div>
+</div>
+<span class="bg-secondary text-on-secondary text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap">Jamie</span>
+</div>
+<!-- Project Horizon Canvas Content -->
+<div class="absolute inset-0 flex items-center justify-center p-24 pointer-events-none overflow-hidden">
+<img alt="Project Horizon Draft" class="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-2xl opacity-60 mix-blend-multiply" data-alt="A sophisticated architectural sketch of a futuristic museum building, featuring complex geometric lines and flowing organic forms." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkC0hCnWGwiYNXIcsRLTW2vD1e8mN7r0HAqwGvDhcC3tHy4_UJMtT1GWA7Td-h7jrRE2C-8o8880mT6TFgWZvCvcwOGA1OOL2eWZOFvXeu8XQApEIW6t3gmaPY0kF1xVNysJ5AXoswOUkkAACIK93NSEuY-xhuIx3aoPTppMJoARcNcl9mm4TGo05K8jAAHMSf-fBZFHqYPFb7ydGGEI6RLrHn27w2oZVuEGBhd3SmRGuGaya4gDrLOPhIRhJNPfVvroP_Dyt8axbr"/>
+</div>
+<!-- Canvas Floating Controls (Zoom/Pan) -->
+<div class="absolute bottom-8 right-8 flex items-center gap-2 bg-white/10 backdrop-blur-xl border border-white/20 p-2 rounded-xl shadow-lg z-30">
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-lg transition-all hover:scale-110 active:scale-95"><span class="material-symbols-outlined">zoom_in</span></button>
+<div class="h-6 w-px bg-white/20 mx-1"></div>
+<span class="text-label-md px-2 font-bold text-primary-container">84%</span>
+<div class="h-6 w-px bg-white/20 mx-1"></div>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-lg transition-all hover:scale-110 active:scale-95"><span class="material-symbols-outlined">zoom_out</span></button>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-lg ml-2 transition-all hover:scale-110 active:scale-95"><span class="material-symbols-outlined">pan_tool</span></button>
+</div>
+<div class="absolute inset-0 pointer-events-none z-50" id="reaction-container"></div>
+</section>
+<!-- Right Properties Sidebar -->
+<aside class="fixed right-4 top-20 bottom-4 w-80 bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg rounded-xl flex flex-col p-6 z-40">
+<h3 class="text-label-md font-bold mb-6 uppercase tracking-widest text-primary-container/80">Properties</h3>
+<div class="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
+<!-- Stroke Weight -->
+<div>
+<div class="flex justify-between items-center mb-4">
+<label class="text-label-sm font-bold uppercase tracking-tighter opacity-60">Stroke Weight</label>
+<span class="text-xs font-bold text-primary-container bg-primary-container/10 px-2 py-0.5 rounded">24px</span>
+</div>
+<input class="w-full accent-navy h-1.5 bg-primary-container/10 rounded-full cursor-pointer" max="128" min="1" type="range" value="24"/>
+<div class="flex justify-between text-[10px] mt-2 font-bold opacity-40">
+<span>1px</span>
+<span>128px</span>
+</div>
+</div>
+<!-- Color Palette -->
+<div>
+<label class="text-label-sm font-bold uppercase tracking-tighter mb-4 block opacity-60">Swatches</label>
+<div class="grid grid-cols-5 gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container cursor-pointer hover:scale-110 hover:ring-2 ring-primary-container ring-offset-2 transition-all shadow-sm"></div>
+<div class="w-10 h-10 rounded-lg bg-secondary cursor-pointer hover:scale-110 hover:ring-2 ring-secondary ring-offset-2 transition-all shadow-sm border-2 border-white/20"></div>
+<div class="w-10 h-10 rounded-lg bg-tertiary-container cursor-pointer hover:scale-110 hover:ring-2 ring-tertiary-container ring-offset-2 transition-all shadow-sm"></div>
+<div class="w-10 h-10 rounded-lg bg-error cursor-pointer hover:scale-110 hover:ring-2 ring-error ring-offset-2 transition-all shadow-sm"></div>
+<div class="w-10 h-10 rounded-lg bg-outline-variant cursor-pointer hover:scale-110 hover:ring-2 ring-outline-variant ring-offset-2 transition-all shadow-sm"></div>
+<div class="w-10 h-10 rounded-lg bg-surface-variant cursor-pointer hover:scale-110 hover:ring-2 ring-surface-variant ring-offset-2 transition-all shadow-sm"></div>
+<div class="w-10 h-10 rounded-lg border-2 border-dashed border-primary-container/30 flex items-center justify-center cursor-pointer hover:bg-white/20 hover:scale-110 transition-all group">
+<span class="material-symbols-outlined text-sm text-primary-container group-hover:scale-125 transition-transform">add</span>
+</div>
+</div>
+</div>
+<!-- Layers List -->
+<div class="pt-4 border-t border-white/10">
+<label class="text-label-sm font-bold uppercase tracking-tighter mb-4 block opacity-60">Layers</label>
+<div class="space-y-3">
+<!-- Active Layer -->
+<div class="flex items-center justify-between p-3 bg-secondary/10 border border-secondary/30 rounded-xl group cursor-pointer hover:bg-secondary/20 transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">visibility</span>
+<span class="text-label-md font-bold text-secondary">Sketch Draft</span>
+</div>
+<span class="material-symbols-outlined text-sm text-secondary/50">drag_indicator</span>
+</div>
+<!-- Locked Layer -->
+<div class="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-xl opacity-60">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-container/50">visibility_off</span>
+<span class="text-label-md font-bold text-primary-container/80">Background</span>
+</div>
+<span class="material-symbols-outlined text-sm text-primary-container/40">lock</span>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-6 w-full py-4 bg-primary-container text-on-primary rounded-xl font-bold flex items-center justify-center gap-2 hover:brightness-110 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-primary-container/20">
+<span class="material-symbols-outlined text-xl">add_box</span> Add Asset
+            </button>
+</aside>
+</main>
+<script>
+        function triggerReaction(emoji) {
+            const container = document.getElementById('reaction-container');
+            const reaction = document.createElement('div');
+            reaction.className = 'reaction-bubble text-5xl drop-shadow-lg';
+            reaction.innerText = emoji;
+            
+            // Random horizontal position within the canvas
+            const x = Math.random() * 60 + 20; // 20% to 80% to keep it away from sidebars
+            reaction.style.left = `${x}%`;
+            reaction.style.bottom = '10%';
+            
+            container.appendChild(reaction);
+            
+            // Cleanup
+            setTimeout(() => {
+                reaction.remove();
+            }, 2000);
+        }
+
+        // Simulate cursor movement
+        setInterval(() => {
+            const alex = document.getElementById('cursor-alex');
+            const jamie = document.getElementById('cursor-jamie');
+            
+            const alexX = Math.sin(Date.now() / 1500) * 50;
+            const alexY = Math.cos(Date.now() / 2000) * 30;
+            alex.style.transform = `translate(${alexX}px, ${alexY}px)`;
+            
+            const jamieX = Math.cos(Date.now() / 1200) * 40;
+            const jamieY = Math.sin(Date.now() / 1800) * 60;
+            jamie.style.transform = `translate(${jamieX}px, ${jamieY}px)`;
+        }, 50);
+    </script>
+</body></html>

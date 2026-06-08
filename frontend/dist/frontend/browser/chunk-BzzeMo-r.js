@@ -1,0 +1,1 @@
+var o={apiUrl:"/api"};var e=o.apiUrl;export{e};

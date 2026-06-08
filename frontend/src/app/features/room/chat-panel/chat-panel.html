@@ -1,0 +1,85 @@
+<div class="glass-panel rounded-xl elevation-3 flex flex-col h-full overflow-hidden">
+  <!-- Header (romantic) -->
+  <div class="p-4 border-b border-rose-300/20 bg-linear-to-r from-rose-500/10 to-pink-500/10 flex items-center justify-between">
+    <div class="flex flex-col gap-1">
+      <h2 class="text-label-md font-bold uppercase tracking-wider flex items-center gap-1 text-rose-500 dark:text-rose-300">
+        <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1;">favorite</span>
+        Room Chat
+      </h2>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
+        <p class="text-[10px] text-on-surface-variant/70 font-semibold uppercase">Live Collaboration Active</p>
+      </div>
+    </div>
+    <button
+      type="button"
+      (click)="toggleMute.emit()"
+      [title]="muted() ? 'Unmute sounds' : 'Mute sounds'"
+      class="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors">
+      <span class="material-symbols-outlined text-[20px]">{{ muted() ? 'volume_off' : 'volume_up' }}</span>
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div #scroller class="flex-1 overflow-y-auto p-4 space-y-5 custom-scrollbar">
+    @for (m of messages(); track m.id) {
+      @if (isSelf(m)) {
+        <div class="flex flex-col gap-1.5 items-end">
+          <div class="flex justify-between items-center w-full px-1">
+            <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>
+            <span class="text-[11px] font-bold text-rose-500 dark:text-rose-300">You</span>
+          </div>
+          <div class="bg-linear-to-br from-rose-400 to-pink-500 text-white p-3 rounded-tl-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm shadow-rose-500/20 max-w-[85%] break-words">
+            {{ m.text }}
+          </div>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-1.5">
+          <div class="flex justify-between items-center px-1">
+            <span class="text-[11px] font-bold text-pink-500 dark:text-pink-300">{{ m.author }}</span>
+            <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>
+          </div>
+          <div class="bg-rose-500/10 border border-rose-300/25 text-on-surface p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm max-w-[85%] break-words">
+            {{ m.text }}
+          </div>
+        </div>
+      }
+    } @empty {
+      <p class="text-center text-on-surface-variant/60 text-body-sm mt-8 flex flex-col items-center gap-2">
+        <span class="material-symbols-outlined text-rose-300 text-[32px]" style="font-variation-settings:'FILL' 1;">favorite</span>
+        No messages yet. Say hello 👋
+      </p>
+    }
+  </div>
+
+  <!-- Reactions + input -->
+  <div class="p-4 bg-linear-to-t from-rose-500/10 to-transparent border-t border-rose-300/20">
+    <div class="grid grid-cols-7 gap-1 mb-4 bg-rose-500/10 rounded-full py-2 px-1 backdrop-blur-sm">
+      @for (emoji of emojis; track emoji) {
+        <button
+          type="button"
+          (click)="react.emit(emoji)"
+          class="text-lg hover:scale-150 active:scale-110 transition-transform duration-200"
+          [attr.aria-label]="'React ' + emoji">
+          {{ emoji }}
+        </button>
+      }
+    </div>
+    <div class="relative">
+      <input
+        class="w-full bg-on-surface/5 border-0 border-b-2 border-rose-300/40 focus:border-rose-400 focus:ring-0 text-sm py-2 pl-3 pr-10 rounded-t-lg transition-all outline-none placeholder:text-on-surface-variant/50 text-on-surface"
+        placeholder="Type a sweet message..."
+        type="text"
+        [value]="draft()"
+        (input)="onInput($event)"
+        (keyup.enter)="submit()" />
+      <button
+        type="button"
+        (click)="submit()"
+        class="absolute right-2 top-1.5 text-rose-500 hover:scale-110 active:scale-90 transition-transform p-1"
+        aria-label="Send message">
+        <span class="material-symbols-outlined text-xl">send</span>
+      </button>
+    </div>
+  </div>
+</div>

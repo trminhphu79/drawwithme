@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id           String      @id @default(uuid())
+  code         String      @unique
+  name         String      @default("Untitled Room")
+  passwordHash String?
+  width        Int         @default(1600)
+  height       Int         @default(1000)
+  status       String      @default("active")
+  createdAt    DateTime    @default(now())
+  operations   Operation[]
+  artworks     Artwork[]
+  messages     Message[]
+}
+
+/// A chat message within a room.
+model Message {
+  id        String   @id @default(uuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    String
+  text      String
+  createdAt DateTime @default(now())
+
+  @@index([roomId, createdAt])
+}
+
+/// Event-sourced drawing log — the canvas is reconstructed by replaying these.
+model Operation {
+  id        String   @id @default(uuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  seq       Int      @default(autoincrement())
+  type      String // stroke | erase | fill
+  color     String
+  size      Int
+  opacity   Float
+  points    Json
+  authorId  String?
+  isUndone  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([roomId, seq])
+}
+
+/// A sealed, completed artwork from a finished session.
+model Artwork {
+  id           String   @id @default(uuid())
+  roomId       String
+  room         Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  title        String   @default("Untitled Masterpiece")
+  imageUrl     String? // data URL / R2 URL of the rasterized snapshot
+  participants String[]
+  createdAt    DateTime @default(now())
+
+  @@index([roomId])
+}

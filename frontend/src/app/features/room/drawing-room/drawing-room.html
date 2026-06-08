@@ -1,0 +1,87 @@
+<div class="h-screen w-screen overflow-hidden relative bg-background text-on-background">
+  <app-room-top-bar
+    [roomCode]="code() || 'ROOM'"
+    [participants]="store.participants()"
+    [connected]="store.connected()"
+    (invite)="onInvite()"
+    (finish)="onFinish()"
+    (chatToggle)="toggleChat()" />
+
+  <main class="w-full h-full pt-16 relative">
+    <!-- Canvas (fills the workspace; glass panels float over it) -->
+    <section class="absolute inset-0 pt-16 canvas-grid overflow-hidden">
+      <app-canvas-stage
+        [operations]="store.operations()"
+        [brush]="store.brush()"
+        [zoom]="store.zoom()"
+        [cursors]="store.cursors()"
+        (strokeComplete)="store.commit($event)"
+        (cursorMove)="store.moveCursor($event)" />
+
+      <app-reaction-overlay [reactions]="chat.reactions()" />
+
+      <app-canvas-controls
+        [zoom]="store.zoom()"
+        [canUndo]="store.canUndo()"
+        [canRedo]="store.canRedo()"
+        (undo)="store.undo()"
+        (redo)="store.redo()"
+        (zoomIn)="store.zoomIn()"
+        (zoomOut)="store.zoomOut()" />
+    </section>
+
+    <!-- Mobile/tablet backdrop -->
+    @if (chatOpen()) {
+      <div class="lg:hidden fixed inset-0 top-16 bg-on-surface/40 backdrop-blur-sm z-40" (click)="chatOpen.set(false)"></div>
+    }
+
+    <!-- Left: chat — slide-in drawer on mobile/tablet, fixed sidebar on desktop -->
+    <aside
+      class="fixed z-50 top-16 bottom-0 left-0 w-80 max-w-[85vw] p-3 transition-transform duration-300 ease-out
+             lg:z-40 lg:top-20 lg:bottom-4 lg:left-4 lg:w-72 lg:p-0 lg:max-w-none lg:translate-x-0"
+      [class.translate-x-0]="chatOpen()"
+      [class.-translate-x-full]="!chatOpen()">
+      <!-- Close (mobile only) -->
+      <button
+        type="button"
+        (click)="chatOpen.set(false)"
+        class="lg:hidden absolute -right-2 top-1 z-10 w-9 h-9 rounded-full bg-surface-container-high text-on-surface shadow-lg flex items-center justify-center"
+        aria-label="Close chat">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+      <app-chat-panel
+        [messages]="chat.messages()"
+        [myId]="chat.myIdSig()"
+        [muted]="chat.isMuted()"
+        (send)="chat.send($event)"
+        (react)="chat.react($event)"
+        (toggleMute)="chat.toggleMute()" />
+    </aside>
+
+    <!-- Left-center: tool dock -->
+    <aside class="fixed left-3 lg:left-76 top-20 bottom-4 z-40 flex items-stretch">
+      <app-tool-rail
+        [tools]="tools"
+        [activeTool]="store.tool()"
+        (toolSelect)="store.setTool($event)" />
+    </aside>
+
+    <!-- Right: properties sidebar -->
+    <aside class="hidden lg:block fixed right-4 top-20 bottom-4 w-80 z-40">
+      <app-properties-panel
+        [tool]="store.tool()"
+        [size]="store.size()"
+        [opacity]="store.opacity()"
+        [color]="store.color()"
+        [palette]="store.palette()"
+        [recentColors]="store.recentColors()"
+        (sizeChange)="store.setSize($event)"
+        (opacityChange)="store.setOpacity($event)"
+        (colorChange)="store.setColor($event)" />
+    </aside>
+  </main>
+
+  @if (showNameGate()) {
+    <app-name-gate [initial]="initialName()" (submitName)="onNameSubmit($event)" />
+  }
+</div>

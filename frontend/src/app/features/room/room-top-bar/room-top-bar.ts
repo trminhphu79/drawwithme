@@ -1,0 +1,72 @@
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Participant } from '../participant.model';
+import { ThemeToggle } from '../../../core/theme-toggle';
+
+/** DUMB. Glassmorphism top navigation bar for the drawing room. */
+@Component({
+  selector: 'app-room-top-bar',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ThemeToggle],
+  template: `
+    <nav
+      class="glass-panel border-b border-white/20 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full z-50 fixed top-0">
+      <div class="flex items-center gap-6">
+        <span class="text-headline-md font-extrabold text-primary">DrawWithMe</span>
+        <span
+          class="hidden md:inline text-label-sm text-on-surface-variant bg-surface-variant/50 px-3 py-1 rounded-full border border-outline-variant">
+          Room #{{ roomCode() }}
+        </span>
+        <span
+          class="w-2 h-2 rounded-full"
+          [class]="connected() ? 'bg-secondary-container' : 'bg-outline'"
+          [title]="connected() ? 'Connected' : 'Offline'"></span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          (click)="chatToggle.emit()"
+          title="Toggle chat"
+          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors">
+          <span class="material-symbols-outlined">forum</span>
+        </button>
+        <div class="flex -space-x-3 items-center mr-1">
+          @for (p of participants(); track p.id) {
+            <div
+              class="w-8 h-8 rounded-full border-2 border-surface shadow-sm flex items-center justify-center text-xs font-bold"
+              [class]="p.colorClass"
+              [title]="p.name">
+              {{ p.name.charAt(0) }}
+            </div>
+          }
+        </div>
+
+        <button
+          type="button"
+          (click)="invite.emit()"
+          class="bg-primary-container text-on-primary px-4 py-2 rounded-lg font-label-md hover:scale-95 active:scale-90 transition-transform flex items-center gap-1">
+          <span class="material-symbols-outlined text-[18px]">person_add</span>
+          <span class="hidden sm:inline">Invite</span>
+        </button>
+        <button
+          type="button"
+          (click)="finish.emit()"
+          class="glass-panel px-4 py-2 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 transition-colors hidden md:flex items-center gap-1">
+          <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          Finish
+        </button>
+
+        <app-theme-toggle />
+      </div>
+    </nav>
+  `,
+})
+export class RoomTopBar {
+  readonly roomCode = input.required<string>();
+  readonly participants = input<Participant[]>([]);
+  readonly connected = input(false);
+
+  readonly invite = output<void>();
+  readonly finish = output<void>();
+  readonly chatToggle = output<void>();
+}

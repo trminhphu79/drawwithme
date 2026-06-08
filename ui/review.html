@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Final Artwork - Project Horizon - DrawWithMe</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-tint": "#4d44e3",
+                      "tertiary-fixed-dim": "#ffb695",
+                      "on-error-container": "#93000a",
+                      "surface-container-highest": "#d3e4fe",
+                      "surface-container-low": "#eff4ff",
+                      "on-background": "#0b1c30",
+                      "secondary-container": "#39b8fd",
+                      "on-tertiary-fixed-variant": "#7b2f00",
+                      "surface-container-lowest": "#ffffff",
+                      "on-surface": "#0b1c30",
+                      "error": "#ba1a1a",
+                      "on-secondary-fixed-variant": "#004c6e",
+                      "primary-container": "#4f46e5",
+                      "surface-container-high": "#dce9ff",
+                      "error-container": "#ffdad6",
+                      "surface-container": "#e5eeff",
+                      "tertiary-container": "#a44100",
+                      "surface": "#f8f9ff",
+                      "outline": "#777587",
+                      "surface-dim": "#cbdbf5",
+                      "on-primary-fixed": "#0f0069",
+                      "primary": "#3525cd",
+                      "secondary-fixed-dim": "#89ceff",
+                      "secondary": "#006591",
+                      "inverse-on-surface": "#eaf1ff",
+                      "primary-fixed-dim": "#c3c0ff",
+                      "surface-variant": "#d3e4fe",
+                      "on-tertiary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#ffdbcc",
+                      "inverse-surface": "#213145",
+                      "on-tertiary-fixed": "#351000",
+                      "on-secondary-container": "#004666",
+                      "primary-fixed": "#e2dfff",
+                      "secondary-fixed": "#c9e6ff",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-container": "#ffd2be",
+                      "inverse-primary": "#c3c0ff",
+                      "on-secondary-fixed": "#001e2f",
+                      "tertiary": "#7e3000",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed-variant": "#3323cc",
+                      "on-primary-container": "#dad7ff",
+                      "outline-variant": "#c7c4d8",
+                      "on-surface-variant": "#464555",
+                      "surface-bright": "#f8f9ff",
+                      "background": "#f8f9ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "16px",
+                      "unit": "4px",
+                      "margin-desktop": "32px",
+                      "margin-mobile": "16px",
+                      "toolbar-gap": "8px"
+              },
+              "fontFamily": {
+                      "headline-md-mobile": [
+                              "Inter"
+                      ],
+                      "mono-label": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md-mobile": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "mono-label": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .glass-panel {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .shadow-ambient-1 {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.05);
+        }
+        .shadow-ambient-2 {
+            box-shadow: 0px 10px 40px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-lg text-body-lg min-h-screen flex flex-col relative overflow-x-hidden">
+<!-- TopNavBar: Suppressed because this is a specific, focused "details" view, not a global navigation hub. -->
+<!-- Main Canvas Area -->
+<main class="flex-grow flex flex-col items-center justify-center p-margin-desktop relative z-10">
+<!-- Top Left Navigation Back (Task-Focused Return) -->
+<div class="absolute top-margin-desktop left-margin-desktop">
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-body-sm text-body-sm group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                Back to Gallery
+            </a>
+</div>
+<div class="w-full max-w-5xl flex flex-col items-center gap-12 mt-16 md:mt-0">
+<!-- Header Area -->
+<div class="text-center space-y-4 max-w-2xl">
+<h1 class="font-display-lg text-display-lg text-on-surface">Project Horizon</h1>
+<div class="flex flex-wrap justify-center items-center gap-4 text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">calendar_today</span> Oct 24, 2023</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">group</span>
+                        Participants: Alex, Jamie, Morgan
+                    </span>
+</div>
+</div>
+<!-- Artwork Preview Card (Level 2 Elevation) -->
+<div class="w-full relative shadow-ambient-2 rounded-xl bg-surface-container-lowest p-4 border border-outline-variant/20 transition-transform duration-500 hover:scale-[1.01]">
+<div class="relative w-full aspect-video rounded-lg overflow-hidden bg-surface-container">
+<img alt="Vibrant abstract digital art" class="w-full h-full object-cover" data-alt="A vibrant, abstract digital art piece showcasing dynamic fluid shapes merging and flowing together. The colors are striking, heavily featuring electric indigos, deep purples, and bright cyan accents against a dark, contrasting background. The overall style is modern, energetic, and highly polished, resembling a high-end digital illustration created in a professional collaborative tool. The lighting appears luminous from within the abstract forms." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpZFTX1rHfklcRMscZ_htsswXohM6DqfndvPhA_8liEy-xToAGStSBkNJgEGsHSyxMhmxhD0rExwqqNYV8Lkm2zYSA74c6Lhb6FwoAQrxTdFZDC48wf-ovhxQUgTkVrgQkmNvd6nMXbOfi3IGvgqGspikxF2HLvVdrhBOfMviAkZl26WNdV9eJstl2nFKYwceqX0VWXZN83Oef9PI_ZqXNyAMZP39rOWb9oAky6SbwYnIcPs9dtPeGTFJt1Pg0dJF6_E_Vo9LdhZtC"/>
+<!-- Replay Overlay Hint -->
+<button class="absolute inset-0 flex items-center justify-center bg-inverse-surface/20 opacity-0 hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm group">
+<div class="bg-surface-container-lowest rounded-full p-4 shadow-ambient-2 transform group-hover:scale-110 transition-transform duration-200">
+<span class="material-symbols-outlined text-primary text-[32px] block" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</button>
+</div>
+<!-- Collaborative Cursors Decorative Detail -->
+<div class="absolute top-1/4 left-1/4 pointer-events-none">
+<svg class="text-tertiary drop-shadow-md" fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 4L11 20L13.5 13.5L20 11L4 4Z" fill="currentColor" stroke="white" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="bg-tertiary text-on-tertiary font-mono-label text-mono-label px-2 py-1 rounded-sm shadow-sm absolute left-6 top-6 whitespace-nowrap">Alex</span>
+</div>
+<div class="absolute bottom-1/3 right-1/4 pointer-events-none">
+<svg class="text-secondary drop-shadow-md" fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 4L11 20L13.5 13.5L20 11L4 4Z" fill="currentColor" stroke="white" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="bg-secondary text-on-secondary font-mono-label text-mono-label px-2 py-1 rounded-sm shadow-sm absolute left-6 top-6 whitespace-nowrap">Jamie</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-wrap justify-center gap-4 w-full max-w-xl">
+<!-- Primary Action -->
+<button class="flex-1 flex items-center justify-center gap-2 bg-primary text-on-primary hover:bg-primary-fixed-variant transition-colors font-label-caps text-label-caps py-4 px-8 rounded-full shadow-ambient-1 active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[20px]">download</span>
+                    Download
+                </button>
+<!-- Secondary Action -->
+<button class="flex-1 flex items-center justify-center gap-2 bg-surface-container-highest text-primary hover:bg-surface-dim transition-colors font-label-caps text-label-caps py-4 px-8 rounded-full shadow-ambient-1 active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[20px]">history</span>
+                    Replay Drawing
+                </button>
+<!-- Outline Action -->
+<button class="flex-none flex items-center justify-center gap-2 border border-outline text-on-surface hover:bg-surface-variant transition-colors font-label-caps text-label-caps py-4 px-6 rounded-full shadow-ambient-1 active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[20px]">share</span>
+                    Share
+                </button>
+</div>
+</div>
+</main>
+<!-- SideNavBar: Suppressed because this is not the main workspace/canvas where tools are needed. -->
+</body></html>

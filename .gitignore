@@ -1,0 +1,29 @@
+# ---- dependencies ----
+node_modules/
+**/node_modules/
+
+# ---- secrets / env (copied manually to the VPS) ----
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# ---- backend build (built inside Docker, not synced) ----
+/backend/dist/
+
+# NOTE: frontend/dist IS intentionally tracked — the VPS pulls it and nginx
+# serves it directly (no Node build on the server). See frontend/.gitignore.
+
+# ---- logs / tmp ----
+*.log
+npm-debug.log*
+/tmp/
+.cache/
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+*.swp
+
+# ---- prisma generated client (regenerated on build) ----
+/backend/node_modules/.prisma/

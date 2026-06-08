@@ -1,0 +1,287 @@
+@import 'tailwindcss';
+
+/* Enable class-based dark mode (.dark on <html>) for any dark: variants. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========================================================================
+   DrawWithMe Design System — sophisticated minimalist + glassmorphism.
+   Deep Navy (#111844) structure, Indigo (#4b41e1) accent. Light tokens here;
+   dark-mode overrides below in `.dark`. Utilities reference var(--color-*),
+   so flipping the vars flips the whole UI — no per-element dark: classes.
+   ========================================================================= */
+@theme {
+  /* ---- Color: surfaces (light) ---- */
+  --color-surface: #f7f9fb;
+  --color-surface-dim: #d8dadc;
+  --color-surface-bright: #f7f9fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container: #eceef0;
+  --color-surface-container-high: #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  --color-surface-variant: #e0e3e5;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #46464f;
+  --color-inverse-surface: #2d3133;
+  --color-inverse-on-surface: #eff1f3;
+  --color-background: #f7f9fb;
+  --color-on-background: #191c1e;
+
+  --color-outline: #767680;
+  --color-outline-variant: #c7c5d0;
+
+  --color-surface-tint: #545b8a;
+  --color-primary: #000110;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #111844;
+  --color-on-primary-container: #7b81b3;
+  --color-inverse-primary: #bdc3f9;
+  --color-primary-fixed: #dfe0ff;
+  --color-primary-fixed-dim: #bdc3f9;
+  --color-on-primary-fixed: #101743;
+  --color-on-primary-fixed-variant: #3d4371;
+
+  --color-secondary: #4b41e1;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #645efb;
+  --color-on-secondary-container: #fffbff;
+  --color-secondary-fixed: #e2dfff;
+  --color-secondary-fixed-dim: #c3c0ff;
+  --color-on-secondary-fixed: #0f0069;
+  --color-on-secondary-fixed-variant: #3323cc;
+
+  --color-tertiary: #060100;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #341300;
+  --color-on-tertiary-container: #af7858;
+  --color-tertiary-fixed: #ffdbc9;
+  --color-tertiary-fixed-dim: #f8b995;
+  --color-on-tertiary-fixed: #321200;
+  --color-on-tertiary-fixed-variant: #673c21;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* ---- Typography (all Manrope; optional mono for hex/coords) ---- */
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-lg: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-md: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-display-lg: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-body-lg: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-body-md: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-body-sm: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-label-md: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-label-sm: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-label-caps: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --font-mono-label: 'JetBrains Mono', ui-monospace, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --text-headline-lg: 40px;
+  --text-headline-lg--line-height: 48px;
+  --text-headline-lg--font-weight: 800;
+  --text-headline-lg--letter-spacing: -0.02em;
+
+  --text-headline-lg-mobile: 32px;
+  --text-headline-lg-mobile--line-height: 38px;
+  --text-headline-lg-mobile--font-weight: 800;
+  --text-headline-lg-mobile--letter-spacing: -0.02em;
+
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-headline-md--font-weight: 700;
+  --text-headline-md--letter-spacing: -0.01em;
+
+  --text-display-lg: 40px;
+  --text-display-lg--line-height: 48px;
+  --text-display-lg--font-weight: 800;
+  --text-display-lg--letter-spacing: -0.02em;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+
+  --text-label-md: 14px;
+  --text-label-md--line-height: 20px;
+  --text-label-md--font-weight: 600;
+  --text-label-md--letter-spacing: 0.01em;
+
+  --text-label-sm: 12px;
+  --text-label-sm--line-height: 16px;
+  --text-label-sm--font-weight: 700;
+  --text-label-sm--letter-spacing: 0.05em;
+
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 1;
+  --text-label-caps--font-weight: 700;
+  --text-label-caps--letter-spacing: 0.05em;
+
+  --text-mono-label: 12px;
+  --text-mono-label--line-height: 1;
+  --text-mono-label--font-weight: 400;
+
+  /* ---- Radius ---- */
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* ---- Spacing: uniquely-named tokens only (no sm/md/lg/xl collisions) ---- */
+  --spacing-unit: 4px;
+  --spacing-gutter: 24px;
+  --spacing-toolbar-padding: 8px;
+  --spacing-margin-mobile: 16px;
+  --spacing-margin-desktop: 32px;
+}
+
+/* Non-token theming vars (glass + canvas) — overridden in .dark below. */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-shadow: 0 10px 40px rgba(17, 24, 68, 0.1);
+  --canvas-bg: #f0f2f5;
+  --canvas-dot: #d1d5db;
+  color-scheme: light;
+}
+
+/* ===================== DARK MODE (color-dark.md) ===================== */
+.dark {
+  --color-surface: #101415;
+  --color-surface-dim: #101415;
+  --color-surface-bright: #363a3b;
+  --color-surface-container-lowest: #0b0f10;
+  --color-surface-container-low: #191c1e;
+  --color-surface-container: #1d2022;
+  --color-surface-container-high: #272a2c;
+  --color-surface-container-highest: #323537;
+  --color-surface-variant: #323537;
+  --color-on-surface: #e0e3e5;
+  --color-on-surface-variant: #c7c5d0;
+  --color-inverse-surface: #e0e3e5;
+  --color-inverse-on-surface: #2d3133;
+  --color-background: #101415;
+  --color-on-background: #e0e3e5;
+
+  --color-outline: #90909a;
+  --color-outline-variant: #46464f;
+
+  --color-surface-tint: #bdc3f9;
+  --color-primary: #bdc3f9;
+  --color-on-primary: #262d59;
+  --color-primary-container: #111844;
+  --color-on-primary-container: #7b81b3;
+  --color-inverse-primary: #545b8a;
+
+  --color-secondary: #c3c0ff;
+  --color-on-secondary: #1d00a5;
+  --color-secondary-container: #3626ce;
+  --color-on-secondary-container: #b3b1ff;
+
+  --color-tertiary: #f8b995;
+  --color-on-tertiary: #4d260d;
+  --color-tertiary-container: #341300;
+  --color-on-tertiary-container: #af7858;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --glass-bg: rgba(29, 32, 34, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  --canvas-bg: #16191b;
+  --canvas-dot: #2a2e30;
+  color-scheme: dark;
+}
+
+/* ---- Base ---- */
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Glassmorphism panels (Level 2/3 elevation) ---- */
+.glass-panel {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.elevation-2 {
+  box-shadow: 0 4px 20px rgba(17, 24, 68, 0.08);
+}
+.elevation-3 {
+  box-shadow: var(--glass-shadow);
+}
+
+/* ---- Canvas backdrop (dotted grid) ---- */
+.canvas-grid {
+  background-color: var(--canvas-bg);
+  background-image: radial-gradient(var(--canvas-dot) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ---- Reaction float-up animation (synced across clients) ---- */
+.reaction-bubble {
+  pointer-events: none;
+  position: absolute;
+  animation: float-up 2s ease-out forwards;
+  will-change: transform, opacity;
+}
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-200px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ---- Smooth remote cursor interpolation (positions arrive throttled) ---- */
+.cursor-smooth {
+  transition: left 0.12s ease-out, top 0.12s ease-out, transform 0.12s ease-out;
+  will-change: left, top;
+}
+
+/* ---- Thin scrollbars for chat / panels ---- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-on-surface) 18%, transparent);
+  border-radius: 10px;
+}
+
+/* ---- Material Symbols defaults ---- */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+}

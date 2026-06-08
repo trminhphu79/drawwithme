@@ -1,0 +1,90 @@
+<div class="glass-panel rounded-xl elevation-3 flex flex-col p-6 h-full overflow-hidden">
+  <h3 class="text-label-md font-bold mb-6 uppercase tracking-widest text-primary/80">Properties</h3>
+
+  <div class="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
+    <!-- Stroke weight -->
+    <div>
+      <div class="flex justify-between items-center mb-4">
+        <label class="text-label-sm font-bold uppercase tracking-tighter opacity-60">Stroke Weight</label>
+        <span class="text-xs font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded">{{ size() }}px</span>
+      </div>
+      <input
+        type="range" min="1" max="128" [value]="size()" (input)="onSize($event)"
+        class="w-full h-1.5 rounded-full cursor-pointer accent-[var(--color-secondary)]" aria-label="Stroke weight" />
+      <div class="flex justify-between text-[10px] mt-2 font-bold opacity-40">
+        <span>1px</span><span>128px</span>
+      </div>
+    </div>
+
+    <!-- Opacity (hidden for eraser) -->
+    @if (tool() !== 'eraser') {
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <label class="text-label-sm font-bold uppercase tracking-tighter opacity-60">Opacity</label>
+          <span class="text-xs font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded">{{ opacity() }}%</span>
+        </div>
+        <input
+          type="range" min="10" max="100" [value]="opacity()" (input)="onOpacity($event)"
+          class="w-full h-1.5 rounded-full cursor-pointer accent-[var(--color-secondary)]" aria-label="Opacity" />
+      </div>
+    }
+
+    <!-- Swatches -->
+    @if (tool() !== 'eraser') {
+      <div>
+        <label class="text-label-sm font-bold uppercase tracking-tighter mb-4 block opacity-60">Swatches</label>
+        <div class="grid grid-cols-5 gap-3">
+          @for (swatch of palette(); track swatch) {
+            <button
+              type="button" (click)="colorChange.emit(swatch)"
+              class="w-10 h-10 rounded-lg cursor-pointer hover:scale-110 transition-all shadow-sm border border-white/10"
+              [style.background-color]="swatch"
+              [class]="color() === swatch ? 'ring-2 ring-secondary ring-offset-2 ring-offset-transparent' : ''"
+              [attr.aria-label]="'Color ' + swatch"></button>
+          }
+          <label
+            class="w-10 h-10 rounded-lg border-2 border-dashed border-primary/30 flex items-center justify-center cursor-pointer hover:bg-on-surface/5 hover:scale-110 transition-all relative"
+            title="Custom color">
+            <span class="material-symbols-outlined text-sm text-primary">add</span>
+            <input type="color" [value]="color()" (input)="onColorInput($event)"
+              class="absolute inset-0 opacity-0 cursor-pointer" aria-label="Custom color" />
+          </label>
+        </div>
+
+        @if (recentColors().length) {
+          <div class="mt-4">
+            <label class="text-label-sm font-bold uppercase tracking-tighter mb-2 block opacity-60">Recent</label>
+            <div class="flex gap-2">
+              @for (c of recentColors(); track c) {
+                <button type="button" (click)="colorChange.emit(c)"
+                  class="w-7 h-7 rounded-full border border-white/10 hover:scale-110 transition-transform"
+                  [style.background-color]="c" [attr.aria-label]="'Recent ' + c"></button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Layers (presentational; full layer system is a later phase) -->
+    <div class="pt-4 border-t border-white/10">
+      <label class="text-label-sm font-bold uppercase tracking-tighter mb-4 block opacity-60">Layers</label>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between p-3 bg-secondary/10 border border-secondary/30 rounded-xl">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-secondary" style="font-variation-settings:'FILL' 1;">visibility</span>
+            <span class="text-label-md font-bold text-secondary">Sketch Draft</span>
+          </div>
+          <span class="material-symbols-outlined text-sm text-secondary/50">drag_indicator</span>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-xl opacity-60">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">visibility_off</span>
+            <span class="text-label-md font-bold text-on-surface-variant">Background</span>
+          </div>
+          <span class="material-symbols-outlined text-sm text-on-surface-variant/60">lock</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
