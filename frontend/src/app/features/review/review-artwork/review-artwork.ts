@@ -59,9 +59,11 @@ export class ReviewArtwork {
   }
 
   /**
-   * Save the artwork. Kept SYNCHRONOUS (no await before the action) so iOS Safari
-   * treats it as a user-gesture. On mobile it opens the native share sheet
-   * (Save to Photos / Files); on desktop it triggers a normal file download.
+   * Save the artwork.
+   *  - Desktop: a normal file download straight to the Downloads folder.
+   *  - Mobile: the native share sheet (iOS "Save to Photos / Files"), which is
+   *    the only reliable save path there; kept synchronous so iOS treats it as a
+   *    user gesture.
    */
   protected onDownload(): void {
     const art = this.store.artwork();
@@ -69,27 +71,47 @@ export class ReviewArtwork {
     if (!src) return;
     const fileName = `${(art!.title || 'artwork').replace(/\s+/g, '-').toLowerCase()}.png`;
 
-    // Snapshots are data URLs → build a File synchronously (no fetch/await).
-    if (src.startsWith('data:')) {
+    // Mobile + data URL → share sheet (must run synchronously).
+    if (this.isMobile() && src.startsWith('data:')) {
       const file = new File([this.dataUrlToBlob(src)], fileName, { type: 'image/png' });
       const nav = navigator as Navigator & {
         canShare?: (d: { files: File[] }) => boolean;
         share?: (d: { files: File[]; title?: string }) => Promise<void>;
       };
-      // iOS/Android: native share sheet is the reliable "save" path.
       if (nav.canShare?.({ files: [file] }) && nav.share) {
         nav.share({ files: [file], title: art!.title }).catch(() => undefined);
         return;
       }
-      // Desktop fallback: object-URL download.
-      const url = URL.createObjectURL(file);
-      this.triggerDownload(url, fileName);
-      setTimeout(() => URL.revokeObjectURL(url), 10_000);
-      return;
+      // fall through to a normal download if share isn't available
     }
 
-    // Remote (R2/http) image fallback.
-    this.triggerDownload(src, fileName);
+    // Desktop (and mobile fallback): direct download to the folder.
+    if (src.startsWith('data:')) {
+      const url = URL.createObjectURL(this.dataUrlToBlob(src));
+      this.triggerDownload(url, fileName);
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } else {
+      void this.downloadRemote(src, fileName);
+    }
+  }
+
+  /** Force a download for a remote (R2) image; open in a tab if CORS blocks it. */
+  private async downloadRemote(src: string, fileName: string): Promise<void> {
+    try {
+      const blob = await (await fetch(src, { mode: 'cors' })).blob();
+      const url = URL.createObjectURL(blob);
+      this.triggerDownload(url, fileName);
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch {
+      window.open(src, '_blank', 'noopener');
+    }
+  }
+
+  private isMobile(): boolean {
+    if (typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent;
+    // iPadOS reports as Macintosh but has touch points.
+    return /android|iphone|ipad|ipod|mobile/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {
@@ -105,7 +127,6 @@ export class ReviewArtwork {
     const a = document.createElement('a');
     a.href = href;
     a.download = fileName;
-    a.target = '_blank';
     a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
