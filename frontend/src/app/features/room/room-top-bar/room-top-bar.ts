@@ -17,7 +17,7 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           [title]="leftPanelOpen() ? 'Collapse chat' : 'Show chat'"
           class="hidden lg:flex w-10 h-10 items-center justify-center rounded-lg transition-colors"
           [class]="leftPanelOpen() ? 'text-rose-500 bg-rose-500/10' : 'text-on-surface-variant hover:bg-on-surface/5'">
-          <span class="material-symbols-outlined">dock_to_right</span>
+          <span class="material-symbols-outlined">chat</span>
         </button>
         <button
           type="button"
@@ -51,7 +51,7 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           (click)="chatToggle.emit()"
           title="Toggle chat"
           class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors">
-          <span class="material-symbols-outlined">forum</span>
+          <span class="material-symbols-outlined">chat</span>
         </button>
         <div class="flex -space-x-3 items-center mr-1">
           @for (p of participants(); track p.id) {
@@ -78,15 +78,6 @@ import { ThemeToggle } from '../../../core/theme-toggle';
           class="glass-panel px-3 sm:px-4 py-2 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 transition-colors flex items-center gap-1">
           <span class="material-symbols-outlined text-[18px]">check_circle</span>
           <span class="hidden sm:inline">Finish</span>
-        </button>
-
-        <button
-          type="button"
-          (click)="toggleRightPanel.emit()"
-          [title]="rightPanelOpen() ? 'Collapse properties' : 'Show properties'"
-          class="hidden lg:flex w-10 h-10 items-center justify-center rounded-lg transition-colors"
-          [class]="rightPanelOpen() ? 'text-secondary bg-secondary/10' : 'text-on-surface-variant hover:bg-on-surface/5'">
-          <span class="material-symbols-outlined">dock_to_left</span>
         </button>
 
         <app-theme-toggle />

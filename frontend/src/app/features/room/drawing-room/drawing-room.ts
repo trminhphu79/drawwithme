@@ -156,10 +156,11 @@ export class DrawingRoom {
     this.confirmReset.set(true);
   }
 
-  /** Open the Properties panel (mobile drawer + ensure visible on desktop). */
+  /** Toggle the Properties panel — mobile drawer (propsOpen) + desktop sidebar
+   *  (propsCollapsed). Each breakpoint only reads its own state. */
   protected onPreferences(): void {
-    this.propsOpen.set(true);
-    this.propsCollapsed.set(false);
+    this.propsOpen.update((v) => !v);
+    this.propsCollapsed.update((v) => !v);
   }
 
   protected onConfirmReset(): void {
