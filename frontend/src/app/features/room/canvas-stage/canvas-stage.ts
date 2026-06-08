@@ -125,9 +125,27 @@ export class CanvasStage {
     });
   }
 
-  /** Export the current canvas as a PNG data URL (used when sealing artwork). */
+  /**
+   * Export the current canvas as a PNG data URL (used when sealing artwork).
+   * The drawing canvas is transparent where nothing was painted, which exports
+   * as see-through pixels (and shows as black in many PDF/image viewers). So we
+   * flatten onto a solid background first — white in light mode, near-black in
+   * dark mode — to match the theme the artist drew in.
+   */
   captureDataUrl(): string | null {
-    return this.canvasRef()?.nativeElement.toDataURL('image/png') ?? null;
+    const src = this.canvasRef()?.nativeElement;
+    if (!src) return null;
+    const out = document.createElement('canvas');
+    out.width = src.width;
+    out.height = src.height;
+    const ctx = out.getContext('2d');
+    if (!ctx) return src.toDataURL('image/png');
+    const dark =
+      typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    ctx.fillStyle = dark ? '#101415' : '#ffffff';
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(src, 0, 0);
+    return out.toDataURL('image/png');
   }
 
   // ---- public zoom controls (driven by the +/- buttons) ----

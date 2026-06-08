@@ -19,7 +19,7 @@ const H = 1000;
 const FILL_TOLERANCE = 32;
 const SOFT = 160;
 /** Replay pace: wall-clock time per drawn point (so total scales with size). */
-const MS_PER_POINT = 150;
+const MS_PER_POINT = 7.5;
 
 interface StrokeStyle {
   erase: boolean;
