@@ -13,6 +13,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/lobby/join-room/join-room').then((m) => m.JoinRoom),
   },
   {
+    path: 'help',
+    title: 'Help · DrawWithMe',
+    loadComponent: () => import('./features/info/help-page/help-page').then((m) => m.HelpPage),
+  },
+  {
+    path: 'about',
+    title: 'About · DrawWithMe',
+    loadComponent: () => import('./features/info/about-page/about-page').then((m) => m.AboutPage),
+  },
+  {
     path: 'room/:code',
     title: 'Drawing Room · DrawWithMe',
     loadComponent: () => import('./features/room/drawing-room/drawing-room').then((m) => m.DrawingRoom),

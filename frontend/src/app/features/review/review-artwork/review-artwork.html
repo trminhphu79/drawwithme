@@ -49,6 +49,10 @@
     </div>
   </main>
 
+  <footer class="w-full py-6 px-margin-mobile">
+    <app-footer />
+  </footer>
+
   @if (showReplay()) {
     <app-replay-player [id]="id()" (close)="showReplay.set(false)" />
   }

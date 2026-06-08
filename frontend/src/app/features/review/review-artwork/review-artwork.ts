@@ -6,6 +6,7 @@ import { ArtworkPreview } from '../artwork-preview/artwork-preview';
 import { ArtworkActions } from '../artwork-actions/artwork-actions';
 import { ReplayPlayer } from '../replay-player/replay-player';
 import { Toast } from '../../../core/ui/toast';
+import { AppFooter } from '../../../core/ui/app-footer';
 
 /**
  * SMART / container for the Final-Artwork review screen. Provides ReviewStore,
@@ -15,7 +16,7 @@ import { Toast } from '../../../core/ui/toast';
   selector: 'app-review-artwork',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ReviewStore],
-  imports: [RouterLink, DatePipe, ArtworkPreview, ArtworkActions, ReplayPlayer, Toast],
+  imports: [RouterLink, DatePipe, ArtworkPreview, ArtworkActions, ReplayPlayer, Toast, AppFooter],
   templateUrl: './review-artwork.html',
 })
 export class ReviewArtwork {
