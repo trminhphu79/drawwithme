@@ -23,6 +23,14 @@ export const routes: Routes = [
       import('./features/review/review-artwork/review-artwork').then((m) => m.ReviewArtwork),
   },
   {
+    // Public, shareable view — no "Back to room" (visitor isn't a participant).
+    path: 'view/:id',
+    title: 'Artwork · DrawWithMe',
+    data: { publicView: true },
+    loadComponent: () =>
+      import('./features/review/review-artwork/review-artwork').then((m) => m.ReviewArtwork),
+  },
+  {
     path: '**',
     redirectTo: 'join',
   },

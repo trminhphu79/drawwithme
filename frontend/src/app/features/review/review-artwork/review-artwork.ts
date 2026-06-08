@@ -23,6 +23,8 @@ export class ReviewArtwork {
 
   /** Route param `artwork/:id` via withComponentInputBinding(). */
   readonly id = input<string>('');
+  /** True on the public /view/:id route — hides the "Back to room" action. */
+  readonly publicView = input(false);
 
   /** Replay overlay visibility. */
   protected readonly showReplay = signal(false);
@@ -41,9 +43,9 @@ export class ReviewArtwork {
     });
   }
 
-  /** Copy the shareable link to this artwork. */
+  /** Copy the shareable (public) link to this artwork. */
   protected onCopyLink(): void {
-    const url = `${location.origin}/artwork/${this.id()}`;
+    const url = `${location.origin}/view/${this.id()}`;
     const done = () => this.showToast('Link copied — anyone with it can view & replay 🎨');
     try {
       navigator.clipboard?.writeText(url).then(done, done) ?? done();
