@@ -24,8 +24,18 @@ export class SocketService {
     this.socket = SOCKET_URL ? io(SOCKET_URL, opts) : io(opts);
     this.socket.on('connect', () => this.connected.set(true));
     this.socket.on('disconnect', () => this.connected.set(false));
+    // Close the connection promptly when the tab is closed/backgrounded so the
+    // server drops our presence immediately (pagehide is more reliable than
+    // beforeunload, esp. on mobile/iOS bfcache).
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pagehide', this.handlePageHide);
+    }
     return this.socket;
   }
+
+  private readonly handlePageHide = (): void => {
+    this.socket?.disconnect();
+  };
 
   emit<T>(event: string, payload: T): void {
     this.connect().emit(event, payload);
@@ -42,6 +52,10 @@ export class SocketService {
   }
 
   disconnect(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('pagehide', this.handlePageHide);
+    }
+    this.socket?.removeAllListeners();
     this.socket?.disconnect();
     this.socket = null;
     this.connected.set(false);

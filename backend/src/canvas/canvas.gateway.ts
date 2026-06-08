@@ -150,6 +150,17 @@ export class CanvasGateway implements OnGatewayDisconnect {
     client.to(code).emit('reference:updated', { url: body.url });
   }
 
+  @SubscribeMessage('title:set')
+  onTitle(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { code: string; title: string },
+  ): void {
+    const code = (body.code ?? '').toUpperCase();
+    if (!code) return;
+    // Notify everyone else (the sender already updated its own title locally).
+    client.to(code).emit('title:updated', { title: body.title ?? '' });
+  }
+
   @SubscribeMessage('cursor:move')
   onCursor(
     @ConnectedSocket() client: Socket,

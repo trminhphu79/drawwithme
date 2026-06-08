@@ -85,12 +85,27 @@ export class DrawingStore {
     this.code = code;
     const socket = this.socket.connect();
     this.myId = socket.id ?? '';
-    socket.on('connect', () => (this.myId = socket.id ?? ''));
 
-    this.socket.emit('room:join', {
-      code,
-      name: this.prefs.displayName(),
-      avatar: this.prefs.avatar(),
+    // (Re)announce ourselves on every connect — incl. reconnects, where Socket.IO
+    // assigns a fresh id. Without this a reconnected client drops out of the room
+    // map and stops appearing in / receiving presence updates.
+    const join = () => {
+      this.myId = socket.id ?? '';
+      this.socket.emit('room:join', {
+        code,
+        name: this.prefs.displayName(),
+        avatar: this.prefs.avatar(),
+      });
+    };
+    socket.on('connect', join);
+    if (socket.connected) join();
+
+    // Leaving the room (component destroyed) → tear down the shared socket so
+    // we don't leak the connection or its listeners. The rx subscriptions below
+    // are already cleaned up via takeUntilDestroyed.
+    this.destroyRef.onDestroy(() => {
+      socket.off('connect', join);
+      this.socket.disconnect();
     });
 
     // History (best-effort — drawing works offline too).
@@ -130,6 +145,11 @@ export class DrawingStore {
       .on<{ url: string }>('reference:updated')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(({ url }) => this._referenceUrl.set(url));
+
+    this.socket
+      .on<{ title: string }>('title:updated')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ title }) => this._title.set(title));
   }
 
   /** Broadcast a changed display name / avatar to everyone in the room. */
@@ -172,6 +192,7 @@ export class DrawingStore {
   }
   setTitle(title: string): void {
     this._title.set(title);
+    this.socket.emit('title:set', { code: this.code, title });
   }
   // ---- drawing actions ----
   /** Commit a finished stroke/erase/fill from the canvas (optimistic local). */
