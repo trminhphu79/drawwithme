@@ -27,7 +27,7 @@ const MIN_SCALE = 0.2;
 const MAX_SCALE = 5;
 
 type CommittedOp = Omit<DrawOperation, 'id' | 'authorId'>;
-type Gesture = 'draw' | 'pan' | 'zoom' | null;
+type Gesture = 'draw' | 'pan' | 'zoom' | 'pinch' | null;
 
 /**
  * DUMB / presentational canvas with a pan/zoom viewport (Figma-style).
@@ -97,6 +97,10 @@ export class CanvasStage {
   private last = { x: 0, y: 0 };
   private zoomAnchor = { x: 0, y: 0 };
   private lastCursorEmit = 0;
+  /** Active touch/pen/mouse pointers (for multi-touch pinch). */
+  private readonly pointers = new Map<number, { x: number; y: number }>();
+  private prevDist = 0;
+  private prevMid = { x: 0, y: 0 };
 
   constructor() {
     effect(() => {
@@ -146,6 +150,20 @@ export class CanvasStage {
   protected onPointerDown(event: PointerEvent): void {
     const tool = this.brush().tool;
     const vp = this.viewportRef().nativeElement;
+    this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    // Two fingers → pinch zoom/pan. Abort any stroke the first finger began.
+    if (this.pointers.size === 2) {
+      this.abortStroke();
+      this.gesture = 'pinch';
+      const m = this.twoPointerMetrics();
+      if (m) {
+        this.prevDist = m.dist;
+        this.prevMid = m.mid;
+      }
+      return;
+    }
+    if (this.pointers.size > 2) return;
 
     // Pan: Hand tool or ⌘-drag.
     if (tool === 'hand' || event.metaKey) {
@@ -176,14 +194,30 @@ export class CanvasStage {
     vp.setPointerCapture(event.pointerId);
   }
 
-  protected onPointerLeave(): void {
-    this.onPointerUp();
+  protected onPointerLeave(event: PointerEvent): void {
+    this.onPointerUp(event);
     this.hoverPos.set(null);
   }
 
   protected onPointerMove(event: PointerEvent): void {
+    if (this.pointers.has(event.pointerId)) {
+      this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+
     const vr = this.viewportRef().nativeElement.getBoundingClientRect();
     this.hoverPos.set({ x: event.clientX - vr.left, y: event.clientY - vr.top });
+
+    // Pinch: two-finger zoom (distance) + pan (midpoint).
+    if (this.gesture === 'pinch') {
+      const m = this.twoPointerMetrics();
+      if (!m) return;
+      this.panX.update((x) => x + (m.mid.x - this.prevMid.x));
+      this.panY.update((y) => y + (m.mid.y - this.prevMid.y));
+      this.zoomAt(m.dist / this.prevDist, m.mid.x, m.mid.y);
+      this.prevDist = m.dist;
+      this.prevMid = m.mid;
+      return;
+    }
 
     if (event.timeStamp - this.lastCursorEmit > 40) {
       this.lastCursorEmit = event.timeStamp;
@@ -209,7 +243,25 @@ export class CanvasStage {
     }
   }
 
-  protected onPointerUp(): void {
+  protected onPointerUp(event?: PointerEvent): void {
+    if (event) this.pointers.delete(event.pointerId);
+
+    // Leaving a pinch (a finger lifted).
+    if (this.gesture === 'pinch') {
+      if (this.pointers.size < 2) {
+        this.gesture = null;
+        const rest = [...this.pointers.values()][0];
+        if (rest) this.last = { x: rest.x, y: rest.y };
+      } else {
+        const m = this.twoPointerMetrics();
+        if (m) {
+          this.prevDist = m.dist;
+          this.prevMid = m.mid;
+        }
+      }
+      return;
+    }
+
     if (this.gesture === 'draw' && this.drawing) {
       const b = this.brush();
       const points = this.points.length === 1 ? [this.points[0], this.points[0]] : this.points;
@@ -226,6 +278,25 @@ export class CanvasStage {
     this.drawing = false;
     this.points = [];
     this.panning.set(false);
+  }
+
+  /** Discard an in-progress stroke (e.g. when a second finger lands for pinch). */
+  private abortStroke(): void {
+    if (!this.drawing) return;
+    this.drawing = false;
+    this.points = [];
+    this.gesture = null;
+    this.redraw(this.operations()); // wipe uncommitted live segments
+  }
+
+  private twoPointerMetrics(): { dist: number; mid: { x: number; y: number } } | null {
+    const pts = [...this.pointers.values()];
+    if (pts.length < 2) return null;
+    const [a, b] = pts;
+    return {
+      dist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
+      mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+    };
   }
 
   // ---- viewport math ----

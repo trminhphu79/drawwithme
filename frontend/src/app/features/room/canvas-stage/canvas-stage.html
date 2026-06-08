@@ -4,9 +4,9 @@
   [style.cursor]="cursorStyle()"
   (pointerdown)="onPointerDown($event)"
   (pointermove)="onPointerMove($event)"
-  (pointerup)="onPointerUp()"
-  (pointercancel)="onPointerUp()"
-  (pointerleave)="onPointerLeave()"
+  (pointerup)="onPointerUp($event)"
+  (pointercancel)="onPointerUp($event)"
+  (pointerleave)="onPointerLeave($event)"
   (contextmenu)="$event.preventDefault()">
   <!-- Transformed "world": pans/zooms as one unit -->
   <div
