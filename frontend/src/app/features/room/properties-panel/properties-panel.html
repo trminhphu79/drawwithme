@@ -164,5 +164,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Clear canvas (destructive) -->
+    <div class="pt-4 border-t border-white/10">
+      <button
+        type="button"
+        (click)="clear.emit()"
+        class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-error/40 text-error font-label-md hover:bg-error/10 active:scale-[0.98] transition-all">
+        <span class="material-symbols-outlined text-[20px]">delete_sweep</span>
+        Clear canvas
+      </button>
+    </div>
   </div>
 </div>

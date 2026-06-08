@@ -48,14 +48,16 @@ let CanvasGateway = class CanvasGateway {
                 client.emit('reference:updated', { url });
         })
             .catch(() => undefined);
-        this.server.to(code).emit('chat:message', {
-            id: `sys-${this.sysSeq++}`,
-            authorId: 'system',
-            author: name,
-            text: `${name} joined the room`,
-            at: new Date().toISOString(),
-            system: true,
-        });
+        if (!body.rejoin) {
+            this.server.to(code).emit('chat:message', {
+                id: `sys-${this.sysSeq++}`,
+                authorId: 'system',
+                author: name,
+                text: `${name} joined the room`,
+                at: new Date().toISOString(),
+                system: true,
+            });
+        }
     }
     async onCommit(client, body) {
         const code = (body.code ?? '').toUpperCase();

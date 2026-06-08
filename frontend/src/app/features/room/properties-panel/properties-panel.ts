@@ -30,6 +30,7 @@ export class PropertiesPanel {
   readonly toggleReference = output<void>();
   readonly referenceOpacityChange = output<number>();
   readonly previewReference = output<void>();
+  readonly clear = output<void>();
 
   /** Custom color-picker popover visibility. */
   protected readonly pickerOpen = signal(false);

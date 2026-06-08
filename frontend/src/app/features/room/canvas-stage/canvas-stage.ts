@@ -414,11 +414,11 @@ export class CanvasStage {
       ctx.shadowColor = b.color;
       ctx.shadowBlur = Math.max(6, b.size * 1.3);
     } else if (b.style === 'shadow') {
-      // Neon: solid core with a strong colored glow.
+      // Neon: solid core with a strong colored glow (bolder = larger blur).
       ctx.shadowColor = b.color;
-      ctx.shadowBlur = Math.max(12, b.size * 2.2);
+      ctx.shadowBlur = Math.max(18, b.size * 3.2);
     }
-    // 'hard' → crisp, fully opaque, no blur (defaults above).
+    // 'hard' (legacy) → crisp, fully opaque, no blur (defaults above).
   }
 
   private strokeSegment(
@@ -433,6 +433,8 @@ export class CanvasStage {
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
     ctx.stroke();
+    // Shadow style: a second pass intensifies the colored glow.
+    if (b.tool !== 'eraser' && b.style === 'shadow') ctx.stroke();
     ctx.restore();
   }
 

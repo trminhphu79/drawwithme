@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { ReviewStore } from '../review.store';
 import { ArtworkPreview } from '../artwork-preview/artwork-preview';
 import { ArtworkActions } from '../artwork-actions/artwork-actions';
@@ -15,7 +14,7 @@ import { Toast } from '../../../core/ui/toast';
   selector: 'app-review-artwork',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ReviewStore],
-  imports: [RouterLink, DatePipe, ArtworkPreview, ArtworkActions, ReplayPlayer, Toast],
+  imports: [DatePipe, ArtworkPreview, ArtworkActions, ReplayPlayer, Toast],
   templateUrl: './review-artwork.html',
 })
 export class ReviewArtwork {

@@ -30,16 +30,16 @@
   --color-outline: #767680;
   --color-outline-variant: #c7c5d0;
 
-  --color-surface-tint: #d6409f;
-  --color-primary: #d6409f;
+  --color-surface-tint: #ff4908;
+  --color-primary: #ff4908;
   --color-on-primary: #ffffff;
-  --color-primary-container: #b81f86;
+  --color-primary-container: #c2370a;
   --color-on-primary-container: #ffffff;
-  --color-inverse-primary: #ffb0d8;
-  --color-primary-fixed: #ffd9ec;
-  --color-primary-fixed-dim: #ffb0d8;
-  --color-on-primary-fixed: #3a0021;
-  --color-on-primary-fixed-variant: #a01e6f;
+  --color-inverse-primary: #ffb59c;
+  --color-primary-fixed: #ffdbcf;
+  --color-primary-fixed-dim: #ffb59c;
+  --color-on-primary-fixed: #3a0d00;
+  --color-on-primary-fixed-variant: #b8350a;
 
   --color-secondary: #f0612e;
   --color-on-secondary: #ffffff;
@@ -180,12 +180,12 @@
   --color-outline: #90909a;
   --color-outline-variant: #46464f;
 
-  --color-surface-tint: #ffb0d8;
-  --color-primary: #ffb0d8;
-  --color-on-primary: #5e0838;
-  --color-primary-container: #b81f86;
-  --color-on-primary-container: #ffd9ec;
-  --color-inverse-primary: #d6409f;
+  --color-surface-tint: #ffb59c;
+  --color-primary: #ffb59c;
+  --color-on-primary: #5c1900;
+  --color-primary-container: #c2370a;
+  --color-on-primary-container: #ffdbcf;
+  --color-inverse-primary: #ff4908;
 
   --color-secondary: #ffb784;
   --color-on-secondary: #4a1c00;
@@ -294,9 +294,9 @@ body {
   border-radius: 10px;
 }
 
-/* Brand wordmark — pink → coral → orange gradient matching the logo. */
+/* Brand wordmark — orange-red → coral → amber gradient matching the logo. */
 .brand-gradient {
-  background-image: linear-gradient(120deg, #d63db6 0%, #fb7185 45%, #f59e0b 100%);
+  background-image: linear-gradient(120deg, #ff4908 0%, #ff7e3f 45%, #f59e0b 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -305,7 +305,7 @@ body {
 
 /* Brand gradient fill (for the key CTA button). */
 .brand-bg {
-  background-image: linear-gradient(120deg, #d6409f 0%, #fb7185 50%, #f97316 100%);
+  background-image: linear-gradient(120deg, #ff4908 0%, #ff7038 50%, #f97316 100%);
   color: #fff;
 }
 

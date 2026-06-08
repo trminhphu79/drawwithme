@@ -1,17 +1,5 @@
 <div class="bg-surface text-on-surface min-h-screen flex flex-col relative overflow-x-hidden">
   <main class="flex-grow flex flex-col items-center justify-center p-margin-mobile md:p-margin-desktop relative z-10">
-    <!-- Back to the originating room (in-session review only, and only while
-         that room still exists). Uses the artwork's roomCode — NOT the artwork
-         id — so we return to the actual room (no re-prompt for name/avatar). -->
-    @if (!publicView() && store.artwork()?.roomCode; as roomCode) {
-      <div class="absolute top-margin-mobile md:top-margin-desktop left-margin-mobile md:left-margin-desktop">
-        <a [routerLink]="['/room', roomCode]"
-          class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-body-sm text-body-sm group">
-          <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
-          Back
-        </a>
-      </div>
-    }
 
     <div class="w-full max-w-5xl flex flex-col items-center gap-12 mt-16 md:mt-0">
       <!-- Header -->

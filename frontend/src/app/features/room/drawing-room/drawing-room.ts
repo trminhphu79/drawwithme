@@ -78,6 +78,14 @@ export class DrawingRoom {
   private weightTimer: ReturnType<typeof setTimeout> | undefined;
   /** Reset-canvas confirmation modal. */
   protected readonly confirmReset = signal(false);
+  /** "Leave the room?" confirmation (logo click or mobile back-swipe). */
+  protected readonly confirmLeave = signal(false);
+  /** True once we've decided to actually leave (skips the leave guard). */
+  private leaving = false;
+  /** Resolves the CanDeactivate promise when the leave dialog is answered. */
+  private leaveResolver: ((ok: boolean) => void) | null = null;
+  /** "Finish & save?" confirmation before sealing the artwork. */
+  protected readonly confirmFinish = signal(false);
   /** Reference image view state (local, per-user) + fullscreen preview.
    *  Off by default — the reference only renders on the canvas once the user
    *  chooses to show it. */
@@ -118,8 +126,9 @@ export class DrawingRoom {
       const done = this.store.finished();
       if (!done || this.redirectingToArtwork) return;
       this.redirectingToArtwork = true;
+      this.leaving = true; // auto-redirect — don't prompt the leave guard
       this.showToast(`🎉 ${done.by} finished the masterpiece! Opening the result…`);
-      setTimeout(() => this.router.navigate(['/artwork', done.artworkId]), 1800);
+      setTimeout(() => this.router.navigate(['/view', done.artworkId]), 1800);
     });
   }
 
@@ -185,8 +194,34 @@ export class DrawingRoom {
     }
   }
 
+  /** Logo click → navigate home; the CanDeactivate guard prompts to confirm. */
   protected onHome(): void {
     this.router.navigate(['/join']);
+  }
+
+  /**
+   * CanDeactivate guard hook. Runs on the logo, any router nav, AND the
+   * browser/mobile Back gesture. Returns a promise resolved by the dialog.
+   */
+  canDeactivate(): boolean | Promise<boolean> {
+    if (this.leaving) return true; // finishing / already-confirmed leave
+    this.confirmLeave.set(true);
+    return new Promise<boolean>((resolve) => (this.leaveResolver = resolve));
+  }
+
+  /** Confirmed "Leave" → allow the pending navigation. */
+  protected onConfirmLeave(): void {
+    this.confirmLeave.set(false);
+    this.leaving = true;
+    this.leaveResolver?.(true);
+    this.leaveResolver = null;
+  }
+
+  /** Cancelled → stay (the guard rejects, router restores the URL). */
+  protected onCancelLeave(): void {
+    this.confirmLeave.set(false);
+    this.leaveResolver?.(false);
+    this.leaveResolver = null;
   }
 
   protected onReset(): void {
@@ -224,7 +259,18 @@ export class DrawingRoom {
     this.toastTimer = setTimeout(() => this.toast.set(null), 3200);
   }
 
-  protected async onFinish(): Promise<void> {
+  /** Finish icon → confirm first (don't seal/redirect directly). */
+  protected onFinish(): void {
+    this.confirmFinish.set(true);
+  }
+
+  protected onCancelFinish(): void {
+    this.confirmFinish.set(false);
+  }
+
+  /** Confirmed Save → seal the artwork, notify the room, go to the view page. */
+  protected async onConfirmFinish(): Promise<void> {
+    this.confirmFinish.set(false);
     const dataUrl = this.canvas()?.captureDataUrl();
     let target = this.code() || 'demo';
     if (dataUrl) {
@@ -235,7 +281,8 @@ export class DrawingRoom {
         this.store.notifyFinished(id);
       }
     }
-    this.router.navigate(['/artwork', target]);
+    this.leaving = true; // skip the leave-confirm guard for the finish redirect
+    this.router.navigate(['/view', target]);
   }
 
   protected onKeydown(event: KeyboardEvent): void {

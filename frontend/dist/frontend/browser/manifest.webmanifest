@@ -7,7 +7,7 @@
   "orientation": "any",
   "scope": "/",
   "start_url": "/",
-  "theme_color": "#f0612e",
+  "theme_color": "#f7f9fb",
   "background_color": "#f7f9fb",
   "categories": ["productivity", "graphics", "social"],
   "icons": [

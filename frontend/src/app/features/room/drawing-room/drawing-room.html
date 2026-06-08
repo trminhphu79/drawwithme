@@ -84,10 +84,11 @@
         [activeTool]="store.tool()"
         [pencilStyles]="pencilStyles"
         [pencilStyle]="store.pencilStyle()"
+        [color]="store.color()"
         (toolSelect)="onToolSelect($event)"
         (styleChange)="onStyleChange($event)"
         (preferences)="onPreferences()"
-        (clear)="onReset()"
+        (colorChange)="store.setColor($event)"
         (finish)="onFinish()" />
     </div>
 
@@ -140,7 +141,8 @@
         (referenceFile)="onReferenceFile($event)"
         (toggleReference)="referenceVisible.set(!referenceVisible())"
         (referenceOpacityChange)="referenceOpacity.set($event)"
-        (previewReference)="showRefPreview.set(true)" />
+        (previewReference)="showRefPreview.set(true)"
+        (clear)="onReset()" />
     </aside>
   </main>
 
@@ -171,6 +173,24 @@
       confirmLabel="Clear canvas"
       (confirm)="onConfirmReset()"
       (cancel)="confirmReset.set(false)" />
+  }
+
+  @if (confirmLeave()) {
+    <app-confirm-dialog
+      title="Leave this room?"
+      message="Your drawing won't be saved as a final artwork. You can finish it (✓) to save and share instead."
+      confirmLabel="Leave"
+      (confirm)="onConfirmLeave()"
+      (cancel)="onCancelLeave()" />
+  }
+
+  @if (confirmFinish()) {
+    <app-confirm-dialog
+      title="Finish & save?"
+      message="This seals the artwork and takes everyone in the room to the final result."
+      confirmLabel="Save"
+      (confirm)="onConfirmFinish()"
+      (cancel)="onCancelFinish()" />
   }
 
   <!-- Top toast (invite link copied, etc.) -->

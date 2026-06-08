@@ -42,7 +42,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
   @SubscribeMessage('room:join')
   onJoin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { code: string; name?: string; avatar?: string },
+    @MessageBody() body: { code: string; name?: string; avatar?: string; rejoin?: boolean },
   ): void {
     const code = (body.code ?? '').toUpperCase();
     if (!code) return;
@@ -70,14 +70,17 @@ export class CanvasGateway implements OnGatewayDisconnect {
       .catch(() => undefined);
 
     // Announce the arrival as a system chat message (ephemeral, not persisted).
-    this.server.to(code).emit('chat:message', {
-      id: `sys-${this.sysSeq++}`,
-      authorId: 'system',
-      author: name,
-      text: `${name} joined the room`,
-      at: new Date().toISOString(),
-      system: true,
-    });
+    // Skipped on reconnect/tab-reopen (rejoin) so the welcome shows only once.
+    if (!body.rejoin) {
+      this.server.to(code).emit('chat:message', {
+        id: `sys-${this.sysSeq++}`,
+        authorId: 'system',
+        author: name,
+        text: `${name} joined the room`,
+        at: new Date().toISOString(),
+        system: true,
+      });
+    }
   }
 
   @SubscribeMessage('op:commit')

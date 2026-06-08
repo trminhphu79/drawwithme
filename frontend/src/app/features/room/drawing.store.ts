@@ -38,7 +38,7 @@ export class DrawingStore {
   private readonly _size = signal(this.prefs.defaultBrushSize());
   private readonly _opacity = signal(this.prefs.defaultOpacity());
   private readonly _color = signal(this.prefs.recentColors()[0] ?? '#6f583c');
-  private readonly _pencilStyle = signal<PencilStyle>('hard');
+  private readonly _pencilStyle = signal<PencilStyle>('soft');
   private readonly _title = signal('Untitled');
   private readonly _referenceUrl = signal<string | null>(null);
 
@@ -51,6 +51,8 @@ export class DrawingStore {
 
   private code = '';
   private myId = '';
+  /** True once we've joined this room at least once (gates the welcome message). */
+  private joinedOnce = false;
 
   // ---- selectors ----
   readonly operations = this._operations.asReadonly();
@@ -143,7 +145,10 @@ export class DrawingStore {
         code,
         name: this.prefs.displayName(),
         avatar: this.prefs.avatar(),
+        // First join shows the welcome message; reconnects/tab-reopens don't.
+        rejoin: this.joinedOnce,
       });
+      this.joinedOnce = true;
     };
     socket.on('connect', join);
     if (socket.connected) join();

@@ -36,8 +36,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
           <button
             type="button"
             (click)="confirm.emit()"
-            class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg font-label-md text-on-error hover:brightness-110 active:scale-95 transition-all"
-            [class]="danger() ? 'bg-error' : 'bg-secondary'">
+            class="flex-1 sm:flex-none px-5 py-2.5 rounded-lg font-label-md bg-primary text-on-primary hover:brightness-110 active:scale-95 transition-all">
             {{ confirmLabel() }}
           </button>
         </div>

@@ -23,7 +23,6 @@ export interface PencilStyleDef {
 }
 
 export const PENCIL_STYLES: PencilStyleDef[] = [
-  { id: 'hard', icon: 'ink_pen', label: 'Hard lines' },
   { id: 'soft', icon: 'brush', label: 'Soft lines' },
   { id: 'shadow', icon: 'blur_on', label: 'Lines with shadow' },
 ];

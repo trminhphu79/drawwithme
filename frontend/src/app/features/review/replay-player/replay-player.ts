@@ -195,13 +195,14 @@ export class ReplayPlayer {
         ctx.shadowBlur = Math.max(6, s.size * 1.3);
       } else if (s.style === 'shadow') {
         ctx.shadowColor = s.color;
-        ctx.shadowBlur = Math.max(12, s.size * 2.2);
+        ctx.shadowBlur = Math.max(18, s.size * 3.2);
       }
     }
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
     ctx.stroke();
+    if (!s.erase && s.style === 'shadow') ctx.stroke(); // intensify the glow
     ctx.restore();
   }
 
