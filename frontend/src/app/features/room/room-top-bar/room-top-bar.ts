@@ -67,7 +67,7 @@ import { ThemeToggle } from '../../../core/theme-toggle';
         <button
           type="button"
           (click)="invite.emit()"
-          class="bg-primary-container text-on-primary px-4 py-2 rounded-lg font-label-md hover:scale-95 active:scale-90 transition-transform flex items-center gap-1">
+          class="brand-bg px-4 py-2 rounded-lg font-label-md hover:brightness-105 hover:scale-95 active:scale-90 transition-all flex items-center gap-1 shadow-sm">
           <span class="material-symbols-outlined text-[18px]">person_add</span>
           <span class="hidden sm:inline">Invite</span>
         </button>

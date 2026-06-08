@@ -16,7 +16,8 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
         [max]="max()"
         [value]="size()"
         (input)="onInput($event)"
-        class="w-40 sm:w-56 accent-secondary cursor-pointer"
+        class="range-soft w-40 sm:w-56"
+        [style.background]="trackBg()"
         aria-label="Stroke weight" />
       <span class="rounded-full bg-on-surface shrink-0" [style.width.px]="dotSize()" [style.height.px]="dotSize()"></span>
       <span class="text-label-sm font-bold text-secondary w-9 text-right tabular-nums">{{ size() }}</span>
@@ -32,6 +33,12 @@ export class StrokeWeight {
 
   /** Clamped preview dot so big sizes don't blow out the pill. */
   protected readonly dotSize = computed(() => Math.min(26, Math.max(4, this.size())));
+
+  /** Filled-track background (webkit). */
+  protected readonly trackBg = computed(() => {
+    const p = ((this.size() - this.min()) / (this.max() - this.min())) * 100;
+    return `linear-gradient(to right, var(--color-primary) ${p}%, var(--color-surface-variant) ${p}%)`;
+  });
 
   protected onInput(event: Event): void {
     this.sizeChange.emit(Number((event.target as HTMLInputElement).value));

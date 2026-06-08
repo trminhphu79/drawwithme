@@ -303,6 +303,63 @@ body {
   color: transparent;
 }
 
+/* Brand gradient fill (for the key CTA button). */
+.brand-bg {
+  background-image: linear-gradient(120deg, #d6409f 0%, #fb7185 50%, #f97316 100%);
+  color: #fff;
+}
+
+/* Soft, pretty range sliders (stroke weight / opacity). */
+.range-soft {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-surface-variant);
+  cursor: pointer;
+}
+.range-soft::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: transparent;
+}
+.range-soft::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s ease;
+}
+.range-soft:hover::-webkit-slider-thumb,
+.range-soft:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.range-soft::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-surface-variant);
+}
+.range-soft::-moz-range-progress {
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+}
+.range-soft::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
 /* ---- Material Symbols defaults ---- */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;

@@ -1,5 +1,5 @@
 <div class="glass-panel rounded-xl elevation-3 flex flex-col p-6 h-full overflow-hidden">
-  <h3 class="text-label-md font-bold mb-6 uppercase tracking-widest text-primary/80">Properties</h3>
+  <h3 class="text-label-md font-bold mb-6 uppercase tracking-widest text-on-surface-variant">Properties</h3>
 
   <div class="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
     <!-- Stroke weight -->
@@ -10,7 +10,7 @@
       </div>
       <input
         type="range" min="1" max="128" [value]="size()" (input)="onSize($event)"
-        class="w-full h-1.5 rounded-full cursor-pointer accent-[var(--color-secondary)]" aria-label="Stroke weight" />
+        class="range-soft" [style.background]="trackBg(size(), 1, 128)" aria-label="Stroke weight" />
       <div class="flex justify-between text-[10px] mt-2 font-bold opacity-40">
         <span>1px</span><span>128px</span>
       </div>
@@ -25,7 +25,7 @@
         </div>
         <input
           type="range" min="10" max="100" [value]="opacity()" (input)="onOpacity($event)"
-          class="w-full h-1.5 rounded-full cursor-pointer accent-[var(--color-secondary)]" aria-label="Opacity" />
+          class="range-soft" [style.background]="trackBg(opacity(), 10, 100)" aria-label="Opacity" />
       </div>
     }
 

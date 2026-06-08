@@ -32,6 +32,12 @@ export class PropertiesPanel {
     this.colorChange.emit((event.target as HTMLInputElement).value);
   }
 
+  /** Filled-track background for the range slider (webkit). */
+  protected trackBg(value: number, min: number, max: number): string {
+    const p = ((value - min) / (max - min)) * 100;
+    return `linear-gradient(to right, var(--color-primary) ${p}%, var(--color-surface-variant) ${p}%)`;
+  }
+
   /** Perceived lightness — picks a contrasting check-mark color on a swatch. */
   protected isLight(hex: string): boolean {
     const v = hex.replace('#', '');
