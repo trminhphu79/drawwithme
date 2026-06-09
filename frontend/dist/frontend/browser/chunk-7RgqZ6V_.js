@@ -1,0 +1,1 @@
+import {F as Fl}from'./main-EIYZIA2J.js';var o=class e{static \u0275fac=function(t){return new(t||e)};static \u0275cmp=Fl({type:e,selectors:[["app-skeleton"]],hostAttrs:["aria-hidden","true",1,"block","animate-pulse","bg-on-surface/10","dark:bg-white/10"],decls:0,vars:0,template:function(t,s){},encapsulation:2})};export{o};

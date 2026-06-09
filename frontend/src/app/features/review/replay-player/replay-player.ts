@@ -47,6 +47,8 @@ interface StrokeStyle {
 })
 export class ReplayPlayer {
   readonly id = input.required<string>();
+  /** When true, immediately start a video export instead of just playing. */
+  readonly autoRecord = input(false);
   readonly close = output<void>();
 
   private readonly artworks = inject(ArtworkService);
@@ -111,7 +113,8 @@ export class ReplayPlayer {
       (n, o) => n + (o.type === 'fill' ? 1 : Math.max(1, o.points.length - 1)),
       0,
     );
-    this.restart();
+    if (this.autoRecord() && this.canRecord) void this.saveAsVideo();
+    else this.restart();
   }
 
   protected restart(): void {

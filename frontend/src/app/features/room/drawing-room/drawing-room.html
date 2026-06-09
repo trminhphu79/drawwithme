@@ -266,11 +266,17 @@
           }
         </div>
 
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-4 gap-3">
           <button type="button" (click)="openCompleteReplay()" [disabled]="sealing() || !completedArtworkId()"
             class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 rounded-xl border border-outline-variant text-on-surface hover:bg-on-surface/5 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent">
             <span class="material-symbols-outlined text-[22px]" [class.animate-spin]="sealing()">{{ sealing() ? 'progress_activity' : 'play_circle' }}</span>
             <span class="hidden sm:inline text-label-md font-semibold">Replay</span>
+          </button>
+          <!-- Save the time-lapse as a video (records client-side via the replay). -->
+          <button type="button" (click)="saveCompleteVideo()" [disabled]="sealing() || !completedArtworkId()"
+            class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 rounded-xl border border-outline-variant text-on-surface hover:bg-on-surface/5 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent">
+            <span class="material-symbols-outlined text-[22px]" [class.animate-spin]="sealing()">{{ sealing() ? 'progress_activity' : 'movie' }}</span>
+            <span class="hidden sm:inline text-label-md font-semibold">Video</span>
           </button>
           <button type="button" (click)="onCopyShareLink()" [disabled]="sealing() || !completedArtworkId()"
             class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 rounded-xl border border-outline-variant text-on-surface hover:bg-on-surface/5 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent">
@@ -307,7 +313,10 @@
   }
 
   @if (completeReplayOpen() && completedArtworkId(); as artId) {
-    <app-replay-player [id]="artId" (close)="completeReplayOpen.set(false)" />
+    <app-replay-player
+      [id]="artId"
+      [autoRecord]="completeReplayAutoRecord()"
+      (close)="completeReplayOpen.set(false)" />
   }
 
   <!-- Top toast (invite link copied, etc.) -->

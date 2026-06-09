@@ -99,6 +99,8 @@ export class DrawingRoom {
   /** Result modal (replay / share / download) shown after sealing. */
   protected readonly completeModalOpen = signal(false);
   protected readonly completeReplayOpen = signal(false);
+  /** When the replay overlay opens to immediately export a video. */
+  protected readonly completeReplayAutoRecord = signal(false);
   /** The sealed artwork id (for share link + replay). */
   protected readonly completedArtworkId = signal<string | null>(null);
   /** Captured PNG of the sealed artwork (for download). */
@@ -341,6 +343,13 @@ export class DrawingRoom {
 
   /** Result-modal actions. */
   protected openCompleteReplay(): void {
+    this.completeReplayAutoRecord.set(false);
+    this.completeReplayOpen.set(true);
+  }
+
+  /** Open the replay overlay and immediately record + save a video. */
+  protected saveCompleteVideo(): void {
+    this.completeReplayAutoRecord.set(true);
     this.completeReplayOpen.set(true);
   }
   protected onCopyShareLink(): void {
