@@ -37,9 +37,10 @@ export class ChatStore {
 
   async init(code: string): Promise<void> {
     this.code = code;
-    const socket = this.socket.connect();
-    this.setMyId(socket.id ?? '');
-    socket.on('connect', () => this.setMyId(socket.id ?? ''));
+    this.socket.connect();
+    // Identify "my" messages by the stable client id (not the socket id, which
+    // changes on every refresh/reconnect — that made own messages show as theirs).
+    this.setMyId(this.prefs.clientId());
 
     try {
       const history = await firstValueFrom(this.chat.getMessages(code));

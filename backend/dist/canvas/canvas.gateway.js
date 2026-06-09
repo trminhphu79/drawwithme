@@ -287,8 +287,9 @@ let CanvasGateway = class CanvasGateway {
         const presence = this.rooms.get(code)?.get(client.id);
         const author = presence?.name ?? body.name ?? 'Guest';
         const avatar = presence?.avatar ?? body.avatar;
+        const authorId = presence?.clientId || client.id;
         try {
-            const saved = await this.messages.create(code, { authorId: client.id, author, avatar, text });
+            const saved = await this.messages.create(code, { authorId, author, avatar, text });
             this.server.to(code).emit('chat:message', saved);
         }
         catch {

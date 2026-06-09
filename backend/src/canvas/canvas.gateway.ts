@@ -423,8 +423,11 @@ export class CanvasGateway implements OnGatewayDisconnect {
     const presence = this.rooms.get(code)?.get(client.id);
     const author = presence?.name ?? body.name ?? 'Guest';
     const avatar = presence?.avatar ?? body.avatar;
+    // Use the STABLE client id as the author so "is this mine?" still works
+    // after a refresh (socket ids change; the clientId persists).
+    const authorId = presence?.clientId || client.id;
     try {
-      const saved = await this.messages.create(code, { authorId: client.id, author, avatar, text });
+      const saved = await this.messages.create(code, { authorId, author, avatar, text });
       // Broadcast to EVERYONE (incl. sender) for consistent ordering.
       this.server.to(code).emit('chat:message', saved);
     } catch {

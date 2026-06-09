@@ -209,6 +209,8 @@ export class DrawingStore {
         this._isHost.set(!!room.hostId && room.hostId === this.prefs.clientId());
         this._joinMode.set(room.joinMode);
         this._capacity.set(room.capacity ?? 3);
+        // Load the persisted room title so it survives a refresh.
+        if (room.name) this._title.set(room.name);
       })
       .catch(() => undefined);
 
