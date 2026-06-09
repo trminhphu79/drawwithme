@@ -38,16 +38,18 @@ import { UserMenu } from '../../../core/ui/user-menu';
           [class]="connected() ? 'bg-secondary-container' : 'bg-outline'"
           [title]="connected() ? 'Connected' : 'Offline'"></span>
 
-        <!-- Finish & save the artwork -->
-        <button
-          type="button"
-          (click)="finish.emit()"
-          [disabled]="!canFinish()"
-          [title]="canFinish() ? 'Finish & save' : 'Draw something first'"
-          class="ml-1 shrink-0 flex items-center gap-1 h-9 px-3 rounded-lg bg-secondary text-on-secondary font-label-md shadow-sm hover:brightness-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
-          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span>
-          Done
-        </button>
+        <!-- Finish & save the artwork (hidden until the user is fully in the room) -->
+        @if (showFinish()) {
+          <button
+            type="button"
+            (click)="finish.emit()"
+            [disabled]="!canFinish()"
+            [title]="canFinish() ? 'Finish & save' : 'Draw something first'"
+            class="ml-1 shrink-0 flex items-center gap-1 h-9 px-3 rounded-lg bg-secondary text-on-secondary font-label-md shadow-sm hover:brightness-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+            <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span>
+            Done
+          </button>
+        }
       </div>
 
       <div class="flex items-center gap-3">
@@ -112,6 +114,8 @@ export class RoomTopBar {
   );
   readonly connected = input(false);
   readonly canFinish = input(true);
+  /** Whether to show the "Done" button (hidden until the user is admitted). */
+  readonly showFinish = input(true);
   readonly title = input('Untitled');
   readonly myAvatar = input('');
   readonly myName = input('');
