@@ -40,7 +40,8 @@
         <button
           type="button"
           (click)="togglePlay()"
-          class="w-12 h-12 flex items-center justify-center rounded-full bg-secondary text-on-secondary hover:brightness-110 active:scale-95 transition-all">
+          [disabled]="recording()"
+          class="w-12 h-12 flex items-center justify-center rounded-full bg-secondary text-on-secondary hover:brightness-110 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
           <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">
             {{ finished() ? 'replay' : playing() ? 'pause' : 'play_arrow' }}
           </span>
@@ -48,11 +49,35 @@
         <button
           type="button"
           (click)="restart()"
+          [disabled]="recording()"
           title="Restart"
-          class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all">
+          class="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
           <span class="material-symbols-outlined">restart_alt</span>
         </button>
+
+        @if (canRecord) {
+          <button
+            type="button"
+            (click)="saveAsVideo()"
+            [disabled]="recording()"
+            [title]="recording() ? 'Recording…' : 'Save as video'"
+            class="h-12 px-5 flex items-center gap-2 rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-95 transition-all disabled:cursor-not-allowed disabled:opacity-90">
+            @if (recording()) {
+              <span class="material-symbols-outlined animate-spin">progress_activity</span>
+              <span class="text-label-md font-semibold">Recording {{ progress() * 100 | number: '1.0-0' }}%</span>
+            } @else {
+              <span class="material-symbols-outlined">movie</span>
+              <span class="text-label-md font-semibold">Save video</span>
+            }
+          </button>
+        }
       </div>
+
+      @if (recordError()) {
+        <p class="text-center text-body-sm text-error">Couldn’t create the video — please try again.</p>
+      } @else if (recording()) {
+        <p class="text-center text-body-sm text-white/70">Hold on — recording your time-lapse…</p>
+      }
     }
   </div>
 </div>

@@ -10,9 +10,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { ArtworkService } from '../artwork.service';
 import { DrawOperation, Point } from '../../room/operation.model';
+import { CanvasRecorder } from '../../../core/services/canvas-recorder';
+import { saveMediaFile } from '../../../core/utils/save-media';
 
 const W = 3840;
 const H = 2400;
@@ -20,6 +23,9 @@ const FILL_TOLERANCE = 32;
 const SOFT = 160;
 /** Replay pace: wall-clock time per drawn point (so total scales with size). */
 const MS_PER_POINT = 7.5;
+/** Video export aims for ~this long total, clamped by the per-point bounds. */
+const RECORD_TARGET_MS = 15000;
+const MIN_MS_PER_POINT = 1.5;
 
 interface StrokeStyle {
   erase: boolean;
@@ -36,6 +42,7 @@ interface StrokeStyle {
 @Component({
   selector: 'app-replay-player',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DecimalPipe],
   templateUrl: './replay-player.html',
 })
 export class ReplayPlayer {
@@ -55,7 +62,19 @@ export class ReplayPlayer {
   protected readonly finished = signal(false);
   protected readonly progress = signal(0);
 
+  /** Whether this browser can record a video at all (hides the button if not). */
+  protected readonly canRecord = CanvasRecorder.isSupported();
+  protected readonly recording = signal(false);
+  protected readonly recordError = signal(false);
+
   private ops: DrawOperation[] = [];
+  /** Active replay pace (faster during a video export). */
+  private msPerPoint = MS_PER_POINT;
+  private recorder?: CanvasRecorder;
+  private mirror: HTMLCanvasElement | null = null;
+  private mirrorCtx: CanvasRenderingContext2D | null = null;
+  /** Resolves when the current replay reaches the end (used by the recorder). */
+  private finishResolver: (() => void) | null = null;
   private opIndex = 0;
   private ptIndex = 1;
   private totalPoints = 0;
@@ -71,7 +90,10 @@ export class ReplayPlayer {
       this.ctx = this.canvasRef().nativeElement.getContext('2d', { willReadFrequently: true });
       void this.load();
     });
-    this.destroyRef.onDestroy(() => cancelAnimationFrame(this.raf));
+    this.destroyRef.onDestroy(() => {
+      cancelAnimationFrame(this.raf);
+      this.recorder?.abort();
+    });
   }
 
   private async load(): Promise<void> {
@@ -124,7 +146,7 @@ export class ReplayPlayer {
     // Time-based pacing: draw points at a constant MS_PER_POINT rate, so the
     // total replay length scales with the number of points (framerate-independent).
     if (!this.lastFrame) this.lastFrame = now;
-    this.pointCarry += (now - this.lastFrame) / MS_PER_POINT;
+    this.pointCarry += (now - this.lastFrame) / this.msPerPoint;
     this.lastFrame = now;
     let budget = Math.floor(this.pointCarry);
     this.pointCarry -= budget;
@@ -152,14 +174,97 @@ export class ReplayPlayer {
       }
     }
     this.progress.set(this.totalPoints ? Math.min(1, this.donePoints / this.totalPoints) : 1);
+    if (this.recording()) this.blitMirror();
     if (this.opIndex >= this.ops.length) {
       this.playing.set(false);
       this.finished.set(true);
       this.progress.set(1);
+      this.finishResolver?.();
+      this.finishResolver = null;
       return;
     }
     this.raf = requestAnimationFrame(this.tick);
   };
+
+  // ---- video export (client-side; no server) ----
+
+  /**
+   * Record the time-lapse to a video and hand it to the device — the native
+   * share sheet on mobile (→ Save to Photos) or a download on desktop. Quality
+   * adapts: crisp on laptops/PCs, lighter on phones.
+   */
+  protected async saveAsVideo(): Promise<void> {
+    if (!this.canRecord || this.recording() || this.empty() || !this.ops.length) return;
+    this.recordError.set(false);
+
+    const profile = this.recordProfile();
+    const mirror = document.createElement('canvas');
+    mirror.width = profile.w;
+    mirror.height = profile.h;
+    this.mirror = mirror;
+    this.mirrorCtx = mirror.getContext('2d');
+    // Speed up the export so a big drawing doesn't make a minutes-long clip,
+    // but never slower than the live pace nor faster than the floor.
+    this.msPerPoint = Math.min(
+      MS_PER_POINT,
+      Math.max(MIN_MS_PER_POINT, RECORD_TARGET_MS / Math.max(1, this.totalPoints)),
+    );
+
+    this.recorder = new CanvasRecorder();
+    try {
+      this.recording.set(true);
+      this.restart(); // replay from a blank canvas
+      this.blitMirror(); // seed a first (white) frame
+      this.recorder.start(mirror, { fps: profile.fps, bitrate: profile.bitrate });
+      await this.waitForFinish();
+      await new Promise((r) => setTimeout(r, 400)); // let the stream grab the last frame
+      const { blob, ext } = await this.recorder.stop();
+      await saveMediaFile(blob, `drawwithme-art.${ext}`);
+    } catch {
+      this.recordError.set(true);
+      this.recorder?.abort();
+    } finally {
+      this.recording.set(false);
+      this.msPerPoint = MS_PER_POINT;
+      this.mirror = null;
+      this.mirrorCtx = null;
+      this.recorder = undefined;
+    }
+  }
+
+  private waitForFinish(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      if (this.finished()) {
+        resolve();
+        return;
+      }
+      this.finishResolver = resolve;
+    });
+  }
+
+  /** Copy the (large) main canvas into the downscaled record canvas, on white. */
+  private blitMirror(): void {
+    const mctx = this.mirrorCtx;
+    const mirror = this.mirror;
+    if (!mctx || !mirror) return;
+    mctx.fillStyle = '#ffffff';
+    mctx.fillRect(0, 0, mirror.width, mirror.height);
+    mctx.drawImage(this.canvasRef().nativeElement, 0, 0, mirror.width, mirror.height);
+  }
+
+  private isMobile(): boolean {
+    const ua = navigator.userAgent || '';
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) return true;
+    const coarse = window.matchMedia?.('(pointer: coarse)')?.matches ?? false;
+    return coarse && Math.min(window.screen.width, window.screen.height) < 820;
+  }
+
+  /** Canvas is 16:10. High quality on desktop, lighter encode on phones. */
+  private recordProfile(): { w: number; h: number; fps: number; bitrate: number } {
+    return this.isMobile()
+      ? { w: 960, h: 600, fps: 30, bitrate: 3_500_000 }
+      : { w: 1920, h: 1200, fps: 30, bitrate: 12_000_000 };
+  }
 
   private advanceOp(): void {
     this.donePoints++;
