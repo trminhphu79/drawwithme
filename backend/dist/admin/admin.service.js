@@ -48,10 +48,34 @@ const common_1 = require("@nestjs/common");
 const crypto_1 = require("crypto");
 const bcrypt = __importStar(require("bcryptjs"));
 const prisma_service_1 = require("../prisma/prisma.service");
+const storage_service_1 = require("../storage/storage.service");
 let AdminService = AdminService_1 = class AdminService {
-    constructor(prisma) {
+    constructor(prisma, storage) {
         this.prisma = prisma;
+        this.storage = storage;
         this.log = new common_1.Logger(AdminService_1.name);
+    }
+    async backfillArtworkImagesToR2() {
+        if (!this.storage.configured) {
+            throw new common_1.InternalServerErrorException('R2 storage is not configured');
+        }
+        const rows = await this.prisma.artwork.findMany({
+            where: { imageUrl: { startsWith: 'data:' } },
+            select: { id: true, imageUrl: true },
+        });
+        let migrated = 0;
+        let failed = 0;
+        for (const row of rows) {
+            const url = await this.storage.putDataUrl(`artworks/${row.id}.png`, row.imageUrl ?? '');
+            if (!url || url.startsWith('data:')) {
+                failed++;
+                continue;
+            }
+            await this.prisma.artwork.update({ where: { id: row.id }, data: { imageUrl: url } });
+            migrated++;
+        }
+        this.log.log(`R2 backfill: scanned=${rows.length} migrated=${migrated} failed=${failed}`);
+        return { scanned: rows.length, migrated, failed };
     }
     async onModuleInit() {
         const username = process.env.ADMIN_USERNAME || 'admin';
@@ -174,6 +198,7 @@ let AdminService = AdminService_1 = class AdminService {
 exports.AdminService = AdminService;
 exports.AdminService = AdminService = AdminService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], AdminService);
 //# sourceMappingURL=admin.service.js.map

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Artwork, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -78,6 +78,12 @@ export class ArtworksService {
     const artworkId = existing?.id ?? randomUUID();
 
     const imageUrl = await this.storage.putDataUrl(`artworks/${artworkId}.png`, dataUrl);
+    // With R2 configured, never persist a base64 data URL into the DB. A data
+    // URL here means the upload failed — fail loudly so the client can retry,
+    // rather than silently bloating Postgres with the whole image.
+    if (this.storage.configured && imageUrl.startsWith('data:')) {
+      throw new InternalServerErrorException('Artwork image upload failed — please try again.');
+    }
     const operations = (await this.snapshotOperations(room.id)) as unknown as Prisma.InputJsonValue;
     const cleanTitle = title?.trim();
 

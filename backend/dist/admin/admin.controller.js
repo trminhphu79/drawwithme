@@ -42,6 +42,9 @@ let AdminController = class AdminController {
     deleteRoom(code) {
         return this.admin.deleteRoom(code);
     }
+    backfillArtworkImages() {
+        return this.admin.backfillArtworkImagesToR2();
+    }
 };
 exports.AdminController = AdminController;
 __decorate([
@@ -85,6 +88,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "deleteRoom", null);
+__decorate([
+    (0, common_1.Post)('artworks/backfill-r2'),
+    (0, common_1.UseGuards)(admin_guard_1.AdminGuard),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AdminController.prototype, "backfillArtworkImages", null);
 exports.AdminController = AdminController = __decorate([
     (0, common_1.Controller)('admin'),
     __metadata("design:paramtypes", [admin_service_1.AdminService,

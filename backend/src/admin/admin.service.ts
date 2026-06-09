@@ -1,5 +1,6 @@
 import {
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   OnModuleInit,
@@ -8,6 +9,7 @@ import {
 import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 
 export interface AdminRoomDto {
   code: string;
@@ -32,7 +34,38 @@ export interface UpdateRoomSettings {
 export class AdminService implements OnModuleInit {
   private readonly log = new Logger(AdminService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: StorageService,
+  ) {}
+
+  /**
+   * One-off migration: find artworks whose imageUrl is still an inline base64
+   * data URL (saved before R2 was configured), upload each to R2, and replace
+   * the column with the short public URL. Safe to re-run.
+   */
+  async backfillArtworkImagesToR2(): Promise<{ scanned: number; migrated: number; failed: number }> {
+    if (!this.storage.configured) {
+      throw new InternalServerErrorException('R2 storage is not configured');
+    }
+    const rows = await this.prisma.artwork.findMany({
+      where: { imageUrl: { startsWith: 'data:' } },
+      select: { id: true, imageUrl: true },
+    });
+    let migrated = 0;
+    let failed = 0;
+    for (const row of rows) {
+      const url = await this.storage.putDataUrl(`artworks/${row.id}.png`, row.imageUrl ?? '');
+      if (!url || url.startsWith('data:')) {
+        failed++;
+        continue;
+      }
+      await this.prisma.artwork.update({ where: { id: row.id }, data: { imageUrl: url } });
+      migrated++;
+    }
+    this.log.log(`R2 backfill: scanned=${rows.length} migrated=${migrated} failed=${failed}`);
+    return { scanned: rows.length, migrated, failed };
+  }
 
   /** Seed a single admin account from env on boot (idempotent). */
   async onModuleInit(): Promise<void> {

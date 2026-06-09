@@ -61,6 +61,9 @@ let ArtworksService = class ArtworksService {
         });
         const artworkId = existing?.id ?? (0, crypto_1.randomUUID)();
         const imageUrl = await this.storage.putDataUrl(`artworks/${artworkId}.png`, dataUrl);
+        if (this.storage.configured && imageUrl.startsWith('data:')) {
+            throw new common_1.InternalServerErrorException('Artwork image upload failed — please try again.');
+        }
         const operations = (await this.snapshotOperations(room.id));
         const cleanTitle = title?.trim();
         if (existing) {

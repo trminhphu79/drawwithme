@@ -60,4 +60,11 @@ export class AdminController {
   deleteRoom(@Param('code') code: string): Promise<{ deleted: true; code: string }> {
     return this.admin.deleteRoom(code);
   }
+
+  /** One-off: migrate artworks still storing base64 in the DB up to R2. */
+  @Post('artworks/backfill-r2')
+  @UseGuards(AdminGuard)
+  backfillArtworkImages(): Promise<{ scanned: number; migrated: number; failed: number }> {
+    return this.admin.backfillArtworkImagesToR2();
+  }
 }

@@ -13,12 +13,31 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
   private readonly client?: S3Client;
-  private readonly bucket = process.env.R2_BUCKET;
+  private readonly bucket = StorageService.normalizeBucket(process.env.R2_BUCKET);
   private readonly publicBase = (process.env.R2_PUBLIC_BASE_URL ?? '').replace(/\/+$/, '');
   readonly configured: boolean;
 
+  /**
+   * Accept a bucket NAME, but tolerate a full S3 URL being pasted in (a common
+   * mistake): strip scheme/host and trailing slashes, keep the last path
+   * segment. `https://<acct>.r2.cloudflarestorage.com/drawwithme` → `drawwithme`.
+   */
+  private static normalizeBucket(raw: string | undefined): string | undefined {
+    const value = (raw ?? '').trim().replace(/\/+$/, '');
+    if (!value) return undefined;
+    if (value.includes('://') || value.includes('/')) {
+      return value.split('/').filter(Boolean).pop();
+    }
+    return value;
+  }
+
   constructor() {
     const accountId = process.env.R2_ACCOUNT_ID;
+    if (process.env.R2_BUCKET && this.bucket !== process.env.R2_BUCKET) {
+      this.logger.warn(
+        `R2_BUCKET looked like a URL ("${process.env.R2_BUCKET}") — using bucket name "${this.bucket}".`,
+      );
+    }
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
     this.configured = !!(accountId && accessKeyId && secretAccessKey && this.bucket && this.publicBase);

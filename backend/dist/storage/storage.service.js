@@ -14,11 +14,23 @@ exports.StorageService = void 0;
 const common_1 = require("@nestjs/common");
 const client_s3_1 = require("@aws-sdk/client-s3");
 let StorageService = StorageService_1 = class StorageService {
+    static normalizeBucket(raw) {
+        const value = (raw ?? '').trim().replace(/\/+$/, '');
+        if (!value)
+            return undefined;
+        if (value.includes('://') || value.includes('/')) {
+            return value.split('/').filter(Boolean).pop();
+        }
+        return value;
+    }
     constructor() {
         this.logger = new common_1.Logger(StorageService_1.name);
-        this.bucket = process.env.R2_BUCKET;
+        this.bucket = StorageService_1.normalizeBucket(process.env.R2_BUCKET);
         this.publicBase = (process.env.R2_PUBLIC_BASE_URL ?? '').replace(/\/+$/, '');
         const accountId = process.env.R2_ACCOUNT_ID;
+        if (process.env.R2_BUCKET && this.bucket !== process.env.R2_BUCKET) {
+            this.logger.warn(`R2_BUCKET looked like a URL ("${process.env.R2_BUCKET}") — using bucket name "${this.bucket}".`);
+        }
         const accessKeyId = process.env.R2_ACCESS_KEY_ID;
         const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
         this.configured = !!(accountId && accessKeyId && secretAccessKey && this.bucket && this.publicBase);
