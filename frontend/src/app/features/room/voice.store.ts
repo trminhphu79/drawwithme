@@ -70,7 +70,15 @@ export class VoiceStore {
     this._connecting.set(true);
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        // Hi-fi capture: keep echo cancellation (prevents speaker feedback) but
+        // drop noise suppression + auto-gain so the sound stays full & natural.
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2,
+          sampleRate: 48000,
+        },
         video: false,
       });
     } catch {
@@ -117,8 +125,9 @@ export class VoiceStore {
   private async makeOffer(id: string): Promise<void> {
     const pc = this.peer(id);
     const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    this.signal(id, 'offer', offer);
+    await pc.setLocalDescription({ type: 'offer', sdp: this.tuneOpus(offer.sdp ?? '') });
+    this.boostBitrate(pc);
+    this.signal(id, 'offer', pc.localDescription);
   }
 
   private async onSignal(msg: { from: string; kind: SignalKind; data: unknown }): Promise<void> {
@@ -127,8 +136,9 @@ export class VoiceStore {
       const pc = this.peer(from);
       await pc.setRemoteDescription(data as RTCSessionDescriptionInit);
       const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      this.signal(from, 'answer', answer);
+      await pc.setLocalDescription({ type: 'answer', sdp: this.tuneOpus(answer.sdp ?? '') });
+      this.boostBitrate(pc);
+      this.signal(from, 'answer', pc.localDescription);
     } else if (kind === 'answer') {
       await this.peers.get(from)?.setRemoteDescription(data as RTCSessionDescriptionInit);
     } else if (kind === 'ice') {
@@ -142,6 +152,30 @@ export class VoiceStore {
 
   private signal(to: string, kind: SignalKind, data: unknown): void {
     this.socket.emit('voice:signal', { code: this.code, to, kind, data });
+  }
+
+  /** Tune the Opus fmtp line for hi-fi: stereo + high bitrate + inband FEC. */
+  private tuneOpus(sdp: string): string {
+    const rtpmap = sdp.match(/a=rtpmap:(\d+) opus\/48000(?:\/2)?/i);
+    if (!rtpmap) return sdp;
+    const pt = rtpmap[1];
+    const opts = 'stereo=1;sprop-stereo=1;maxaveragebitrate=128000;maxplaybackrate=48000;useinbandfec=1';
+    const fmtp = new RegExp(`a=fmtp:${pt} ([^\\r\\n]*)`);
+    if (fmtp.test(sdp)) {
+      return sdp.replace(fmtp, (_m, existing: string) => `a=fmtp:${pt} ${existing};${opts}`);
+    }
+    return sdp.replace(rtpmap[0], `${rtpmap[0]}\r\na=fmtp:${pt} ${opts}`);
+  }
+
+  /** Cap the audio sender bitrate high so Opus isn't throttled to phone quality. */
+  private boostBitrate(pc: RTCPeerConnection): void {
+    for (const sender of pc.getSenders()) {
+      if (sender.track?.kind !== 'audio') continue;
+      const params = sender.getParameters();
+      if (!params.encodings?.length) params.encodings = [{}];
+      params.encodings[0].maxBitrate = 128000;
+      void sender.setParameters(params).catch(() => undefined);
+    }
   }
 
   private attachAudio(id: string, stream: MediaStream): void {
