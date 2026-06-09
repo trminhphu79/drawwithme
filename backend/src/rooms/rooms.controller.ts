@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { RoomsService, RoomDto, RoomSummary } from './rooms.service';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { RoomsService, RoomDto, RoomSummary, ManagedRoomDto } from './rooms.service';
+import { ManageRoomDto } from './dto/manage-room.dto';
 import { OperationsService, DrawOperationDto } from '../canvas/operations.service';
 import { ArtworksService } from '../artworks/artworks.service';
 import { MessagesService, ChatMessageDto } from '../messages/messages.service';
@@ -41,9 +42,30 @@ export class RoomsController {
     return this.rooms.list(search, skipN, takeN);
   }
 
+  /** Rooms hosted by a given client id (the "My Rooms" page). */
+  @Get('mine')
+  listMine(@Query('hostId') hostId?: string): Promise<ManagedRoomDto[]> {
+    return this.rooms.listByHost(hostId ?? '');
+  }
+
   @Get(':code')
   get(@Param('code') code: string): Promise<RoomDto> {
     return this.rooms.findByCode(code);
+  }
+
+  /** Host-only: update a room's settings (authorized by requesterId in body). */
+  @Patch(':code')
+  updateMine(@Param('code') code: string, @Body() dto: ManageRoomDto): Promise<ManagedRoomDto> {
+    return this.rooms.updateByHost(code, dto);
+  }
+
+  /** Host-only: delete a room + all its data (authorized by hostId query). */
+  @Delete(':code')
+  deleteMine(
+    @Param('code') code: string,
+    @Query('hostId') hostId?: string,
+  ): Promise<{ deleted: true; code: string }> {
+    return this.rooms.deleteByHost(code, hostId ?? '');
   }
 
   /** Replay log for a room (ordered). */

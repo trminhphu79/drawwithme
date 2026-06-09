@@ -2,11 +2,13 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { Participant } from '../participant.model';
 import { avatarUrl } from '../../../core/models/avatars';
 import { cursorColor } from '../../../core/models/cursor-colors';
+import { UserMenu } from '../../../core/ui/user-menu';
 
 /** DUMB. Glassmorphism top navigation bar for the drawing room. */
 @Component({
   selector: 'app-room-top-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [UserMenu],
   template: `
     <nav
       class="glass-panel border-b border-white/20 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop w-full z-50 fixed top-0 h-(--app-header-h) pt-[env(safe-area-inset-top)]">
@@ -65,17 +67,12 @@ import { cursorColor } from '../../../core/models/cursor-colors';
           <span class="hidden sm:inline">Invite</span>
         </button>
 
-        <!-- Your profile — click to edit avatar + name -->
-        <button
-          type="button"
-          (click)="editProfile.emit()"
-          [title]="(myName() || 'You') + ' — edit profile'"
-          class="rounded-full ring-2 ring-secondary/40 hover:ring-secondary active:scale-95 transition-all shrink-0">
-          <img
-            [src]="url(myAvatar())"
-            [alt]="myName()"
-            class="w-9 h-9 rounded-full object-cover bg-surface-variant" />
-        </button>
+        <!-- Your profile menu — Profile (edit modal) / My Rooms -->
+        <app-user-menu
+          [avatar]="myAvatar()"
+          [name]="myName()"
+          (profile)="editProfile.emit()"
+          (myRooms)="myRooms.emit()" />
       </div>
     </nav>
   `,
@@ -93,6 +90,7 @@ export class RoomTopBar {
 
   readonly invite = output<void>();
   readonly editProfile = output<void>();
+  readonly myRooms = output<void>();
   readonly home = output<void>();
   readonly titleChange = output<string>();
 }

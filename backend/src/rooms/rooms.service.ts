@@ -9,6 +9,7 @@ import { Room, RoomSettings } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JoinRoomDto } from './dto/join-room.dto';
+import { ManageRoomDto } from './dto/manage-room.dto';
 
 /** A room card in the lobby list (total roster, all-time). */
 export interface RoomSummary {
@@ -16,6 +17,17 @@ export interface RoomSummary {
   name: string;
   memberCount: number;
   avatars: string[];
+  createdAt: string;
+}
+
+/** A room the requesting user hosts (for the "My Rooms" management page). */
+export interface ManagedRoomDto {
+  code: string;
+  name: string;
+  status: string;
+  joinMode: 'auto' | 'approval';
+  capacity: number;
+  memberCount: number;
   createdAt: string;
 }
 
@@ -149,6 +161,88 @@ export class RoomsService {
       hostId: room.hostId,
       joinMode: (room.settings?.joinMode as 'auto' | 'approval') ?? 'auto',
       capacity: room.settings?.capacity ?? 3,
+    };
+  }
+
+  // ---- "My Rooms": self-service management for the room's host ----
+
+  /** All rooms hosted by this client id, newest activity first. */
+  async listByHost(hostId: string): Promise<ManagedRoomDto[]> {
+    const id = (hostId ?? '').trim();
+    if (!id) return [];
+    const rooms = await this.prisma.room.findMany({
+      where: { hostId: id },
+      orderBy: { lastActivityAt: 'desc' },
+      include: { settings: true, _count: { select: { members: true } } },
+    });
+    return rooms.map((r) => this.toManaged(r));
+  }
+
+  /** Update a hosted room's settings — only if the requester is the host. */
+  async updateByHost(code: string, dto: ManageRoomDto): Promise<ManagedRoomDto> {
+    const existing = await this.prisma.room.findUnique({
+      where: { code: code.toUpperCase() },
+      select: { hostId: true },
+    });
+    this.assertHost(existing, dto.requesterId);
+
+    const roomData: { name?: string; status?: string } = {};
+    if (typeof dto.name === 'string') roomData.name = dto.name.trim() || 'Untitled Room';
+    if (dto.status === 'active' || dto.status === 'archived') roomData.status = dto.status;
+
+    const settings: { joinMode?: string; capacity?: number } = {};
+    if (dto.joinMode === 'auto' || dto.joinMode === 'approval') settings.joinMode = dto.joinMode;
+    if (typeof dto.capacity === 'number') {
+      settings.capacity = Math.min(50, Math.max(2, Math.round(dto.capacity)));
+    }
+
+    const room = await this.prisma.room.update({
+      where: { code: code.toUpperCase() },
+      data: {
+        ...roomData,
+        ...(Object.keys(settings).length
+          ? { settings: { upsert: { create: settings, update: settings } } }
+          : {}),
+      },
+      include: { settings: true, _count: { select: { members: true } } },
+    });
+    return this.toManaged(room);
+  }
+
+  /** Delete a hosted room + all its data — only if the requester is the host. */
+  async deleteByHost(code: string, requesterId: string): Promise<{ deleted: true; code: string }> {
+    const room = await this.prisma.room.findUnique({
+      where: { code: code.toUpperCase() },
+      select: { id: true, code: true, hostId: true },
+    });
+    this.assertHost(room, requesterId);
+    await this.prisma.$transaction([
+      this.prisma.artwork.deleteMany({ where: { roomId: room!.id } }),
+      this.prisma.room.delete({ where: { id: room!.id } }),
+    ]);
+    return { deleted: true, code: room!.code };
+  }
+
+  /** Throw unless `requesterId` is the room's host. */
+  private assertHost(room: { hostId: string | null } | null, requesterId: string): void {
+    if (!room) throw new NotFoundException('Room not found');
+    const id = (requesterId ?? '').trim();
+    if (!id || !room.hostId || room.hostId !== id) {
+      throw new ForbiddenException('You are not the host of this room');
+    }
+  }
+
+  private toManaged(
+    r: Room & { settings: RoomSettings | null; _count: { members: number } },
+  ): ManagedRoomDto {
+    return {
+      code: r.code,
+      name: r.name,
+      status: r.status,
+      joinMode: (r.settings?.joinMode as 'auto' | 'approval') ?? 'auto',
+      capacity: r.settings?.capacity ?? 3,
+      memberCount: r._count.members,
+      createdAt: r.createdAt.toISOString(),
     };
   }
 

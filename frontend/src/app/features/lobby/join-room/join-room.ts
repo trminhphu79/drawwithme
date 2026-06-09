@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { JoinRoomStore } from '../join-room.store';
+import { PreferencesStore } from '../../../core/stores/preferences.store';
 import { AppFooter } from '../../../core/ui/app-footer';
 import { InstallButton } from '../../../core/ui/install-button';
 import { Skeleton } from '../../../core/ui/skeleton';
+import { UserMenu } from '../../../core/ui/user-menu';
 import { avatarUrl } from '../../../core/models/avatars';
 
 /**
@@ -13,7 +15,7 @@ import { avatarUrl } from '../../../core/models/avatars';
 @Component({
   selector: 'app-join-room',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AppFooter, InstallButton, Skeleton],
+  imports: [AppFooter, InstallButton, Skeleton, UserMenu],
   providers: [JoinRoomStore],
   template: `
     <div class="min-h-screen flex flex-col bg-background text-on-background">
@@ -46,6 +48,11 @@ import { avatarUrl } from '../../../core/models/avatars';
             <span class="hidden sm:inline">Join</span>
             <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
+          <app-user-menu
+            [avatar]="prefs.avatar()"
+            [name]="prefs.displayName()"
+            (profile)="goProfile()"
+            (myRooms)="goMyRooms()" />
         </div>
       </header>
 
@@ -193,6 +200,7 @@ import { avatarUrl } from '../../../core/models/avatars';
 })
 export class JoinRoom {
   protected readonly store = inject(JoinRoomStore);
+  protected readonly prefs = inject(PreferencesStore);
   private readonly router = inject(Router);
   protected readonly avatarUrl = avatarUrl;
   protected readonly skeletons = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
@@ -213,5 +221,13 @@ export class JoinRoom {
 
   protected enterRoom(code: string): void {
     this.router.navigate(['/room', code]);
+  }
+
+  protected goProfile(): void {
+    this.router.navigate(['/profile']);
+  }
+
+  protected goMyRooms(): void {
+    this.router.navigate(['/my-rooms']);
   }
 }

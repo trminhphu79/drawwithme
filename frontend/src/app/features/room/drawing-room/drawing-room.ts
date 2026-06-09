@@ -180,6 +180,11 @@ export class DrawingRoom {
     this.store.updateProfile();
   }
 
+  /** "My Rooms" from the profile menu — navigates out (leave guard prompts). */
+  protected goMyRooms(): void {
+    this.router.navigate(['/my-rooms']);
+  }
+
   protected toggleChat(): void {
     this.chatOpen.update((o) => !o);
   }

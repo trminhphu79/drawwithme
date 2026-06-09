@@ -14,6 +14,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/lobby/join-room/join-room').then((m) => m.JoinRoom),
   },
   {
+    path: 'profile',
+    title: 'Profile · DrawWithMe',
+    loadComponent: () => import('./features/profile/profile-page').then((m) => m.ProfilePage),
+  },
+  {
+    path: 'my-rooms',
+    title: 'My Rooms · DrawWithMe',
+    loadComponent: () => import('./features/my-rooms/my-rooms-page').then((m) => m.MyRoomsPage),
+  },
+  {
     path: 'help',
     title: 'Help · DrawWithMe',
     loadComponent: () => import('./features/info/help-page/help-page').then((m) => m.HelpPage),

@@ -152,6 +152,77 @@ let RoomsService = class RoomsService {
             capacity: room.settings?.capacity ?? 3,
         };
     }
+    async listByHost(hostId) {
+        const id = (hostId ?? '').trim();
+        if (!id)
+            return [];
+        const rooms = await this.prisma.room.findMany({
+            where: { hostId: id },
+            orderBy: { lastActivityAt: 'desc' },
+            include: { settings: true, _count: { select: { members: true } } },
+        });
+        return rooms.map((r) => this.toManaged(r));
+    }
+    async updateByHost(code, dto) {
+        const existing = await this.prisma.room.findUnique({
+            where: { code: code.toUpperCase() },
+            select: { hostId: true },
+        });
+        this.assertHost(existing, dto.requesterId);
+        const roomData = {};
+        if (typeof dto.name === 'string')
+            roomData.name = dto.name.trim() || 'Untitled Room';
+        if (dto.status === 'active' || dto.status === 'archived')
+            roomData.status = dto.status;
+        const settings = {};
+        if (dto.joinMode === 'auto' || dto.joinMode === 'approval')
+            settings.joinMode = dto.joinMode;
+        if (typeof dto.capacity === 'number') {
+            settings.capacity = Math.min(50, Math.max(2, Math.round(dto.capacity)));
+        }
+        const room = await this.prisma.room.update({
+            where: { code: code.toUpperCase() },
+            data: {
+                ...roomData,
+                ...(Object.keys(settings).length
+                    ? { settings: { upsert: { create: settings, update: settings } } }
+                    : {}),
+            },
+            include: { settings: true, _count: { select: { members: true } } },
+        });
+        return this.toManaged(room);
+    }
+    async deleteByHost(code, requesterId) {
+        const room = await this.prisma.room.findUnique({
+            where: { code: code.toUpperCase() },
+            select: { id: true, code: true, hostId: true },
+        });
+        this.assertHost(room, requesterId);
+        await this.prisma.$transaction([
+            this.prisma.artwork.deleteMany({ where: { roomId: room.id } }),
+            this.prisma.room.delete({ where: { id: room.id } }),
+        ]);
+        return { deleted: true, code: room.code };
+    }
+    assertHost(room, requesterId) {
+        if (!room)
+            throw new common_1.NotFoundException('Room not found');
+        const id = (requesterId ?? '').trim();
+        if (!id || !room.hostId || room.hostId !== id) {
+            throw new common_1.ForbiddenException('You are not the host of this room');
+        }
+    }
+    toManaged(r) {
+        return {
+            code: r.code,
+            name: r.name,
+            status: r.status,
+            joinMode: r.settings?.joinMode ?? 'auto',
+            capacity: r.settings?.capacity ?? 3,
+            memberCount: r._count.members,
+            createdAt: r.createdAt.toISOString(),
+        };
+    }
     async generateUniqueCode() {
         for (let attempt = 0; attempt < 10; attempt++) {
             const code = Array.from({ length: 6 }, () => CODE_ALPHABET.charAt(Math.floor(Math.random() * CODE_ALPHABET.length))).join('');

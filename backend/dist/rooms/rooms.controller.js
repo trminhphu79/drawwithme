@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoomsController = void 0;
 const common_1 = require("@nestjs/common");
 const rooms_service_1 = require("./rooms.service");
+const manage_room_dto_1 = require("./dto/manage-room.dto");
 const operations_service_1 = require("../canvas/operations.service");
 const artworks_service_1 = require("../artworks/artworks.service");
 const messages_service_1 = require("../messages/messages.service");
@@ -42,8 +43,17 @@ let RoomsController = class RoomsController {
         const takeN = Math.min(50, Math.max(1, Number(take) || 20));
         return this.rooms.list(search, skipN, takeN);
     }
+    listMine(hostId) {
+        return this.rooms.listByHost(hostId ?? '');
+    }
     get(code) {
         return this.rooms.findByCode(code);
+    }
+    updateMine(code, dto) {
+        return this.rooms.updateByHost(code, dto);
+    }
+    deleteMine(code, hostId) {
+        return this.rooms.deleteByHost(code, hostId ?? '');
     }
     operationsForRoom(code) {
         return this.operations.listByRoom(code);
@@ -86,12 +96,35 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], RoomsController.prototype, "list", null);
 __decorate([
+    (0, common_1.Get)('mine'),
+    __param(0, (0, common_1.Query)('hostId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], RoomsController.prototype, "listMine", null);
+__decorate([
     (0, common_1.Get)(':code'),
     __param(0, (0, common_1.Param)('code')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], RoomsController.prototype, "get", null);
+__decorate([
+    (0, common_1.Patch)(':code'),
+    __param(0, (0, common_1.Param)('code')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, manage_room_dto_1.ManageRoomDto]),
+    __metadata("design:returntype", Promise)
+], RoomsController.prototype, "updateMine", null);
+__decorate([
+    (0, common_1.Delete)(':code'),
+    __param(0, (0, common_1.Param)('code')),
+    __param(1, (0, common_1.Query)('hostId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], RoomsController.prototype, "deleteMine", null);
 __decorate([
     (0, common_1.Get)(':code/operations'),
     __param(0, (0, common_1.Param)('code')),
