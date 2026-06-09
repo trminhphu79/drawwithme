@@ -7,12 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// A person using the app. Identified by a stable per-browser client id while
+/// anonymous; `type` flips to "human" once accounts/login arrive (no password
+/// stored yet).
+model User {
+  id        String   @id // = the browser clientId (uuid)
+  username  String?
+  avatar    String?
+  type      String   @default("anonymous") // anonymous | human
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  memberships RoomMember[]
+}
+
 model Room {
   id           String      @id @default(uuid())
   code         String      @unique
   name         String      @default("Untitled Room")
   passwordHash String?
-  /// Stable client id of the user who created the room (the host).
+  /// Stable client id (User id) of the user who created the room (the host).
   hostId       String?
   width        Int         @default(3840)
   height       Int         @default(2400)
@@ -26,6 +39,21 @@ model Room {
   artworks     Artwork[]
   messages     Message[]
   settings     RoomSettings?
+  members      RoomMember[]
+}
+
+/// Records that a user joined a room (the room's total roster, all-time).
+model RoomMember {
+  id        String   @id @default(uuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roomId, userId])
+  @@index([userId])
 }
 
 /// Per-room configuration (1:1 with Room).

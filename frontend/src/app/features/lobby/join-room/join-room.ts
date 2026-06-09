@@ -109,12 +109,12 @@ import { avatarUrl } from '../../../core/models/avatars';
                     }
                   </div>
                   <span class="text-body-sm text-on-surface-variant">
-                    {{ room.memberCount }} active
+                    {{ room.memberCount }} member{{ room.memberCount === 1 ? '' : 's' }}
                   </span>
                 } @else {
                   <span class="text-body-sm text-on-surface-variant/60 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[16px]">bedtime</span>
-                    No one here yet
+                    <span class="material-symbols-outlined text-[16px]">person_off</span>
+                    No members yet
                   </span>
                 }
               </div>

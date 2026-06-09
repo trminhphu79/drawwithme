@@ -27,6 +27,7 @@ let CanvasGateway = class CanvasGateway {
         this.pending = new Map();
         this.approved = new Map();
         this.hostByRoom = new Map();
+        this.titleTimers = new Map();
         this.reactionSeq = 0;
         this.sysSeq = 0;
     }
@@ -96,6 +97,7 @@ let CanvasGateway = class CanvasGateway {
         this.pending.get(code)?.delete(client.id);
         this.emitPresence(code);
         void this.operations.touch(code).catch(() => undefined);
+        void this.recordMembership(code, clientId, name, avatar);
         client.emit('join:approved', { code });
         void this.operations
             .getReference(code)
@@ -194,7 +196,15 @@ let CanvasGateway = class CanvasGateway {
         const code = (body.code ?? '').toUpperCase();
         if (!code)
             return;
+        const title = (body.title ?? '').trim();
         client.to(code).emit('title:updated', { title: body.title ?? '' });
+        clearTimeout(this.titleTimers.get(code));
+        this.titleTimers.set(code, setTimeout(() => {
+            this.titleTimers.delete(code);
+            void this.prisma.room
+                .update({ where: { code }, data: { name: title || 'Untitled Room' } })
+                .catch(() => undefined);
+        }, 600));
     }
     onCursor(client, body) {
         const code = (body.code ?? '').toUpperCase();
@@ -318,6 +328,30 @@ let CanvasGateway = class CanvasGateway {
         while (used.has(i))
             i++;
         return i;
+    }
+    async recordMembership(code, clientId, name, avatar) {
+        if (!clientId)
+            return;
+        try {
+            await this.prisma.user.upsert({
+                where: { id: clientId },
+                create: { id: clientId, username: name, avatar, type: 'anonymous' },
+                update: { username: name, avatar },
+            });
+            const room = await this.prisma.room.findUnique({
+                where: { code },
+                select: { id: true },
+            });
+            if (!room)
+                return;
+            await this.prisma.roomMember.upsert({
+                where: { roomId_userId: { roomId: room.id, userId: clientId } },
+                create: { roomId: room.id, userId: clientId },
+                update: {},
+            });
+        }
+        catch {
+        }
     }
     memberSummary(code) {
         const members = this.rooms.get((code ?? '').toUpperCase());

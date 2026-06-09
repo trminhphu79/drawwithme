@@ -7,11 +7,10 @@ import {
 import * as bcrypt from 'bcryptjs';
 import { Room, RoomSettings } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CanvasGateway } from '../canvas/canvas.gateway';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JoinRoomDto } from './dto/join-room.dto';
 
-/** A room card in the lobby list (with live presence). */
+/** A room card in the lobby list (total roster, all-time). */
 export interface RoomSummary {
   code: string;
   name: string;
@@ -40,12 +39,9 @@ const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 @Injectable()
 export class RoomsService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly gateway: CanvasGateway,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  /** Paginated, searchable list of active rooms with live presence. */
+  /** Paginated, searchable list of active rooms with their total roster. */
   async list(
     search: string | undefined,
     skip: number,
@@ -69,20 +65,25 @@ export class RoomsService {
         orderBy: { lastActivityAt: 'desc' },
         skip,
         take,
+        include: {
+          _count: { select: { members: true } },
+          members: {
+            take: 5,
+            orderBy: { joinedAt: 'asc' },
+            include: { user: { select: { avatar: true } } },
+          },
+        },
       }),
       this.prisma.room.count({ where }),
     ]);
     return {
-      rooms: rooms.map((r) => {
-        const m = this.gateway.memberSummary(r.code);
-        return {
-          code: r.code,
-          name: r.name,
-          memberCount: m.count,
-          avatars: m.avatars,
-          createdAt: r.createdAt.toISOString(),
-        };
-      }),
+      rooms: rooms.map((r) => ({
+        code: r.code,
+        name: r.name,
+        memberCount: r._count.members,
+        avatars: r.members.map((m) => m.user.avatar).filter((a): a is string => !!a),
+        createdAt: r.createdAt.toISOString(),
+      })),
       total,
     };
   }
@@ -90,6 +91,14 @@ export class RoomsService {
   async create(dto: CreateRoomDto): Promise<RoomDto> {
     const code = await this.generateUniqueCode();
     const passwordHash = dto.password ? await bcrypt.hash(dto.password, 10) : null;
+    // Ensure the host exists as a (anonymous) user so the room can reference it.
+    if (dto.hostId) {
+      await this.prisma.user.upsert({
+        where: { id: dto.hostId },
+        create: { id: dto.hostId, type: 'anonymous' },
+        update: {},
+      });
+    }
     const room = await this.prisma.room.create({
       data: {
         code,

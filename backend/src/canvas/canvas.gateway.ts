@@ -46,6 +46,8 @@ export class CanvasGateway implements OnGatewayDisconnect {
   private readonly approved = new Map<string, Set<string>>();
   /** roomCode -> hostId (cached from the DB on first join). */
   private readonly hostByRoom = new Map<string, string | null>();
+  /** Debounce timers for persisting room title edits. */
+  private readonly titleTimers = new Map<string, ReturnType<typeof setTimeout>>();
   /** Monotonic counters for unique reaction / system-message ids. */
   private reactionSeq = 0;
   private sysSeq = 0;
@@ -151,6 +153,8 @@ export class CanvasGateway implements OnGatewayDisconnect {
 
     this.emitPresence(code);
     void this.operations.touch(code).catch(() => undefined);
+    // Record the user + their membership in this room (all-time roster).
+    void this.recordMembership(code, clientId, name, avatar);
 
     // Confirm entry (the FE flips out of the waiting state on this).
     client.emit('join:approved', { code });
@@ -288,8 +292,20 @@ export class CanvasGateway implements OnGatewayDisconnect {
   ): void {
     const code = (body.code ?? '').toUpperCase();
     if (!code) return;
+    const title = (body.title ?? '').trim();
     // Notify everyone else (the sender already updated its own title locally).
     client.to(code).emit('title:updated', { title: body.title ?? '' });
+    // Persist (debounced) so the lobby list shows the latest title.
+    clearTimeout(this.titleTimers.get(code));
+    this.titleTimers.set(
+      code,
+      setTimeout(() => {
+        this.titleTimers.delete(code);
+        void this.prisma.room
+          .update({ where: { code }, data: { name: title || 'Untitled Room' } })
+          .catch(() => undefined);
+      }, 600),
+    );
   }
 
   @SubscribeMessage('cursor:move')
@@ -441,6 +457,35 @@ export class CanvasGateway implements OnGatewayDisconnect {
     let i = 0;
     while (used.has(i)) i++;
     return i;
+  }
+
+  /** Upsert the (anonymous) user + their room membership on join. Best-effort. */
+  private async recordMembership(
+    code: string,
+    clientId: string,
+    name: string,
+    avatar: string | undefined,
+  ): Promise<void> {
+    if (!clientId) return;
+    try {
+      await this.prisma.user.upsert({
+        where: { id: clientId },
+        create: { id: clientId, username: name, avatar, type: 'anonymous' },
+        update: { username: name, avatar },
+      });
+      const room = await this.prisma.room.findUnique({
+        where: { code },
+        select: { id: true },
+      });
+      if (!room) return;
+      await this.prisma.roomMember.upsert({
+        where: { roomId_userId: { roomId: room.id, userId: clientId } },
+        create: { roomId: room.id, userId: clientId },
+        update: {},
+      });
+    } catch {
+      /* db hiccup — membership is best-effort */
+    }
   }
 
   /** Live member count + a few avatar keys for a room (for the lobby list). */

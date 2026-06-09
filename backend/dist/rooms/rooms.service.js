@@ -46,12 +46,10 @@ exports.RoomsService = void 0;
 const common_1 = require("@nestjs/common");
 const bcrypt = __importStar(require("bcryptjs"));
 const prisma_service_1 = require("../prisma/prisma.service");
-const canvas_gateway_1 = require("../canvas/canvas.gateway");
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let RoomsService = class RoomsService {
-    constructor(prisma, gateway) {
+    constructor(prisma) {
         this.prisma = prisma;
-        this.gateway = gateway;
     }
     async list(search, skip, take) {
         const term = (search ?? '').trim();
@@ -72,26 +70,38 @@ let RoomsService = class RoomsService {
                 orderBy: { lastActivityAt: 'desc' },
                 skip,
                 take,
+                include: {
+                    _count: { select: { members: true } },
+                    members: {
+                        take: 5,
+                        orderBy: { joinedAt: 'asc' },
+                        include: { user: { select: { avatar: true } } },
+                    },
+                },
             }),
             this.prisma.room.count({ where }),
         ]);
         return {
-            rooms: rooms.map((r) => {
-                const m = this.gateway.memberSummary(r.code);
-                return {
-                    code: r.code,
-                    name: r.name,
-                    memberCount: m.count,
-                    avatars: m.avatars,
-                    createdAt: r.createdAt.toISOString(),
-                };
-            }),
+            rooms: rooms.map((r) => ({
+                code: r.code,
+                name: r.name,
+                memberCount: r._count.members,
+                avatars: r.members.map((m) => m.user.avatar).filter((a) => !!a),
+                createdAt: r.createdAt.toISOString(),
+            })),
             total,
         };
     }
     async create(dto) {
         const code = await this.generateUniqueCode();
         const passwordHash = dto.password ? await bcrypt.hash(dto.password, 10) : null;
+        if (dto.hostId) {
+            await this.prisma.user.upsert({
+                where: { id: dto.hostId },
+                create: { id: dto.hostId, type: 'anonymous' },
+                update: {},
+            });
+        }
         const room = await this.prisma.room.create({
             data: {
                 code,
@@ -165,7 +175,6 @@ let RoomsService = class RoomsService {
 exports.RoomsService = RoomsService;
 exports.RoomsService = RoomsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        canvas_gateway_1.CanvasGateway])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], RoomsService);
 //# sourceMappingURL=rooms.service.js.map
