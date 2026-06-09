@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Participant } from '../participant.model';
-import { ThemeToggle } from '../../../core/ui/theme-toggle';
 import { avatarUrl } from '../../../core/models/avatars';
 import { cursorColor } from '../../../core/models/cursor-colors';
 
@@ -8,7 +7,6 @@ import { cursorColor } from '../../../core/models/cursor-colors';
 @Component({
   selector: 'app-room-top-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ThemeToggle],
   template: `
     <nav
       class="glass-panel border-b border-white/20 shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop w-full z-50 fixed top-0 h-(--app-header-h) pt-[env(safe-area-inset-top)]">
@@ -66,8 +64,6 @@ import { cursorColor } from '../../../core/models/cursor-colors';
           <span class="material-symbols-outlined text-[18px]">person_add</span>
           <span class="hidden sm:inline">Invite</span>
         </button>
-
-        <app-theme-toggle />
 
         <!-- Your profile — click to edit avatar + name -->
         <button

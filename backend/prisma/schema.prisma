@@ -14,8 +14,8 @@ model Room {
   passwordHash String?
   /// Stable client id of the user who created the room (the host).
   hostId       String?
-  width        Int         @default(1600)
-  height       Int         @default(1000)
+  width        Int         @default(3840)
+  height       Int         @default(2400)
   status         String      @default("active")
   createdAt      DateTime    @default(now())
   /// Bumped on any join / draw op / chat message; used by the 24h cleanup cron.

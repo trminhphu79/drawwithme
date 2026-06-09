@@ -18,8 +18,8 @@ import { RemoteCursor } from '../participant.model';
 import { cursorColor } from '../../../core/models/cursor-colors';
 
 /** Fixed internal canvas resolution. */
-const CANVAS_W = 1600;
-const CANVAS_H = 1000;
+const CANVAS_W = 3840;
+const CANVAS_H = 2400;
 /** On-screen (unscaled) canvas size. */
 const DISPLAY_W = 1200;
 const DISPLAY_H = 750;

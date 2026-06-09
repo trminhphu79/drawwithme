@@ -41,9 +41,8 @@ export class ThemeStore {
   }
 
   private initialMode(): ThemeMode {
-    const saved = this.storage.read<ThemeMode | null>(STORAGE_KEY, null);
-    // Default to light unless the user explicitly saved a preference.
-    return saved === 'dark' ? 'dark' : 'light';
+    // Theme switching is disabled — the app is always light mode.
+    return 'light';
   }
 
   private applyClass(mode: ThemeMode): void {

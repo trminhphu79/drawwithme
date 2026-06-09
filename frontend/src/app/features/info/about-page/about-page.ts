@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ThemeToggle } from '../../../core/ui/theme-toggle';
 
 interface Social {
   label: string;
@@ -13,7 +12,7 @@ interface Social {
 @Component({
   selector: 'app-about-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ThemeToggle],
+  imports: [RouterLink],
   template: `
     <div class="min-h-screen bg-background text-on-background flex flex-col">
       <header class="flex items-center justify-between px-margin-mobile md:px-margin-desktop py-margin-mobile md:py-4">
@@ -22,7 +21,6 @@ interface Social {
           <img src="logo.png" alt="" class="w-9 h-9 rounded-lg object-contain" />
           <span class="text-headline-md font-extrabold brand-gradient hidden sm:inline">DrawWithMe</span>
         </a>
-        <app-theme-toggle />
       </header>
 
       <main class="flex-grow w-full max-w-xl mx-auto px-margin-mobile md:px-0 py-8 md:py-12 flex flex-col items-center text-center">

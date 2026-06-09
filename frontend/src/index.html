@@ -8,10 +8,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
     />
-    <meta name="color-scheme" content="light dark" />
-    <!-- Header/chrome color follows the system theme (light vs dark surface). -->
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f9fb" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101415" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f7f9fb" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -45,17 +43,6 @@
     />
     <meta name="twitter:image" content="https://tranminhphu.com/og-image.png" />
 
-    <!-- Apply theme before first paint to avoid a flash of the wrong mode. -->
-    <script>
-      (function () {
-        try {
-          // Default to LIGHT; only go dark if the user explicitly chose it.
-          if (localStorage.getItem('dwm.theme') === 'dark') {
-            document.documentElement.classList.add('dark');
-          }
-        } catch (e) {}
-      })();
-    </script>
 
     <!-- Fonts: Manrope (UI), JetBrains Mono (hex/coords), Material Symbols (icons) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

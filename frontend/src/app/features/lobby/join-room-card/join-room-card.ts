@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { ThemeToggle } from '../../../core/ui/theme-toggle';
 
 /**
  * DUMB / presentational. Collects the room code and emits join/create intents.
@@ -8,7 +7,6 @@ import { ThemeToggle } from '../../../core/ui/theme-toggle';
 @Component({
   selector: 'app-join-room-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ThemeToggle],
   templateUrl: './join-room-card.html',
 })
 export class JoinRoomCard {

@@ -27,7 +27,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 export class StrokeWeight {
   readonly size = input.required<number>();
   readonly min = input(1);
-  readonly max = input(128);
+  readonly max = input(320);
 
   readonly sizeChange = output<number>();
 

@@ -14,8 +14,8 @@ import { firstValueFrom } from 'rxjs';
 import { ArtworkService } from '../artwork.service';
 import { DrawOperation, Point } from '../../room/operation.model';
 
-const W = 1600;
-const H = 1000;
+const W = 3840;
+const H = 2400;
 const FILL_TOLERANCE = 32;
 const SOFT = 160;
 /** Replay pace: wall-clock time per drawn point (so total scales with size). */
