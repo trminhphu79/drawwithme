@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { delay, firstValueFrom } from 'rxjs';
 import { LobbyService } from './lobby.service';
 import { JoinMode, Room, RoomSummary } from './room.model';
 import { PreferencesStore } from '../../core/stores/preferences.store';
@@ -86,7 +86,7 @@ export class JoinRoomStore {
     this._listLoading.set(true);
     const skip = reset ? 0 : this._rooms().length;
     try {
-      const res = await firstValueFrom(this.lobby.listRooms(this._search(), skip, PAGE_SIZE));
+      const res = await firstValueFrom(this.lobby.listRooms(this._search(), skip, PAGE_SIZE).pipe(delay(500)));
       this._total.set(res.total);
       this._rooms.update((cur) => (reset ? res.rooms : [...cur, ...res.rooms]));
     } catch {

@@ -15,19 +15,29 @@ interface Social {
   imports: [RouterLink],
   template: `
     <div class="min-h-screen bg-background text-on-background flex flex-col">
-      <header class="flex items-center justify-between px-margin-mobile md:px-margin-desktop py-margin-mobile md:py-4">
-        <a routerLink="/join" title="Back to home"
-          class="flex items-center gap-2 hover:opacity-80 active:scale-95 transition-all">
+      <header
+        class="flex items-center justify-between px-margin-mobile md:px-margin-desktop py-margin-mobile md:py-4"
+      >
+        <a
+          routerLink="/join"
+          title="Back to home"
+          class="flex items-center gap-2 hover:opacity-80 active:scale-95 transition-all"
+        >
           <img src="logo.png" alt="" class="w-9 h-9 rounded-lg object-contain" />
-          <span class="text-headline-md font-extrabold brand-gradient hidden sm:inline">DrawWithMe</span>
+          <span class="text-headline-md font-extrabold brand-gradient hidden sm:inline"
+            >DrawWithMe</span
+          >
         </a>
       </header>
 
-      <main class="flex-grow w-full max-w-xl mx-auto px-margin-mobile md:px-0 py-8 md:py-12 flex flex-col items-center text-center">
+      <main
+        class="flex-grow w-full max-w-xl mx-auto px-margin-mobile md:px-0 py-8 md:py-12 flex flex-col items-center text-center"
+      >
         <img
           src="author.jpeg"
           alt="Author"
-          class="w-32 h-32 rounded-full object-cover ring-4 ring-secondary/30 shadow-lg mb-6" />
+          class="w-32 h-32 rounded-full object-cover ring-4 ring-secondary/30 shadow-lg mb-6"
+        />
 
         <h1 class="text-display-lg font-extrabold mb-1">Phu Tran</h1>
         <p class="text-label-md text-secondary font-bold uppercase tracking-wider mb-6">
@@ -35,10 +45,12 @@ interface Social {
         </p>
 
         <p class="text-body-lg text-on-surface-variant max-w-md mb-8">
-          Hi! I'm a software engineer who loves building playful, real-time
-          experiences. DrawWithMe started as a way to sketch and goof around with
-          the people I care about — no accounts, no fuss, just a shared canvas.
-          Thanks for trying it out. 💛
+          Hi! I'm a software engineer who loves creating spaces for people to connect.
+          <br />
+          DrawWithMe is a small canvas for shared sketches, wandering ideas, and the simple joy of
+          making something together.
+          <br />
+          Thanks for being part of it. 💛
         </p>
 
         <div class="flex items-center gap-4">
@@ -49,7 +61,8 @@ interface Social {
               rel="noopener noreferrer"
               [title]="s.label"
               [attr.aria-label]="s.label"
-              class="w-12 h-12 flex items-center justify-center rounded-full glass-panel border border-outline-variant/40 text-on-surface-variant hover:text-secondary hover:border-secondary/60 hover:scale-110 active:scale-95 transition-all">
+              class="w-12 h-12 flex items-center justify-center rounded-full glass-panel border border-outline-variant/40 text-on-surface-variant hover:text-secondary hover:border-secondary/60 hover:scale-110 active:scale-95 transition-all"
+            >
               <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true">
                 <path [attr.d]="s.path" />
               </svg>
@@ -58,8 +71,10 @@ interface Social {
         </div>
 
         <div class="mt-12">
-          <a routerLink="/join"
-            class="brand-bg inline-flex items-center gap-1 px-5 py-3 rounded-lg font-label-md hover:brightness-105 active:scale-95 transition-all shadow-sm">
+          <a
+            routerLink="/join"
+            class="brand-bg inline-flex items-center gap-1 px-5 py-3 rounded-lg font-label-md hover:brightness-105 active:scale-95 transition-all shadow-sm"
+          >
             <span class="material-symbols-outlined text-[18px]">arrow_back</span>
             Back to home
           </a>

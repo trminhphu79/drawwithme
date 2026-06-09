@@ -19,10 +19,13 @@ import { avatarUrl } from '../../../core/models/avatars';
     <div class="min-h-screen flex flex-col bg-background text-on-background">
       <!-- Header: logo + join-by-code -->
       <header
-        class="sticky top-0 z-20 glass-panel border-b border-white/10 px-margin-mobile md:px-margin-desktop py-3 flex items-center justify-between gap-3">
+        class="sticky top-0 z-20 glass-panel border-b border-white/10 px-margin-mobile md:px-margin-desktop py-3 flex items-center justify-between gap-3"
+      >
         <div class="flex items-center gap-2 shrink-0">
           <img src="logo.png" alt="" class="w-9 h-9 rounded-lg object-contain" />
-          <span class="text-headline-md font-extrabold brand-gradient hidden sm:inline">DrawWithMe</span>
+          <span class="text-headline-md font-extrabold brand-gradient hidden sm:inline"
+            >DrawWithMe</span
+          >
         </div>
         <div class="flex items-center gap-2">
           <input
@@ -32,12 +35,14 @@ import { avatarUrl } from '../../../core/models/avatars';
             maxlength="12"
             [value]="store.code()"
             (input)="store.setCode($any($event.target).value)"
-            (keyup.enter)="onJoin()" />
+            (keyup.enter)="onJoin()"
+          />
           <button
             type="button"
             (click)="onJoin()"
             [disabled]="!store.canJoin()"
-            class="brand-bg px-4 py-2 rounded-lg font-label-md hover:brightness-105 active:scale-95 transition-all flex items-center gap-1 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+            class="brand-bg px-4 py-2 rounded-lg font-label-md hover:brightness-105 active:scale-95 transition-all flex items-center gap-1 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <span class="hidden sm:inline">Join</span>
             <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
@@ -57,7 +62,8 @@ import { avatarUrl } from '../../../core/models/avatars';
             type="button"
             (click)="onCreate()"
             [disabled]="store.busy()"
-            class="brand-bg px-5 py-3 rounded-lg font-label-md hover:brightness-105 active:scale-95 transition-all flex items-center gap-1 shadow-sm disabled:opacity-40">
+            class="brand-bg px-5 py-3 rounded-lg font-label-md hover:brightness-105 active:scale-95 transition-all flex items-center gap-1 shadow-sm disabled:opacity-40"
+          >
             <span class="material-symbols-outlined text-[18px]">add</span>
             Create New Room
           </button>
@@ -65,13 +71,17 @@ import { avatarUrl } from '../../../core/models/avatars';
 
         <!-- Search -->
         <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 text-[20px]">search</span>
+          <span
+            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 text-[20px]"
+            >search</span
+          >
           <input
             aria-label="Search rooms"
             class="w-full bg-on-surface/5 border border-outline-variant/40 focus:border-secondary focus:ring-0 rounded-xl py-3 pl-11 pr-4 text-body-md text-on-surface outline-none transition-all placeholder:text-on-surface-variant/50"
             placeholder="Search by code or title…"
             [value]="store.search()"
-            (input)="store.setSearch($any($event.target).value)" />
+            (input)="store.setSearch($any($event.target).value)"
+          />
         </div>
 
         @if (store.error()) {
@@ -86,10 +96,13 @@ import { avatarUrl } from '../../../core/models/avatars';
             <button
               type="button"
               (click)="enterRoom(room.code)"
-              class="glass-panel rounded-xl p-4 text-left flex flex-col gap-4 hover:elevation-3 hover:-translate-y-0.5 active:scale-[0.99] transition-all">
+              class="glass-panel rounded-xl p-4 text-left flex flex-col gap-4 hover:elevation-3 hover:-translate-y-0.5 active:scale-[0.99] transition-all"
+            >
               <div class="flex items-start justify-between gap-2">
                 <h3 class="font-bold text-on-surface truncate flex-1">{{ room.name }}</h3>
-                <span class="shrink-0 font-mono-label text-mono-label tracking-wider text-on-surface-variant bg-surface-variant/50 px-2 py-1 rounded-md border border-outline-variant/50">
+                <span
+                  class="shrink-0 font-mono-label text-mono-label tracking-wider text-on-surface-variant bg-surface-variant/50 px-2 py-1 rounded-md border border-outline-variant/50"
+                >
                   #{{ room.code }}
                 </span>
               </div>
@@ -97,7 +110,11 @@ import { avatarUrl } from '../../../core/models/avatars';
                 @if (room.avatars.length) {
                   <div class="flex -space-x-2 items-center">
                     @for (a of room.avatars; track a) {
-                      <img [src]="avatarUrl(a)" alt="" class="w-7 h-7 rounded-full object-cover border-2 border-surface bg-surface-variant" />
+                      <img
+                        [src]="avatarUrl(a)"
+                        alt=""
+                        class="w-7 h-7 rounded-full object-cover border-2 border-surface bg-surface-variant"
+                      />
                     }
                   </div>
                   <span class="text-body-sm text-on-surface-variant">
@@ -113,9 +130,19 @@ import { avatarUrl } from '../../../core/models/avatars';
             </button>
           } @empty {
             @if (!store.listLoading()) {
-              <div class="col-span-full text-center py-16 text-on-surface-variant/70 flex flex-col items-center gap-2">
-                <span class="material-symbols-outlined text-[40px] text-secondary/40">grid_view</span>
-                <p class="text-body-md">{{ store.search() ? 'No rooms match your search.' : 'No rooms yet — create the first one!' }}</p>
+              <div
+                class="col-span-full text-center py-16 text-on-surface-variant/70 flex flex-col items-center gap-2"
+              >
+                <span class="material-symbols-outlined text-[40px] text-secondary/40"
+                  >grid_view</span
+                >
+                <p class="text-body-md">
+                  {{
+                    store.search()
+                      ? 'No rooms match your search.'
+                      : 'No rooms yet — create the first one!'
+                  }}
+                </p>
               </div>
             }
           }
@@ -141,9 +168,12 @@ import { avatarUrl } from '../../../core/models/avatars';
               type="button"
               (click)="store.loadMore()"
               [disabled]="store.listLoading()"
-              class="glass-panel border border-outline-variant px-6 py-3 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              class="glass-panel border border-outline-variant px-6 py-3 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               @if (store.listLoading()) {
-                <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                <span class="material-symbols-outlined text-[18px] animate-spin"
+                  >progress_activity</span
+                >
                 Loading…
               } @else {
                 <span class="material-symbols-outlined text-[18px]">expand_more</span>
@@ -165,7 +195,7 @@ export class JoinRoom {
   protected readonly store = inject(JoinRoomStore);
   private readonly router = inject(Router);
   protected readonly avatarUrl = avatarUrl;
-  protected readonly skeletons = [0, 1, 2];
+  protected readonly skeletons = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 
   constructor() {
     void this.store.loadRooms();

@@ -128,10 +128,11 @@ export class DrawingRoom {
     effect(() => {
       const code = this.code();
       if (!code || this.entered || this.showNameGate() || this.leaving) return;
-      // Show the avatar + name gate on the first entry to this room (incl.
-      // joining via a shared link), but skip it on refresh of the same tab.
-      // (Rooms stay re-enterable even after they've been completed.)
-      if (this.isConfirmed(code)) this.enter(code);
+      // Only prompt for a profile the FIRST time (no saved name yet). Name +
+      // avatar live in localStorage, so the same browser — including new tabs —
+      // is recognised as the same user and enters straight away. They can still
+      // change it later via the header profile button.
+      if (this.prefs.hasProfile()) this.enter(code);
       else this.showNameGate.set(true);
     });
 
@@ -158,7 +159,6 @@ export class DrawingRoom {
   protected onNameSubmit(profile: Profile): void {
     this.prefs.setDisplayName(profile.name);
     this.prefs.setAvatar(profile.avatar);
-    this.markConfirmed(this.code());
     this.showNameGate.set(false);
     this.enter(this.code());
   }
@@ -358,25 +358,6 @@ export class DrawingRoom {
     } else if ((event.key === 'z' && event.shiftKey) || event.key === 'y') {
       event.preventDefault();
       this.store.redo();
-    }
-  }
-
-  /** Per-tab marker: has this room's profile gate already been completed? */
-  private confirmKey(code: string): string {
-    return `dwm.joined.${code.toUpperCase()}`;
-  }
-  private isConfirmed(code: string): boolean {
-    try {
-      return sessionStorage.getItem(this.confirmKey(code)) === '1';
-    } catch {
-      return this.prefs.hasProfile();
-    }
-  }
-  private markConfirmed(code: string): void {
-    try {
-      sessionStorage.setItem(this.confirmKey(code), '1');
-    } catch {
-      /* sessionStorage unavailable — gate will simply show again */
     }
   }
 
