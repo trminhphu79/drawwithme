@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { AdminService } from '../admin.service';
 import { AdminAuthService } from '../admin-auth.service';
 import { AdminRoom, UpdateRoomPayload } from '../admin.model';
+import { ConfirmDialog } from '../../../core/ui/confirm-dialog';
 
 const PAGE = 20;
 const CAPS = [2, 3, 4, 5, 8, 10];
@@ -13,7 +14,7 @@ const CAPS = [2, 3, 4, 5, 8, 10];
 @Component({
   selector: 'app-admin-rooms',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe],
+  imports: [DatePipe, ConfirmDialog],
   template: `
     <div class="w-full max-w-5xl mx-auto flex flex-col gap-5">
       <div class="flex items-end justify-between gap-3 flex-wrap">
@@ -91,16 +92,28 @@ const CAPS = [2, 3, 4, 5, 8, 10];
                 </div>
               </div>
 
-              <button type="button" (click)="save(room)"
-                [disabled]="!dirty().has(room.code) || saving() === room.code"
-                class="ml-auto px-4 py-2 rounded-lg bg-primary text-on-primary font-label-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed">
-                @if (saving() === room.code) {
-                  <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-                } @else {
-                  <span class="material-symbols-outlined text-[18px]">save</span>
-                }
-                Save
-              </button>
+              <div class="ml-auto flex items-center gap-2">
+                <button type="button" (click)="save(room)"
+                  [disabled]="!dirty().has(room.code) || saving() === room.code"
+                  class="px-4 py-2 rounded-lg bg-primary text-on-primary font-label-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed">
+                  @if (saving() === room.code) {
+                    <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                  }
+                  Save
+                </button>
+                <button type="button" (click)="confirmDeleteCode.set(room.code)"
+                  [disabled]="deleting() === room.code"
+                  title="Delete room + all its data"
+                  class="w-10 h-10 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-error/10 hover:text-error active:scale-95 transition-all disabled:opacity-40">
+                  @if (deleting() === room.code) {
+                    <span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+                  } @else {
+                    <span class="material-symbols-outlined text-[20px]">delete</span>
+                  }
+                </button>
+              </div>
             </div>
           </div>
         } @empty {
@@ -124,6 +137,15 @@ const CAPS = [2, 3, 4, 5, 8, 10];
         </div>
       }
     </div>
+
+    @if (confirmDeleteCode(); as code) {
+      <app-confirm-dialog
+        title="Delete this room?"
+        [message]="'Permanently delete room #' + code + ' and ALL its data — strokes, chat, artworks and members. This cannot be undone.'"
+        confirmLabel="Delete room"
+        (confirm)="onConfirmDelete(code)"
+        (cancel)="confirmDeleteCode.set(null)" />
+    }
   `,
 })
 export class AdminRooms {
@@ -139,6 +161,8 @@ export class AdminRooms {
   protected readonly error = signal<string | null>(null);
   protected readonly dirty = signal<Set<string>>(new Set());
   protected readonly saving = signal<string | null>(null);
+  protected readonly confirmDeleteCode = signal<string | null>(null);
+  protected readonly deleting = signal<string | null>(null);
 
   private searchTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -187,6 +211,21 @@ export class AdminRooms {
       if (!this.handleAuth(err)) this.error.set('Could not save changes.');
     } finally {
       this.saving.set(null);
+    }
+  }
+
+  protected async onConfirmDelete(code: string): Promise<void> {
+    this.confirmDeleteCode.set(null);
+    this.deleting.set(code);
+    this.error.set(null);
+    try {
+      await firstValueFrom(this.api.deleteRoom(code));
+      this.rooms.update((list) => list.filter((r) => r.code !== code));
+      this.total.update((t) => Math.max(0, t - 1));
+    } catch (err) {
+      if (!this.handleAuth(err)) this.error.set('Could not delete the room.');
+    } finally {
+      this.deleting.set(null);
     }
   }
 

@@ -39,6 +39,9 @@ let AdminController = class AdminController {
     updateRoom(code, dto) {
         return this.admin.updateRoom(code, dto);
     }
+    deleteRoom(code) {
+        return this.admin.deleteRoom(code);
+    }
 };
 exports.AdminController = AdminController;
 __decorate([
@@ -74,6 +77,14 @@ __decorate([
     __metadata("design:paramtypes", [String, update_room_dto_1.UpdateRoomDto]),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "updateRoom", null);
+__decorate([
+    (0, common_1.Delete)('rooms/:code'),
+    (0, common_1.UseGuards)(admin_guard_1.AdminGuard),
+    __param(0, (0, common_1.Param)('code')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AdminController.prototype, "deleteRoom", null);
 exports.AdminController = AdminController = __decorate([
     (0, common_1.Controller)('admin'),
     __metadata("design:paramtypes", [admin_service_1.AdminService,

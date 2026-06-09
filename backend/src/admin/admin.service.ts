@@ -1,4 +1,10 @@
-import { Injectable, Logger, OnModuleInit, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
@@ -101,6 +107,25 @@ export class AdminService implements OnModuleInit {
       })),
       total,
     };
+  }
+
+  /**
+   * Hard-delete a room and everything tied to it. Operations, messages,
+   * settings and memberships cascade automatically; artworks are deleted
+   * explicitly (their FK is SetNull, so they'd otherwise survive).
+   */
+  async deleteRoom(code: string): Promise<{ deleted: true; code: string }> {
+    const room = await this.prisma.room.findUnique({
+      where: { code: code.toUpperCase() },
+      select: { id: true, code: true },
+    });
+    if (!room) throw new NotFoundException('Room not found');
+    await this.prisma.$transaction([
+      this.prisma.artwork.deleteMany({ where: { roomId: room.id } }),
+      this.prisma.room.delete({ where: { id: room.id } }),
+    ]);
+    this.log.log(`Deleted room ${room.code} and all associated data.`);
+    return { deleted: true, code: room.code };
   }
 
   /** Update a room's name/status + settings (joinMode/capacity). */

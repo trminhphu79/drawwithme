@@ -31,6 +31,12 @@ export class AdminService {
     });
   }
 
+  deleteRoom(code: string): Observable<{ deleted: true; code: string }> {
+    return this.http.delete<{ deleted: true; code: string }>(`${this.base}/rooms/${code}`, {
+      headers: this.authHeaders(),
+    });
+  }
+
   private authHeaders(): Record<string, string> {
     const token = this.auth.token();
     return token ? { Authorization: `Bearer ${token}` } : {};

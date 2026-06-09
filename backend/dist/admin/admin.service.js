@@ -121,6 +121,20 @@ let AdminService = AdminService_1 = class AdminService {
             total,
         };
     }
+    async deleteRoom(code) {
+        const room = await this.prisma.room.findUnique({
+            where: { code: code.toUpperCase() },
+            select: { id: true, code: true },
+        });
+        if (!room)
+            throw new common_1.NotFoundException('Room not found');
+        await this.prisma.$transaction([
+            this.prisma.artwork.deleteMany({ where: { roomId: room.id } }),
+            this.prisma.room.delete({ where: { id: room.id } }),
+        ]);
+        this.log.log(`Deleted room ${room.code} and all associated data.`);
+        return { deleted: true, code: room.code };
+    }
     async updateRoom(code, dto) {
         const roomData = {};
         if (typeof dto.name === 'string')

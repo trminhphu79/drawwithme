@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminService, AdminRoomDto } from './admin.service';
 import { AdminTokenService } from './admin-token.service';
 import { AdminGuard } from './admin.guard';
@@ -42,5 +52,12 @@ export class AdminController {
   @UseGuards(AdminGuard)
   updateRoom(@Param('code') code: string, @Body() dto: UpdateRoomDto): Promise<AdminRoomDto> {
     return this.admin.updateRoom(code, dto);
+  }
+
+  /** Hard-delete a room + all its data (operations, messages, artworks, …). */
+  @Delete('rooms/:code')
+  @UseGuards(AdminGuard)
+  deleteRoom(@Param('code') code: string): Promise<{ deleted: true; code: string }> {
+    return this.admin.deleteRoom(code);
   }
 }
