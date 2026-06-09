@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { delay, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { LobbyService } from './lobby.service';
 import { JoinMode, Room, RoomSummary } from './room.model';
 import { PreferencesStore } from '../../core/stores/preferences.store';
@@ -51,15 +51,11 @@ export class JoinRoomStore {
   async join(): Promise<Room | null> {
     const code = this._code().trim();
     if (code.length < 4) return null;
-    return this.run(() =>
-      this.lobby.joinRoom({ code, password: this._password() || undefined }),
-    );
+    return this.run(() => this.lobby.joinRoom({ code, password: this._password() || undefined }));
   }
 
   async create(joinMode: JoinMode = 'auto'): Promise<Room | null> {
-    return this.run(() =>
-      this.lobby.createRoom({ hostId: this.prefs.clientId(), joinMode }),
-    );
+    return this.run(() => this.lobby.createRoom({ hostId: this.prefs.clientId(), joinMode }));
   }
 
   // ---- room list ----
@@ -86,7 +82,7 @@ export class JoinRoomStore {
     this._listLoading.set(true);
     const skip = reset ? 0 : this._rooms().length;
     try {
-      const res = await firstValueFrom(this.lobby.listRooms(this._search(), skip, PAGE_SIZE).pipe(delay(500)));
+      const res = await firstValueFrom(this.lobby.listRooms(this._search(), skip, PAGE_SIZE));
       this._total.set(res.total);
       this._rooms.update((cur) => (reset ? res.rooms : [...cur, ...res.rooms]));
     } catch {
