@@ -82,6 +82,11 @@ export class ReplayPlayer {
   private totalPoints = 0;
   private donePoints = 0;
   private raf = 0;
+  /** Offscreen layer holding completed ops; the visible canvas = base + the
+   *  in-progress stroke redrawn as a single path each frame (so a translucent
+   *  stroke isn't compounded segment-by-segment into beads/dots). */
+  private base: HTMLCanvasElement | null = null;
+  private baseCtx: CanvasRenderingContext2D | null = null;
   /** rAF timestamp of the previous frame (0 = first frame / just resumed). */
   private lastFrame = 0;
   /** Fractional points carried over between frames (time-based pacing). */
@@ -90,6 +95,10 @@ export class ReplayPlayer {
   constructor() {
     afterNextRender(() => {
       this.ctx = this.canvasRef().nativeElement.getContext('2d', { willReadFrequently: true });
+      this.base = document.createElement('canvas');
+      this.base.width = W;
+      this.base.height = H;
+      this.baseCtx = this.base.getContext('2d', { willReadFrequently: true });
       void this.load();
     });
     this.destroyRef.onDestroy(() => {
@@ -120,6 +129,7 @@ export class ReplayPlayer {
   protected restart(): void {
     cancelAnimationFrame(this.raf);
     this.ctx?.clearRect(0, 0, W, H);
+    this.baseCtx?.clearRect(0, 0, W, H);
     this.opIndex = 0;
     this.ptIndex = 1;
     this.donePoints = 0;
@@ -153,29 +163,44 @@ export class ReplayPlayer {
     this.lastFrame = now;
     let budget = Math.floor(this.pointCarry);
     this.pointCarry -= budget;
+    const base = this.baseCtx;
     while (budget > 0 && this.opIndex < this.ops.length) {
       const op = this.ops[this.opIndex];
+      // Fills + single-point dabs + fully-revealed strokes commit to the base.
       if (op.type === 'fill') {
-        this.floodFill(ctx, op.points[0], op.color);
-        this.advanceOp();
+        if (base) this.floodFill(base, op.points[0], op.color);
+        this.commitOp();
         budget--;
         continue;
       }
       if (op.points.length < 2) {
-        this.segment(ctx, op.points[0], op.points[0], op);
-        this.advanceOp();
+        if (base) this.strokePath(base, op, op.points);
+        this.commitOp();
         budget--;
         continue;
       }
-      this.segment(ctx, op.points[this.ptIndex - 1], op.points[this.ptIndex], op);
+      // Reveal one more point of the in-progress stroke.
       this.ptIndex++;
       this.donePoints++;
       budget--;
       if (this.ptIndex >= op.points.length) {
+        if (base) this.strokePath(base, op, op.points); // commit the whole stroke
         this.opIndex++;
         this.ptIndex = 1;
       }
     }
+
+    // Composite this frame: base layer + the in-progress stroke as ONE path
+    // (alpha applied once → smooth, no compounded dots), exactly like the engine.
+    ctx.clearRect(0, 0, W, H);
+    if (this.base) ctx.drawImage(this.base, 0, 0);
+    if (this.opIndex < this.ops.length) {
+      const op = this.ops[this.opIndex];
+      if (op.type !== 'fill' && op.points.length >= 2) {
+        this.strokePath(ctx, op, op.points.slice(0, this.ptIndex));
+      }
+    }
+
     this.progress.set(this.totalPoints ? Math.min(1, this.donePoints / this.totalPoints) : 1);
     if (this.recording()) this.blitMirror();
     if (this.opIndex >= this.ops.length) {
@@ -269,14 +294,44 @@ export class ReplayPlayer {
       : { w: 1920, h: 1200, fps: 30, bitrate: 12_000_000 };
   }
 
-  private advanceOp(): void {
+  /** Finish a fill / dab op: count it and move on (no in-progress reveal). */
+  private commitOp(): void {
     this.donePoints++;
     this.opIndex++;
     this.ptIndex = 1;
   }
 
-  // ---- rendering (mirrors the canvas engine) ----
-  private segment(ctx: CanvasRenderingContext2D, from: Point, to: Point, op: DrawOperation): void {
+  // ---- rendering (mirrors the canvas engine: one smooth path per stroke) ----
+
+  /** Stroke a (partial or full) point list as a single path, styled like the op. */
+  private strokePath(ctx: CanvasRenderingContext2D, op: DrawOperation, pts: Point[]): void {
+    if (!pts.length) return;
+    ctx.save();
+    this.applyStyle(ctx, op);
+    this.tracePath(ctx, pts);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /** Smooth path: quadratic curves through the midpoints (matches the engine). */
+  private tracePath(ctx: CanvasRenderingContext2D, pts: Point[]): void {
+    ctx.beginPath();
+    if (pts.length < 3) {
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      return;
+    }
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const midX = (pts[i].x + pts[i + 1].x) / 2;
+      const midY = (pts[i].y + pts[i + 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+    }
+    const last = pts[pts.length - 1];
+    ctx.quadraticCurveTo(pts[pts.length - 2].x, pts[pts.length - 2].y, last.x, last.y);
+  }
+
+  private applyStyle(ctx: CanvasRenderingContext2D, op: DrawOperation): void {
     const s: StrokeStyle = {
       erase: op.type === 'erase',
       color: op.color,
@@ -284,7 +339,6 @@ export class ReplayPlayer {
       opacity: op.opacity,
       style: op.style ?? 'hard',
     };
-    ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.lineWidth = s.size;
@@ -293,26 +347,20 @@ export class ReplayPlayer {
     if (s.erase) {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.strokeStyle = 'rgba(0,0,0,1)';
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.globalAlpha = s.opacity;
-      ctx.strokeStyle = s.color;
-      if (s.style === 'soft') {
-        ctx.globalAlpha = s.opacity * 0.55;
-        ctx.shadowColor = s.color;
-        // Clamp the blur radius — a big brush would otherwise blur hundreds of
-        // px per segment and stutter the replay (esp. on mobile).
-        ctx.shadowBlur = Math.min(48, Math.max(6, s.size * 1.3));
-      } else if (s.style === 'shadow') {
-        ctx.shadowColor = s.color;
-        ctx.shadowBlur = Math.min(64, Math.max(18, s.size * 3.2));
-      }
+      return;
     }
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.stroke();
-    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = s.opacity;
+    ctx.strokeStyle = s.color;
+    if (s.style === 'soft') {
+      ctx.globalAlpha = s.opacity * 0.55;
+      ctx.shadowColor = s.color;
+      // Clamp the blur radius so a big brush doesn't blur hundreds of px.
+      ctx.shadowBlur = Math.min(48, Math.max(6, s.size * 1.3));
+    } else if (s.style === 'shadow') {
+      ctx.shadowColor = s.color;
+      ctx.shadowBlur = Math.min(64, Math.max(18, s.size * 3.2));
+    }
   }
 
   private floodFill(ctx: CanvasRenderingContext2D, seed: Point, hex: string): void {
