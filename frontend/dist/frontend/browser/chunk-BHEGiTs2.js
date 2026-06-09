@@ -1,1 +1,0 @@
-import {V as Vl}from'./main-K3HWROOO.js';var o=class e{static \u0275fac=function(t){return new(t||e)};static \u0275cmp=Vl({type:e,selectors:[["app-skeleton"]],hostAttrs:["aria-hidden","true",1,"block","animate-pulse","bg-on-surface/10","dark:bg-white/10"],decls:0,vars:0,template:function(t,s){},encapsulation:2})};export{o};

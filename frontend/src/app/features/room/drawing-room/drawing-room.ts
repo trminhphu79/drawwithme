@@ -83,12 +83,8 @@ export class DrawingRoom {
   private weightTimer: ReturnType<typeof setTimeout> | undefined;
   /** Reset-canvas confirmation modal. */
   protected readonly confirmReset = signal(false);
-  /** "Leave the room?" confirmation (logo click or mobile back-swipe). */
-  protected readonly confirmLeave = signal(false);
-  /** True once we've decided to actually leave (skips the leave guard). */
+  /** True once we're navigating away (stops the entry effect from re-firing). */
   private leaving = false;
-  /** Resolves the CanDeactivate promise when the leave dialog is answered. */
-  private leaveResolver: ((ok: boolean) => void) | null = null;
   /** True while the backend is sealing the artwork (modal is open, share/replay
    *  locked until it resolves). */
   protected readonly sealing = signal(false);
@@ -183,8 +179,9 @@ export class DrawingRoom {
     this.store.updateProfile();
   }
 
-  /** "My Rooms" from the profile menu — navigates out (leave guard prompts). */
+  /** "My Rooms" from the profile menu — navigates out (no confirm; synced). */
   protected goMyRooms(): void {
+    this.leaving = true;
     this.router.navigate(['/my-rooms']);
   }
 
@@ -233,34 +230,10 @@ export class DrawingRoom {
     }
   }
 
-  /** Logo click → navigate home; the CanDeactivate guard prompts to confirm. */
+  /** Logo click → straight home. No confirm: the canvas is always synced. */
   protected onHome(): void {
-    this.router.navigate(['/join']);
-  }
-
-  /**
-   * CanDeactivate guard hook. Runs on the logo, any router nav, AND the
-   * browser/mobile Back gesture. Returns a promise resolved by the dialog.
-   */
-  canDeactivate(): boolean | Promise<boolean> {
-    if (this.leaving) return true; // finishing / already-confirmed leave
-    this.confirmLeave.set(true);
-    return new Promise<boolean>((resolve) => (this.leaveResolver = resolve));
-  }
-
-  /** Confirmed "Leave" → allow the pending navigation. */
-  protected onConfirmLeave(): void {
-    this.confirmLeave.set(false);
     this.leaving = true;
-    this.leaveResolver?.(true);
-    this.leaveResolver = null;
-  }
-
-  /** Cancelled → stay (the guard rejects, router restores the URL). */
-  protected onCancelLeave(): void {
-    this.confirmLeave.set(false);
-    this.leaveResolver?.(false);
-    this.leaveResolver = null;
+    this.router.navigate(['/join']);
   }
 
   protected onReset(): void {
@@ -370,7 +343,7 @@ export class DrawingRoom {
   protected goToResult(): void {
     const id = this.completedArtworkId();
     if (!id) return;
-    this.leaving = true; // skip the leave-confirm guard
+    this.leaving = true; // mark navigating-away so the entry effect won't re-fire
     this.router.navigate(['/view', id]);
   }
 

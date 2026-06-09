@@ -231,14 +231,6 @@
       (cancel)="confirmReset.set(false)" />
   }
 
-  @if (confirmLeave()) {
-    <app-confirm-dialog
-      title="Leave this room?"
-      message="Your drawing won't be saved as a final artwork. You can finish it (✓) to save and share instead."
-      confirmLabel="Leave"
-      (confirm)="onConfirmLeave()"
-      (cancel)="onCancelLeave()" />
-  }
 
   <!-- Result modal: opens immediately on Done; share/replay/open unlock once the
        backend finishes sealing. Download works right away (local capture). -->

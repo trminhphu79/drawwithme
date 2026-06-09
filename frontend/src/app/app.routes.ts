@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { leaveRoomGuard } from './features/room/leave-room.guard';
 import { adminGuard } from './features/admin/admin.guard';
 
 export const routes: Routes = [
@@ -55,7 +54,6 @@ export const routes: Routes = [
     path: 'room/:code',
     title: 'Drawing Room · DrawWithMe',
     loadComponent: () => import('./features/room/drawing-room/drawing-room').then((m) => m.DrawingRoom),
-    canDeactivate: [leaveRoomGuard],
   },
   {
     path: 'artwork/:id',
