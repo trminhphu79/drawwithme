@@ -63,6 +63,8 @@ export class RoomsService {
     const term = (search ?? '').trim();
     const where = {
       status: 'active',
+      // Only surface rooms that someone has actually joined (hide empty ones).
+      members: { some: {} },
       ...(term
         ? {
             OR: [

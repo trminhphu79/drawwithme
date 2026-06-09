@@ -55,13 +55,24 @@
     <button
       type="button"
       (click)="chatOpen.set(true)"
-      title="Open chat"
+      [title]="chatUnread() ? 'New message' : 'Open chat'"
       class="fixed left-4 z-50 w-14 h-14 rounded-full brand-bg shadow-lg flex items-center justify-center transition-all duration-200 ease-out
              bottom-[calc(1.5rem_+_env(safe-area-inset-bottom))] hover:scale-105 active:scale-95"
       [class.opacity-0]="chatOpen()"
       [class.scale-50]="chatOpen()"
-      [class.pointer-events-none]="chatOpen()">
-      <span class="material-symbols-outlined text-[26px]" style="font-variation-settings:'FILL' 1;">chat</span>
+      [class.pointer-events-none]="chatOpen()"
+      [class.ring-4]="chatFlash()"
+      [class.ring-secondary]="chatFlash()"
+      [class.animate-bounce]="chatFlash()">
+      <!-- Expanding halo during the highlight window -->
+      @if (chatFlash()) {
+        <span class="absolute inset-0 rounded-full bg-secondary/50 animate-ping pointer-events-none"></span>
+      }
+      <span class="material-symbols-outlined text-[26px] relative" style="font-variation-settings:'FILL' 1;">chat</span>
+      <!-- Persistent unread dot after the highlight fades -->
+      @if (chatUnread() && !chatFlash()) {
+        <span class="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-error ring-2 ring-surface animate-[pulse_1.5s_ease-in-out_infinite] pointer-events-none"></span>
+      }
     </button>
 
     <!-- Chat panel — scales up from the bubble (origin bottom-left) -->

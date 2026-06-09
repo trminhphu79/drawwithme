@@ -35,6 +35,11 @@ export class ChatStore {
   readonly isMuted = this.sound.muted;
   readonly hasMessages = computed(() => this._messages().length > 0);
 
+  /** Bumps on every chat message received from someone else (drives the
+   *  "new message" indicator on the chat bubble when the panel is closed). */
+  private readonly _incoming = signal(0);
+  readonly incomingCount = this._incoming.asReadonly();
+
   async init(code: string): Promise<void> {
     this.code = code;
     this.socket.connect();
@@ -94,8 +99,12 @@ export class ChatStore {
   // ---- handlers ----
   private onMessage(msg: ChatMessage): void {
     if (!msg) return;
-    this._messages.update((list) => (list.some((m) => m.id === msg.id) ? list : [...list, msg]));
-    if (!msg.system && msg.authorId !== this.myId) this.sound.receiveMessage();
+    const isNew = !this._messages().some((m) => m.id === msg.id);
+    this._messages.update((list) => (isNew ? [...list, msg] : list));
+    if (isNew && !msg.system && msg.authorId !== this.myId) {
+      this.sound.receiveMessage();
+      this._incoming.update((n) => n + 1);
+    }
   }
 
   private onReaction(r: ReactionEvent): void {

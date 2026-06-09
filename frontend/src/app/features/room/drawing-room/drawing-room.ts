@@ -6,6 +6,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
@@ -74,6 +75,11 @@ export class DrawingRoom {
   protected readonly editProfileOpen = signal(false);
   /** Mobile/tablet chat drawer open state (always visible on lg+). */
   protected readonly chatOpen = signal(false);
+  /** Brief highlight on the chat bubble when a message lands while it's closed. */
+  protected readonly chatFlash = signal(false);
+  /** Persistent unread dot on the chat bubble (cleared when the panel opens). */
+  protected readonly chatUnread = signal(false);
+  private chatFlashTimer: ReturnType<typeof setTimeout> | undefined;
   /** Mobile/tablet properties drawer open state (always visible on lg+). */
   protected readonly propsOpen = signal(false);
   /** Live zoom % reported by the canvas viewport (for the controls display). */
@@ -137,6 +143,26 @@ export class DrawingRoom {
       // change it later via the header profile button.
       if (this.prefs.hasProfile()) this.enter(code);
       else this.showNameGate.set(true);
+    });
+
+    // New chat message while the panel is CLOSED → highlight the bubble for
+    // ~1.5s, then leave a persistent unread dot until it's opened.
+    effect(() => {
+      const n = this.chat.incomingCount();
+      if (n === 0 || untracked(() => this.chatOpen())) return;
+      this.chatFlash.set(true);
+      this.chatUnread.set(true);
+      clearTimeout(this.chatFlashTimer);
+      this.chatFlashTimer = setTimeout(() => this.chatFlash.set(false), 1500);
+    });
+
+    // Opening the panel clears the unread indicator.
+    effect(() => {
+      if (this.chatOpen()) {
+        this.chatUnread.set(false);
+        this.chatFlash.set(false);
+        clearTimeout(this.chatFlashTimer);
+      }
     });
 
     // Another member sealed the artwork → just let everyone know (the room

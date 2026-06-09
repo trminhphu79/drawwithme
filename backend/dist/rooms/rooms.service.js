@@ -55,6 +55,7 @@ let RoomsService = class RoomsService {
         const term = (search ?? '').trim();
         const where = {
             status: 'active',
+            members: { some: {} },
             ...(term
                 ? {
                     OR: [
