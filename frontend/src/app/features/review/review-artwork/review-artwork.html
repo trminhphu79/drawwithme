@@ -16,13 +16,17 @@
   <main class="flex-grow flex flex-col items-center justify-center p-margin-mobile md:p-margin-desktop relative z-10">
 
     @if (store.loading()) {
-      <!-- Skeleton placeholder while the artwork loads -->
+      <!-- Skeleton placeholder — mirrors the loaded layout exactly to avoid any
+           layout shift when the data arrives. -->
       <div class="w-full max-w-5xl flex flex-col items-center gap-12 mt-16 md:mt-12">
         <div class="flex flex-col items-center gap-4 w-full">
-          <app-skeleton class="h-10 w-64 max-w-[80%] rounded-lg" />
+          <app-skeleton class="h-14 w-72 max-w-[80%] rounded-lg" />
           <app-skeleton class="h-4 w-80 max-w-[90%] rounded-full" />
         </div>
-        <app-skeleton class="w-full max-w-3xl aspect-[16/10] rounded-2xl" />
+        <!-- Same card chrome + aspect ratio as <app-artwork-preview>. -->
+        <div class="w-full elevation-3 rounded-xl bg-surface-container-lowest p-4 border border-outline-variant/30">
+          <app-skeleton class="w-full aspect-video rounded-lg" />
+        </div>
         <div class="flex gap-3">
           <app-skeleton class="h-12 w-32 rounded-xl" />
           <app-skeleton class="h-12 w-32 rounded-xl" />

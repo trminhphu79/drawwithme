@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 
 /** DUMB. Final-artwork preview card with replay-on-hover overlay. */
 @Component({
@@ -9,7 +9,19 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       class="w-full relative elevation-3 rounded-xl bg-surface-container-lowest p-4 border border-outline-variant/30 transition-transform duration-500 hover:scale-[1.01]">
       <div class="relative w-full aspect-video rounded-lg overflow-hidden bg-surface-container">
         @if (imageUrl()) {
-          <img [src]="imageUrl()" alt="Final artwork" class="w-full h-full object-contain" />
+          <!-- Shimmer behind the image until it actually paints (no pop, no shift) -->
+          @if (!loaded()) {
+            <div class="absolute inset-0 animate-pulse bg-surface-container-high"></div>
+          }
+          <img
+            [src]="imageUrl()"
+            alt="Final artwork"
+            fetchpriority="high"
+            decoding="async"
+            (load)="loaded.set(true)"
+            class="w-full h-full object-contain transition-opacity duration-300"
+            [class.opacity-0]="!loaded()"
+            [class.opacity-100]="loaded()" />
         } @else {
           <!-- Warm placeholder when no rasterized snapshot exists yet -->
           <div
@@ -39,4 +51,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 export class ArtworkPreview {
   readonly imageUrl = input<string | null>(null);
   readonly replay = output<void>();
+
+  /** Flips true once the artwork image has actually painted (drives the fade-in). */
+  protected readonly loaded = signal(false);
 }
