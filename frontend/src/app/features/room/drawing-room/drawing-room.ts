@@ -115,6 +115,8 @@ export class DrawingRoom {
   /** The current user's own avatar + name (for the header profile button). */
   protected readonly myAvatar = this.prefs.avatar;
   protected readonly myName = this.prefs.displayName;
+  /** Stable client id — shown in the edit-profile modal so it can be given to an admin. */
+  protected readonly myClientId = this.prefs.clientId;
   /** avatarUrl helper for the host's pending-request list. */
   protected readonly avatarUrl = avatarUrl;
   /** Tools + chat are usable only once fully admitted (host approval). */

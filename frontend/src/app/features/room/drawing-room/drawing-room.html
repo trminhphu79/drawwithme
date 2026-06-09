@@ -216,6 +216,7 @@
       backLabel="Cancel"
       [initialName]="myName()"
       [initialAvatar]="myAvatar()"
+      [clientId]="myClientId()"
       (save)="onProfileSave($event)"
       (back)="editProfileOpen.set(false)" />
   }

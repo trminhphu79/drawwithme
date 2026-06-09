@@ -20,6 +20,8 @@ export class ProfileGate {
   readonly initialAvatar = input('');
   readonly heading = input('Join the room');
   readonly backLabel = input('Back');
+  /** When set, show a "Copy my ID" button (used in the edit-profile modal). */
+  readonly clientId = input('');
 
   readonly save = output<Profile>();
   readonly back = output<void>();
@@ -28,6 +30,7 @@ export class ProfileGate {
   protected readonly url = avatarUrl;
   protected readonly name = signal('');
   protected readonly avatar = signal(AVATARS[0]);
+  protected readonly copied = signal(false);
   private inited = false;
 
   constructor() {
@@ -48,5 +51,20 @@ export class ProfileGate {
   protected submit(): void {
     if (!this.valid()) return;
     this.save.emit({ name: this.name().trim(), avatar: this.avatar() });
+  }
+
+  /** Copy the user's client id (to hand to an admin for host assignment). */
+  protected copyId(): void {
+    const id = this.clientId();
+    if (!id) return;
+    const done = () => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 1800);
+    };
+    try {
+      navigator.clipboard?.writeText(id).then(done, done) ?? done();
+    } catch {
+      done();
+    }
   }
 }
