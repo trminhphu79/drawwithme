@@ -65,14 +65,6 @@ import { ColorPicker } from '../color-picker/color-picker';
           class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white/20 hover:scale-110 active:scale-95 transition-all">
           <span class="material-symbols-outlined">tune</span>
         </button>
-
-        <div class="w-px h-7 bg-outline-variant/40 mx-0.5 sm:mx-1 shrink-0"></div>
-
-        <button type="button" (click)="finish.emit()" [disabled]="!canFinish()"
-          [title]="canFinish() ? 'Finish & save' : 'Draw something first'"
-          class="w-9 h-9 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center rounded-full bg-secondary text-on-secondary shadow-md hover:brightness-105 hover:scale-110 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:brightness-100">
-          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
-        </button>
       </nav>
 
       <!-- Color popover (outside the scrolling nav so it isn't clipped) -->
@@ -93,13 +85,11 @@ export class ToolRail {
   readonly pencilStyles = input<PencilStyleDef[]>([]);
   readonly pencilStyle = input<PencilStyle>('soft');
   readonly color = input('#000000');
-  readonly canFinish = input(true);
 
   readonly toolSelect = output<ToolId>();
   readonly styleChange = output<PencilStyle>();
   readonly preferences = output<void>();
   readonly colorChange = output<string>();
-  readonly finish = output<void>();
 
   /** Color-picker popover visibility. */
   protected readonly pickerOpen = signal(false);

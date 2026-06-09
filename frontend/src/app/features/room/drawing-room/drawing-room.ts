@@ -89,8 +89,11 @@ export class DrawingRoom {
   private leaving = false;
   /** Resolves the CanDeactivate promise when the leave dialog is answered. */
   private leaveResolver: ((ok: boolean) => void) | null = null;
-  /** "Finish & save?" confirmation before sealing the artwork. */
-  protected readonly confirmFinish = signal(false);
+  /** True while the backend is sealing the artwork (modal is open, share/replay
+   *  locked until it resolves). */
+  protected readonly sealing = signal(false);
+  /** True if the seal upload failed (offer a retry in the modal). */
+  protected readonly sealError = signal(false);
   /** Result modal (replay / share / download) shown after sealing. */
   protected readonly completeModalOpen = signal(false);
   protected readonly completeReplayOpen = signal(false);
@@ -295,37 +298,46 @@ export class DrawingRoom {
     this.toastTimer = setTimeout(() => this.toast.set(null), 3200);
   }
 
-  /** Finish icon → confirm first (don't seal/redirect directly). */
+  /**
+   * "Done" → no confirm. Capture the canvas, open the result modal immediately
+   * in a processing state, and seal in the background. Share/replay/open unlock
+   * once the upload resolves; download works right away (local capture).
+   */
   protected onFinish(): void {
+    if (this.sealing()) return;
     if (!this.store.canUndo()) {
       this.showToast('Draw something before finishing 🎨');
       return;
     }
-    this.confirmFinish.set(true);
-  }
-
-  protected onCancelFinish(): void {
-    this.confirmFinish.set(false);
-  }
-
-  /** Confirmed Save → seal the artwork, notify the room, open the result modal. */
-  protected async onConfirmFinish(): Promise<void> {
-    this.confirmFinish.set(false);
     const dataUrl = this.canvas()?.captureDataUrl();
     if (!dataUrl) {
       this.showToast('Could not capture the canvas — try again.');
       return;
     }
+    this.completedDataUrl = dataUrl;
+    this.completedArtworkId.set(null);
+    this.completeModalOpen.set(true);
+    void this.runSeal(dataUrl);
+  }
+
+  /** Retry the upload after a failure (reuses the captured image). */
+  protected retrySeal(): void {
+    if (this.completedDataUrl) void this.runSeal(this.completedDataUrl);
+  }
+
+  /** Upload the snapshot; on success notify the room + unlock the share actions. */
+  private async runSeal(dataUrl: string): Promise<void> {
+    this.sealError.set(false);
+    this.sealing.set(true);
     const id = await this.store.seal(dataUrl);
+    this.sealing.set(false);
     if (!id) {
-      this.showToast('Saving failed — please try again.');
+      this.sealError.set(true);
       return;
     }
-    this.completedDataUrl = dataUrl;
     this.completedArtworkId.set(id);
     this.finishNotified = true; // don't also toast ourselves from room:finished
     this.store.notifyFinished(id);
-    this.completeModalOpen.set(true);
   }
 
   /** Result-modal actions. */

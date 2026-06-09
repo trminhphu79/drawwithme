@@ -37,6 +37,17 @@ import { UserMenu } from '../../../core/ui/user-menu';
           class="w-2 h-2 rounded-full shrink-0"
           [class]="connected() ? 'bg-secondary-container' : 'bg-outline'"
           [title]="connected() ? 'Connected' : 'Offline'"></span>
+
+        <!-- Finish & save the artwork -->
+        <button
+          type="button"
+          (click)="finish.emit()"
+          [disabled]="!canFinish()"
+          [title]="canFinish() ? 'Finish & save' : 'Draw something first'"
+          class="ml-1 shrink-0 flex items-center gap-1 h-9 px-3 rounded-lg bg-secondary text-on-secondary font-label-md shadow-sm hover:brightness-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100">
+          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span>
+          Done
+        </button>
       </div>
 
       <div class="flex items-center gap-3">
@@ -84,6 +95,7 @@ export class RoomTopBar {
   readonly roomCode = input.required<string>();
   readonly participants = input<Participant[]>([]);
   readonly connected = input(false);
+  readonly canFinish = input(true);
   readonly title = input('Untitled');
   readonly myAvatar = input('');
   readonly myName = input('');
@@ -92,5 +104,6 @@ export class RoomTopBar {
   readonly editProfile = output<void>();
   readonly myRooms = output<void>();
   readonly home = output<void>();
+  readonly finish = output<void>();
   readonly titleChange = output<string>();
 }
