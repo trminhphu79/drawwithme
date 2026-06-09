@@ -115,7 +115,7 @@ export class RoomTopBar {
   readonly connected = input(false);
   readonly canFinish = input(true);
   /** Whether to show the "Done" button (hidden until the user is admitted). */
-  readonly showFinish = input(true);
+  readonly showFinish = input(false);
   readonly title = input('Untitled');
   readonly myAvatar = input('');
   readonly myName = input('');
