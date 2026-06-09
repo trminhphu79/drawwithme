@@ -392,8 +392,14 @@ export class CanvasStage {
     ctx.quadraticCurveTo(pts[pts.length - 2].x, pts[pts.length - 2].y, last.x, last.y);
   }
 
-  /** Configure ctx for the given brush incl. the 3 pencil styles. */
-  private applyStrokeStyle(ctx: CanvasRenderingContext2D, b: BrushSettings): void {
+  /**
+   * Configure ctx for the given brush + pencil style.
+   * `live` = cheap preview while dragging: no shadowBlur (the expensive part on
+   * mobile). The real feathered/glow look is applied once on the committed
+   * redraw at pointer-up. shadowBlur is also clamped so big brushes don't blow
+   * up the blur radius into hundreds of px (catastrophic on iOS Safari).
+   */
+  private applyStrokeStyle(ctx: CanvasRenderingContext2D, b: BrushSettings, live = false): void {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.lineWidth = b.size;
@@ -409,16 +415,19 @@ export class CanvasStage {
     ctx.globalAlpha = b.opacity;
     ctx.strokeStyle = b.color;
     if (b.style === 'soft') {
-      // Marker / airbrush: translucent + heavily feathered edges.
+      // Marker / airbrush: translucent + feathered edges.
       ctx.globalAlpha = b.opacity * 0.55;
-      ctx.shadowColor = b.color;
-      ctx.shadowBlur = Math.max(6, b.size * 1.3);
+      if (!live) {
+        ctx.shadowColor = b.color;
+        ctx.shadowBlur = Math.min(48, Math.max(6, b.size * 1.3));
+      }
     } else if (b.style === 'shadow') {
-      // Neon: solid core with a strong colored glow (bolder = larger blur).
-      ctx.shadowColor = b.color;
-      ctx.shadowBlur = Math.max(18, b.size * 3.2);
+      // Neon: solid core with a colored glow.
+      if (!live) {
+        ctx.shadowColor = b.color;
+        ctx.shadowBlur = Math.min(64, Math.max(18, b.size * 3.2));
+      }
     }
-    // 'hard' (legacy) → crisp, fully opaque, no blur (defaults above).
   }
 
   private strokeSegment(
@@ -428,13 +437,12 @@ export class CanvasStage {
     b: BrushSettings,
   ): void {
     ctx.save();
-    this.applyStrokeStyle(ctx, b);
+    // Live segments use the cheap (blur-free) preview.
+    this.applyStrokeStyle(ctx, b, true);
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
     ctx.stroke();
-    // Shadow style: a second pass intensifies the colored glow.
-    if (b.tool !== 'eraser' && b.style === 'shadow') ctx.stroke();
     ctx.restore();
   }
 
