@@ -106,7 +106,9 @@ let CanvasGateway = class CanvasGateway {
                 client.emit('reference:updated', { url });
         })
             .catch(() => undefined);
-        if (!rejoin) {
+        const alreadyHere = !!clientId &&
+            [...members.values()].filter((m) => m.clientId === clientId).length > 1;
+        if (!rejoin && !alreadyHere) {
             this.server.to(code).emit('chat:message', {
                 id: `sys-${this.sysSeq++}`,
                 authorId: 'system',
@@ -365,9 +367,15 @@ let CanvasGateway = class CanvasGateway {
     }
     emitPresence(code) {
         const members = this.rooms.get(code);
-        const list = members
-            ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorIndex: p.colorIndex, avatar: p.avatar }))
-            : [];
+        const seen = new Set();
+        const list = [];
+        for (const [id, p] of members ?? []) {
+            const key = p.clientId || id;
+            if (seen.has(key))
+                continue;
+            seen.add(key);
+            list.push({ id, name: p.name, colorIndex: p.colorIndex, avatar: p.avatar });
+        }
         this.server.to(code).emit('presence:update', list);
     }
 };

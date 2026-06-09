@@ -168,8 +168,12 @@ export class CanvasGateway implements OnGatewayDisconnect {
       .catch(() => undefined);
 
     // Announce the arrival as a system chat message (ephemeral, not persisted).
-    // Skipped on reconnect/tab-reopen (rejoin) so the welcome shows only once.
-    if (!rejoin) {
+    // Skipped on reconnect/tab-reopen (rejoin) AND when the same user is already
+    // present in another tab (so opening tabs doesn't spam "X joined").
+    const alreadyHere =
+      !!clientId &&
+      [...members.values()].filter((m) => m.clientId === clientId).length > 1;
+    if (!rejoin && !alreadyHere) {
       this.server.to(code).emit('chat:message', {
         id: `sys-${this.sysSeq++}`,
         authorId: 'system',
@@ -501,9 +505,16 @@ export class CanvasGateway implements OnGatewayDisconnect {
 
   private emitPresence(code: string): void {
     const members = this.rooms.get(code);
-    const list = members
-      ? [...members.entries()].map(([id, p]) => ({ id, name: p.name, colorIndex: p.colorIndex, avatar: p.avatar }))
-      : [];
+    // De-duplicate by clientId so multiple tabs from the same browser/user
+    // count as ONE active member (avatars + count stay per-user, not per-socket).
+    const seen = new Set<string>();
+    const list: { id: string; name: string; colorIndex: number; avatar?: string }[] = [];
+    for (const [id, p] of members ?? []) {
+      const key = p.clientId || id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push({ id, name: p.name, colorIndex: p.colorIndex, avatar: p.avatar });
+    }
     this.server.to(code).emit('presence:update', list);
   }
 }
