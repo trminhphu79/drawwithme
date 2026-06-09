@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { Participant } from '../participant.model';
 import { avatarUrl } from '../../../core/models/avatars';
 import { cursorColor } from '../../../core/models/cursor-colors';
@@ -52,7 +52,7 @@ import { UserMenu } from '../../../core/ui/user-menu';
 
       <div class="flex items-center gap-3">
         <div class="flex -space-x-3 items-center mr-1">
-          @for (p of participants(); track p.id) {
+          @for (p of visibleParticipants(); track p.id) {
             @if (p.avatar) {
               <img
                 [src]="url(p.avatar)"
@@ -67,6 +67,13 @@ import { UserMenu } from '../../../core/ui/user-menu';
                 {{ p.name.charAt(0) }}
               </div>
             }
+          }
+          @if (extraCount() > 0) {
+            <div
+              [title]="extraCount() + ' more'"
+              class="w-8 h-8 rounded-full border-2 border-surface shadow-sm flex items-center justify-center text-xs font-bold bg-surface-variant text-on-surface-variant">
+              +{{ extraCount() }}
+            </div>
           }
         </div>
 
@@ -94,6 +101,15 @@ export class RoomTopBar {
 
   readonly roomCode = input.required<string>();
   readonly participants = input<Participant[]>([]);
+
+  /** Show at most 2 avatars in the header; the rest collapse into a "+N" badge. */
+  private readonly maxAvatars = 2;
+  protected readonly visibleParticipants = computed(() =>
+    this.participants().slice(0, this.maxAvatars),
+  );
+  protected readonly extraCount = computed(() =>
+    Math.max(0, this.participants().length - this.maxAvatars),
+  );
   readonly connected = input(false);
   readonly canFinish = input(true);
   readonly title = input('Untitled');
