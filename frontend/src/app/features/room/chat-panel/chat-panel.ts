@@ -27,9 +27,14 @@ export class ChatPanel {
   readonly myId = input('');
   readonly muted = input(false);
   readonly memberCount = input(0);
+  /** Voice chat state (mic on / connecting / number of connected peers). */
+  readonly micOn = input(false);
+  readonly voiceConnecting = input(false);
+  readonly voicePeers = input(0);
 
   readonly send = output<string>();
   readonly toggleMute = output<void>();
+  readonly toggleVoice = output<void>();
   readonly close = output<void>();
 
   protected readonly draft = signal('');

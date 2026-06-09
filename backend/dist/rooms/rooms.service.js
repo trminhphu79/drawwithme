@@ -146,7 +146,11 @@ let RoomsService = class RoomsService {
         });
         if (!room)
             return null;
-        return { hostId: room.hostId, joinMode: room.settings?.joinMode ?? 'auto' };
+        return {
+            hostId: room.hostId,
+            joinMode: room.settings?.joinMode ?? 'auto',
+            capacity: room.settings?.capacity ?? 3,
+        };
     }
     async generateUniqueCode() {
         for (let attempt = 0; attempt < 10; attempt++) {
@@ -165,6 +169,7 @@ let RoomsService = class RoomsService {
             hasPassword: !!room.passwordHash,
             hostId: room.hostId,
             joinMode: room.settings?.joinMode ?? 'auto',
+            capacity: room.settings?.capacity ?? 3,
             width: room.width,
             height: room.height,
             status: room.status,

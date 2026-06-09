@@ -13,13 +13,33 @@
         </p>
       </div>
     </div>
-    <button
-      type="button"
-      (click)="toggleMute.emit()"
-      [title]="muted() ? 'Unmute sounds' : 'Mute sounds'"
-      class="w-9 h-9 flex items-center justify-center rounded-lg text-white hover:bg-white/20 transition-colors">
-      <span class="material-symbols-outlined text-[20px]">{{ muted() ? 'volume_off' : 'volume_up' }}</span>
-    </button>
+    <div class="flex items-center gap-1">
+      <!-- Voice chat mic: talk to everyone in the room -->
+      <button
+        type="button"
+        (click)="toggleVoice.emit()"
+        [title]="micOn() ? 'Turn off voice' : 'Talk (voice chat)'"
+        class="relative w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+        [class]="micOn() ? 'bg-white/25 text-white' : 'text-white hover:bg-white/20'">
+        @if (voiceConnecting()) {
+          <span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+        } @else {
+          <span class="material-symbols-outlined text-[20px]">{{ micOn() ? 'mic' : 'mic_off' }}</span>
+        }
+        @if (micOn() && voicePeers()) {
+          <span class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-white text-secondary text-[10px] font-bold flex items-center justify-center">
+            {{ voicePeers() }}
+          </span>
+        }
+      </button>
+      <button
+        type="button"
+        (click)="toggleMute.emit()"
+        [title]="muted() ? 'Unmute sounds' : 'Mute sounds'"
+        class="w-9 h-9 flex items-center justify-center rounded-lg text-white hover:bg-white/20 transition-colors">
+        <span class="material-symbols-outlined text-[20px]">{{ muted() ? 'volume_off' : 'volume_up' }}</span>
+      </button>
+    </div>
   </div>
 
   <!-- Messages -->

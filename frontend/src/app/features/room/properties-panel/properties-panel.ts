@@ -25,6 +25,7 @@ export class PropertiesPanel {
   /** Host-only room settings. */
   readonly isHost = input(false);
   readonly joinMode = input<'auto' | 'approval'>('auto');
+  readonly capacity = input(3);
 
   readonly sizeChange = output<number>();
   readonly opacityChange = output<number>();
@@ -35,6 +36,10 @@ export class PropertiesPanel {
   readonly previewReference = output<void>();
   readonly clear = output<void>();
   readonly joinModeChange = output<'auto' | 'approval'>();
+  readonly capacityChange = output<number>();
+
+  /** Member-limit choices (3..5). */
+  protected readonly capacityOptions = [3, 4, 5];
 
   /** Custom color-picker popover visibility. */
   protected readonly pickerOpen = signal(false);

@@ -18,7 +18,7 @@ export interface JoinRequest {
 }
 
 /** Local join state for the current user. */
-export type JoinState = 'active' | 'pending' | 'denied';
+export type JoinState = 'active' | 'pending' | 'denied' | 'full';
 
 /** Base swatches always shown in the palette, merged with saved colors. */
 const BASE_PALETTE = [
@@ -66,6 +66,7 @@ export class DrawingStore {
   private readonly _joinState = signal<JoinState>('active');
   private readonly _isHost = signal(false);
   private readonly _joinMode = signal<'auto' | 'approval'>('auto');
+  private readonly _capacity = signal(3);
   private readonly _joinRequests = signal<JoinRequest[]>([]);
 
   private code = '';
@@ -88,6 +89,7 @@ export class DrawingStore {
   readonly joinState = this._joinState.asReadonly();
   readonly isHost = this._isHost.asReadonly();
   readonly joinMode = this._joinMode.asReadonly();
+  readonly capacity = this._capacity.asReadonly();
   readonly joinRequests = this._joinRequests.asReadonly();
   readonly connected = this.socket.connected;
 
@@ -196,11 +198,17 @@ export class DrawingStore {
         this._joinRequests.update((list) => list.filter((r) => r.socketId !== socketId)),
       );
 
+    this.socket
+      .on<{ code: string; capacity: number }>('room:full')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this._joinState.set('full'));
+
     // Am I the host of this room? (compare my stable client id to room.hostId)
     void firstValueFrom(this.lobby.getRoom(code))
       .then((room) => {
         this._isHost.set(!!room.hostId && room.hostId === this.prefs.clientId());
         this._joinMode.set(room.joinMode);
+        this._capacity.set(room.capacity ?? 3);
       })
       .catch(() => undefined);
 
@@ -251,6 +259,13 @@ export class DrawingStore {
   setJoinMode(mode: 'auto' | 'approval'): void {
     this._joinMode.set(mode);
     this.socket.emit('settings:update', { code: this.code, joinMode: mode });
+  }
+
+  /** Host: change the room's member limit (clamped 3..5). Optimistic + persisted. */
+  setCapacity(capacity: number): void {
+    const cap = Math.min(5, Math.max(3, Math.round(capacity)));
+    this._capacity.set(cap);
+    this.socket.emit('settings:update', { code: this.code, capacity: cap });
   }
 
   /** Host: admit a waiting joiner. */

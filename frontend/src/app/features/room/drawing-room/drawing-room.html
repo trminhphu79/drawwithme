@@ -78,8 +78,12 @@
         [myId]="chat.myIdSig()"
         [muted]="chat.isMuted()"
         [memberCount]="store.participants().length"
+        [micOn]="voice.micOn()"
+        [voiceConnecting]="voice.connecting()"
+        [voicePeers]="voice.peerCount()"
         (send)="chat.send($event)"
         (toggleMute)="chat.toggleMute()"
+        (toggleVoice)="voice.toggle()"
         (close)="chatOpen.set(false)" />
     </div>
 
@@ -144,7 +148,9 @@
         [referenceOpacity]="referenceOpacity()"
         [isHost]="store.isHost()"
         [joinMode]="store.joinMode()"
+        [capacity]="store.capacity()"
         (joinModeChange)="store.setJoinMode($event)"
+        (capacityChange)="store.setCapacity($event)"
         (sizeChange)="store.setSize($event)"
         (opacityChange)="store.setOpacity($event)"
         (colorChange)="store.setColor($event)"

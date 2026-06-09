@@ -8,6 +8,7 @@ export interface Room {
   hasPassword: boolean;
   hostId: string | null;
   joinMode: JoinMode;
+  capacity: number;
   width: number;
   height: number;
   status: 'active' | 'archived';

@@ -11,6 +11,7 @@ import {
 import { Router } from '@angular/router';
 import { DrawingStore } from '../drawing.store';
 import { ChatStore } from '../chat.store';
+import { VoiceStore } from '../voice.store';
 import { PreferencesStore } from '../../../core/stores/preferences.store';
 import { avatarUrl } from '../../../core/models/avatars';
 import { DRAWING_TOOLS, PENCIL_STYLES } from '../tool.model';
@@ -37,7 +38,7 @@ import { Toast } from '../../../core/ui/toast';
 @Component({
   selector: 'app-drawing-room',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [DrawingStore, ChatStore],
+  providers: [DrawingStore, ChatStore, VoiceStore],
   imports: [
     RoomTopBar,
     ToolRail,
@@ -59,6 +60,7 @@ import { Toast } from '../../../core/ui/toast';
 export class DrawingRoom {
   protected readonly store = inject(DrawingStore);
   protected readonly chat = inject(ChatStore);
+  protected readonly voice = inject(VoiceStore);
   private readonly prefs = inject(PreferencesStore);
   private readonly router = inject(Router);
 
@@ -146,12 +148,17 @@ export class DrawingRoom {
       this.showToast(`🎉 ${done.by} finished the masterpiece! Share link is ready.`);
     });
 
-    // Host denied this user → let them know, then send them home.
+    // Denied by host, or the room is full → let them know, then send them home.
     effect(() => {
-      if (this.store.joinState() !== 'denied' || this.leaving) return;
+      const state = this.store.joinState();
+      if ((state !== 'denied' && state !== 'full') || this.leaving) return;
       this.leaving = true;
-      this.showToast('The host didn’t let you into this room.');
-      setTimeout(() => this.router.navigate(['/join']), 1800);
+      this.showToast(
+        state === 'full'
+          ? 'This room is full — try another or create your own.'
+          : 'The host didn’t let you into this room.',
+      );
+      setTimeout(() => this.router.navigate(['/join']), 2000);
     });
   }
 
@@ -366,5 +373,6 @@ export class DrawingRoom {
     this.entered = true;
     void this.store.init(code);
     void this.chat.init(code);
+    this.voice.init(code);
   }
 }

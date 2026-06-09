@@ -46,6 +46,10 @@ export class CanvasGateway implements OnGatewayDisconnect {
   private readonly approved = new Map<string, Set<string>>();
   /** roomCode -> hostId (cached from the DB on first join). */
   private readonly hostByRoom = new Map<string, string | null>();
+  /** roomCode -> max simultaneous members (cached from the DB). */
+  private readonly capacityByRoom = new Map<string, number>();
+  /** roomCode -> set of socketIds with their mic on (voice mesh). */
+  private readonly voicePeers = new Map<string, Set<string>>();
   /** Debounce timers for persisting room title edits. */
   private readonly titleTimers = new Map<string, ReturnType<typeof setTimeout>>();
   /** Monotonic counters for unique reaction / system-message ids. */
@@ -73,6 +77,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
     const hostId = access?.hostId ?? null;
     const joinMode = access?.joinMode ?? 'auto';
     this.hostByRoom.set(code, hostId);
+    this.capacityByRoom.set(code, access?.capacity ?? 3);
 
     const approvedSet = this.approved.get(code) ?? new Set<string>();
     if (hostId) approvedSet.add(hostId); // the host is always allowed
@@ -94,10 +99,10 @@ export class CanvasGateway implements OnGatewayDisconnect {
       return;
     }
 
-    this.admit(client, code, name, body.avatar, clientId, !!body.rejoin);
+    const admitted = this.admit(client, code, name, body.avatar, clientId, !!body.rejoin, isHost);
 
     // A joining host receives any requests that arrived before they connected.
-    if (isHost) this.sendPendingTo(client, code);
+    if (admitted && isHost) this.sendPendingTo(client, code);
   }
 
   /** Host admits a pending joiner. */
@@ -112,7 +117,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
     const target = this.server.sockets.sockets.get(body.socketId);
     if (!pend || !target) return;
     if (pend.clientId) this.approved.get(code)?.add(pend.clientId);
-    this.admit(target, code, pend.name, pend.avatar, pend.clientId, false);
+    this.admit(target, code, pend.name, pend.avatar, pend.clientId, false, false);
     this.resolveRequest(code, body.socketId);
   }
 
@@ -129,7 +134,11 @@ export class CanvasGateway implements OnGatewayDisconnect {
     this.resolveRequest(code, body.socketId);
   }
 
-  /** Add a socket to the active room + presence (auto-join or after approval). */
+  /**
+   * Add a socket to the active room + presence (auto-join or after approval).
+   * Returns false (and notifies the client) if the room is at capacity.
+   * The host always gets in regardless of capacity.
+   */
   private admit(
     client: Socket,
     code: string,
@@ -137,9 +146,21 @@ export class CanvasGateway implements OnGatewayDisconnect {
     avatar: string | undefined,
     clientId: string,
     rejoin: boolean,
-  ): void {
-    client.join(code);
+    isHost: boolean,
+  ): boolean {
     const members = this.rooms.get(code) ?? new Map<string, Presence>();
+    // Count DISTINCT users already in (multiple tabs of one user = one member).
+    const distinct = new Set(
+      [...members.values()].map((m) => m.clientId).filter((c): c is string => !!c),
+    );
+    const isNewUser = !!clientId && !distinct.has(clientId);
+    const capacity = this.capacityByRoom.get(code) ?? 3;
+    if (!isHost && isNewUser && distinct.size >= capacity) {
+      client.emit('room:full', { code, capacity });
+      return false;
+    }
+
+    client.join(code);
     members.set(client.id, {
       name,
       colorIndex: this.nextColorIndex(members),
@@ -183,6 +204,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
         system: true,
       });
     }
+    return true;
   }
 
   @SubscribeMessage('op:commit')
@@ -272,17 +294,21 @@ export class CanvasGateway implements OnGatewayDisconnect {
   @SubscribeMessage('settings:update')
   async onSettingsUpdate(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { code: string; joinMode: 'auto' | 'approval' },
+    @MessageBody() body: { code: string; joinMode?: 'auto' | 'approval'; capacity?: number },
   ): Promise<void> {
     const code = (body.code ?? '').toUpperCase();
-    const joinMode = body.joinMode === 'approval' ? 'approval' : 'auto';
     if (!this.isHostSocket(client, code)) return; // only the host can change settings
+    const data: { joinMode?: string; capacity?: number } = {};
+    if (body.joinMode === 'auto' || body.joinMode === 'approval') data.joinMode = body.joinMode;
+    if (typeof body.capacity === 'number') {
+      data.capacity = Math.min(5, Math.max(3, Math.round(body.capacity)));
+      this.capacityByRoom.set(code, data.capacity);
+    }
+    if (!Object.keys(data).length) return;
     try {
       await this.prisma.room.update({
         where: { code },
-        data: {
-          settings: { upsert: { create: { joinMode }, update: { joinMode } } },
-        },
+        data: { settings: { upsert: { create: data, update: data } } },
       });
     } catch {
       /* room missing / db error — ignore */
@@ -342,6 +368,50 @@ export class CanvasGateway implements OnGatewayDisconnect {
     this.emitPresence(code);
   }
 
+  // ---- voice (WebRTC mesh) — the gateway only relays signaling; no media or
+  // recording ever touches the server. ----
+  @SubscribeMessage('voice:join')
+  onVoiceJoin(@ConnectedSocket() client: Socket, @MessageBody() body: { code: string }): void {
+    const code = (body.code ?? '').toUpperCase();
+    if (!code || !this.rooms.get(code)?.has(client.id)) return;
+    const peers = this.voicePeers.get(code) ?? new Set<string>();
+    // Tell the newcomer who's already on a mic (they will initiate offers).
+    client.emit('voice:peers', { peers: [...peers] });
+    peers.add(client.id);
+    this.voicePeers.set(code, peers);
+    // Let existing voice peers know someone joined (they wait for the offer).
+    client.to(code).emit('voice:peer-joined', { socketId: client.id });
+  }
+
+  @SubscribeMessage('voice:leave')
+  onVoiceLeave(@ConnectedSocket() client: Socket, @MessageBody() body: { code: string }): void {
+    this.dropVoice((body.code ?? '').toUpperCase(), client);
+  }
+
+  @SubscribeMessage('voice:signal')
+  onVoiceSignal(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    body: { code: string; to: string; kind: 'offer' | 'answer' | 'ice'; data: unknown },
+  ): void {
+    const code = (body.code ?? '').toUpperCase();
+    if (!code || !body.to) return;
+    // Relay the SDP/ICE blob verbatim to the target peer.
+    this.server.to(body.to).emit('voice:signal', {
+      from: client.id,
+      kind: body.kind,
+      data: body.data,
+    });
+  }
+
+  /** Remove a socket from the voice mesh + tell its peers to tear down. */
+  private dropVoice(code: string, client: Socket): void {
+    const peers = this.voicePeers.get(code);
+    if (!peers?.delete(client.id)) return;
+    if (peers.size === 0) this.voicePeers.delete(code);
+    client.to(code).emit('voice:peer-left', { socketId: client.id });
+  }
+
   @SubscribeMessage('chat:send')
   async onChat(
     @ConnectedSocket() client: Socket,
@@ -385,6 +455,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
     if (!code) return;
     // A waiting joiner left — drop their pending request + clear it on the host.
     if (this.pending.get(code)?.delete(client.id)) this.resolveRequest(code, client.id);
+    this.dropVoice(code, client); // tear down any voice mesh peer connections
     const members = this.rooms.get(code);
     if (!members) return;
     members.delete(client.id);
@@ -393,10 +464,10 @@ export class CanvasGateway implements OnGatewayDisconnect {
   }
 
   // ---- host approval helpers ----
-  /** Room access (host + join mode) straight from the DB. */
+  /** Room access (host + join mode + capacity) straight from the DB. */
   private async getAccess(
     code: string,
-  ): Promise<{ hostId: string | null; joinMode: 'auto' | 'approval' } | null> {
+  ): Promise<{ hostId: string | null; joinMode: 'auto' | 'approval'; capacity: number } | null> {
     try {
       const room = await this.prisma.room.findUnique({
         where: { code },
@@ -406,6 +477,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
       return {
         hostId: room.hostId,
         joinMode: (room.settings?.joinMode as 'auto' | 'approval') ?? 'auto',
+        capacity: room.settings?.capacity ?? 3,
       };
     } catch {
       return null; // DB hiccup → fail open (auto join)

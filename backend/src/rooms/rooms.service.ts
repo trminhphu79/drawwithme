@@ -27,6 +27,7 @@ export interface RoomDto {
   hasPassword: boolean;
   hostId: string | null;
   joinMode: 'auto' | 'approval';
+  capacity: number;
   width: number;
   height: number;
   status: string;
@@ -135,14 +136,20 @@ export class RoomsService {
     return this.toDto(room);
   }
 
-  /** Lightweight host/join-mode lookup for the realtime gateway. */
-  async getAccess(code: string): Promise<{ hostId: string | null; joinMode: 'auto' | 'approval' } | null> {
+  /** Lightweight host/join-mode/capacity lookup for the realtime gateway. */
+  async getAccess(
+    code: string,
+  ): Promise<{ hostId: string | null; joinMode: 'auto' | 'approval'; capacity: number } | null> {
     const room = await this.prisma.room.findUnique({
       where: { code: code.toUpperCase() },
       include: { settings: true },
     });
     if (!room) return null;
-    return { hostId: room.hostId, joinMode: (room.settings?.joinMode as 'auto' | 'approval') ?? 'auto' };
+    return {
+      hostId: room.hostId,
+      joinMode: (room.settings?.joinMode as 'auto' | 'approval') ?? 'auto',
+      capacity: room.settings?.capacity ?? 3,
+    };
   }
 
   private async generateUniqueCode(): Promise<string> {
@@ -164,6 +171,7 @@ export class RoomsService {
       hasPassword: !!room.passwordHash,
       hostId: room.hostId,
       joinMode: (room.settings?.joinMode as 'auto' | 'approval') ?? 'auto',
+      capacity: room.settings?.capacity ?? 3,
       width: room.width,
       height: room.height,
       status: room.status,

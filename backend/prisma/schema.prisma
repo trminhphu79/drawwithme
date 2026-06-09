@@ -63,6 +63,8 @@ model RoomSettings {
   room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
   /// "auto" = anyone with the link joins immediately; "approval" = host admits.
   joinMode  String   @default("auto")
+  /// Max simultaneous members (3 default, capped 3..5 in the UI).
+  capacity  Int      @default(3)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

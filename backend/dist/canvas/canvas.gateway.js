@@ -27,6 +27,8 @@ let CanvasGateway = class CanvasGateway {
         this.pending = new Map();
         this.approved = new Map();
         this.hostByRoom = new Map();
+        this.capacityByRoom = new Map();
+        this.voicePeers = new Map();
         this.titleTimers = new Map();
         this.reactionSeq = 0;
         this.sysSeq = 0;
@@ -41,6 +43,7 @@ let CanvasGateway = class CanvasGateway {
         const hostId = access?.hostId ?? null;
         const joinMode = access?.joinMode ?? 'auto';
         this.hostByRoom.set(code, hostId);
+        this.capacityByRoom.set(code, access?.capacity ?? 3);
         const approvedSet = this.approved.get(code) ?? new Set();
         if (hostId)
             approvedSet.add(hostId);
@@ -57,8 +60,8 @@ let CanvasGateway = class CanvasGateway {
             this.notifyHost(code, { socketId: client.id, clientId, name, avatar: body.avatar });
             return;
         }
-        this.admit(client, code, name, body.avatar, clientId, !!body.rejoin);
-        if (isHost)
+        const admitted = this.admit(client, code, name, body.avatar, clientId, !!body.rejoin, isHost);
+        if (admitted && isHost)
             this.sendPendingTo(client, code);
     }
     onApprove(client, body) {
@@ -71,7 +74,7 @@ let CanvasGateway = class CanvasGateway {
             return;
         if (pend.clientId)
             this.approved.get(code)?.add(pend.clientId);
-        this.admit(target, code, pend.name, pend.avatar, pend.clientId, false);
+        this.admit(target, code, pend.name, pend.avatar, pend.clientId, false, false);
         this.resolveRequest(code, body.socketId);
     }
     onDeny(client, body) {
@@ -82,9 +85,16 @@ let CanvasGateway = class CanvasGateway {
         this.pending.get(code)?.delete(body.socketId);
         this.resolveRequest(code, body.socketId);
     }
-    admit(client, code, name, avatar, clientId, rejoin) {
-        client.join(code);
+    admit(client, code, name, avatar, clientId, rejoin, isHost) {
         const members = this.rooms.get(code) ?? new Map();
+        const distinct = new Set([...members.values()].map((m) => m.clientId).filter((c) => !!c));
+        const isNewUser = !!clientId && !distinct.has(clientId);
+        const capacity = this.capacityByRoom.get(code) ?? 3;
+        if (!isHost && isNewUser && distinct.size >= capacity) {
+            client.emit('room:full', { code, capacity });
+            return false;
+        }
+        client.join(code);
         members.set(client.id, {
             name,
             colorIndex: this.nextColorIndex(members),
@@ -118,6 +128,7 @@ let CanvasGateway = class CanvasGateway {
                 system: true,
             });
         }
+        return true;
     }
     async onCommit(client, body) {
         const code = (body.code ?? '').toUpperCase();
@@ -180,15 +191,21 @@ let CanvasGateway = class CanvasGateway {
     }
     async onSettingsUpdate(client, body) {
         const code = (body.code ?? '').toUpperCase();
-        const joinMode = body.joinMode === 'approval' ? 'approval' : 'auto';
         if (!this.isHostSocket(client, code))
+            return;
+        const data = {};
+        if (body.joinMode === 'auto' || body.joinMode === 'approval')
+            data.joinMode = body.joinMode;
+        if (typeof body.capacity === 'number') {
+            data.capacity = Math.min(5, Math.max(3, Math.round(body.capacity)));
+            this.capacityByRoom.set(code, data.capacity);
+        }
+        if (!Object.keys(data).length)
             return;
         try {
             await this.prisma.room.update({
                 where: { code },
-                data: {
-                    settings: { upsert: { create: { joinMode }, update: { joinMode } } },
-                },
+                data: { settings: { upsert: { create: data, update: data } } },
             });
         }
         catch {
@@ -231,6 +248,37 @@ let CanvasGateway = class CanvasGateway {
         member.avatar = body.avatar ?? member.avatar;
         this.emitPresence(code);
     }
+    onVoiceJoin(client, body) {
+        const code = (body.code ?? '').toUpperCase();
+        if (!code || !this.rooms.get(code)?.has(client.id))
+            return;
+        const peers = this.voicePeers.get(code) ?? new Set();
+        client.emit('voice:peers', { peers: [...peers] });
+        peers.add(client.id);
+        this.voicePeers.set(code, peers);
+        client.to(code).emit('voice:peer-joined', { socketId: client.id });
+    }
+    onVoiceLeave(client, body) {
+        this.dropVoice((body.code ?? '').toUpperCase(), client);
+    }
+    onVoiceSignal(client, body) {
+        const code = (body.code ?? '').toUpperCase();
+        if (!code || !body.to)
+            return;
+        this.server.to(body.to).emit('voice:signal', {
+            from: client.id,
+            kind: body.kind,
+            data: body.data,
+        });
+    }
+    dropVoice(code, client) {
+        const peers = this.voicePeers.get(code);
+        if (!peers?.delete(client.id))
+            return;
+        if (peers.size === 0)
+            this.voicePeers.delete(code);
+        client.to(code).emit('voice:peer-left', { socketId: client.id });
+    }
     async onChat(client, body) {
         const code = (body.code ?? '').toUpperCase();
         const text = (body.text ?? '').trim();
@@ -265,6 +313,7 @@ let CanvasGateway = class CanvasGateway {
             return;
         if (this.pending.get(code)?.delete(client.id))
             this.resolveRequest(code, client.id);
+        this.dropVoice(code, client);
         const members = this.rooms.get(code);
         if (!members)
             return;
@@ -284,6 +333,7 @@ let CanvasGateway = class CanvasGateway {
             return {
                 hostId: room.hostId,
                 joinMode: room.settings?.joinMode ?? 'auto',
+                capacity: room.settings?.capacity ?? 3,
             };
         }
         catch {
@@ -487,6 +537,30 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", void 0)
 ], CanvasGateway.prototype, "onProfileUpdate", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('voice:join'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], CanvasGateway.prototype, "onVoiceJoin", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('voice:leave'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], CanvasGateway.prototype, "onVoiceLeave", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('voice:signal'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], CanvasGateway.prototype, "onVoiceSignal", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('chat:send'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
