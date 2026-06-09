@@ -6,7 +6,7 @@
 	email trminhphu79@gmail.com
 }
 
-tranminhphu.com, www.tranminhphu.com, drawwithme.co, www.drawwithme.co {
+{$SITE_ADDRESS:tranminhphu.com, www.tranminhphu.com, drawwithme.co, www.drawwithme.co} {
 	encode zstd gzip
 
 	# REST API -> NestJS (keeps the /api prefix the backend expects).

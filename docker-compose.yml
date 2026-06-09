@@ -47,6 +47,9 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+    environment:
+      # Comma/space-separated domains Caddy serves + auto-provisions TLS for.
+      SITE_ADDRESS: ${SITE_ADDRESS:-tranminhphu.com, www.tranminhphu.com}
     volumes:
       - ./frontend/dist/frontend/browser:/srv:ro
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
