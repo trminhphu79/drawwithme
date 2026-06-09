@@ -25,3 +25,17 @@ export interface JoinRoomRequest {
   code: string;
   password?: string;
 }
+
+/** A room card in the lobby list. */
+export interface RoomSummary {
+  code: string;
+  name: string;
+  memberCount: number;
+  avatars: string[];
+  createdAt: string;
+}
+
+export interface RoomListResponse {
+  rooms: RoomSummary[];
+  total: number;
+}

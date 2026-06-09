@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../../core/config/api.config';
-import { CreateRoomRequest, JoinRoomRequest, Room } from './room.model';
+import { CreateRoomRequest, JoinRoomRequest, Room, RoomListResponse } from './room.model';
 
 /** REST client for room lifecycle (create / join / fetch). */
 @Injectable({ providedIn: 'root' })
@@ -20,5 +20,12 @@ export class LobbyService {
 
   getRoom(code: string): Observable<Room> {
     return this.http.get<Room>(`${this.base}/${code}`);
+  }
+
+  /** Paginated, searchable lobby list of active rooms. */
+  listRooms(search: string, skip: number, take: number): Observable<RoomListResponse> {
+    let params = new HttpParams().set('skip', skip).set('take', take);
+    if (search.trim()) params = params.set('search', search.trim());
+    return this.http.get<RoomListResponse>(this.base, { params });
   }
 }

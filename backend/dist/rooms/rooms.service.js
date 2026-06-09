@@ -46,10 +46,48 @@ exports.RoomsService = void 0;
 const common_1 = require("@nestjs/common");
 const bcrypt = __importStar(require("bcryptjs"));
 const prisma_service_1 = require("../prisma/prisma.service");
+const canvas_gateway_1 = require("../canvas/canvas.gateway");
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let RoomsService = class RoomsService {
-    constructor(prisma) {
+    constructor(prisma, gateway) {
         this.prisma = prisma;
+        this.gateway = gateway;
+    }
+    async list(search, skip, take) {
+        const term = (search ?? '').trim();
+        const where = {
+            status: 'active',
+            ...(term
+                ? {
+                    OR: [
+                        { code: { contains: term.toUpperCase() } },
+                        { name: { contains: term, mode: 'insensitive' } },
+                    ],
+                }
+                : {}),
+        };
+        const [rooms, total] = await this.prisma.$transaction([
+            this.prisma.room.findMany({
+                where,
+                orderBy: { lastActivityAt: 'desc' },
+                skip,
+                take,
+            }),
+            this.prisma.room.count({ where }),
+        ]);
+        return {
+            rooms: rooms.map((r) => {
+                const m = this.gateway.memberSummary(r.code);
+                return {
+                    code: r.code,
+                    name: r.name,
+                    memberCount: m.count,
+                    avatars: m.avatars,
+                    createdAt: r.createdAt.toISOString(),
+                };
+            }),
+            total,
+        };
     }
     async create(dto) {
         const code = await this.generateUniqueCode();
@@ -127,6 +165,7 @@ let RoomsService = class RoomsService {
 exports.RoomsService = RoomsService;
 exports.RoomsService = RoomsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        canvas_gateway_1.CanvasGateway])
 ], RoomsService);
 //# sourceMappingURL=rooms.service.js.map

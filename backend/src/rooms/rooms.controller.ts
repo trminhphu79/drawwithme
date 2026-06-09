@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { RoomsService, RoomDto } from './rooms.service';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { RoomsService, RoomDto, RoomSummary } from './rooms.service';
 import { OperationsService, DrawOperationDto } from '../canvas/operations.service';
 import { ArtworksService } from '../artworks/artworks.service';
 import { MessagesService, ChatMessageDto } from '../messages/messages.service';
@@ -27,6 +27,18 @@ export class RoomsController {
   @Post('join')
   join(@Body() dto: JoinRoomDto): Promise<RoomDto> {
     return this.rooms.join(dto);
+  }
+
+  /** Paginated, searchable lobby list of active rooms. */
+  @Get()
+  list(
+    @Query('search') search?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+  ): Promise<{ rooms: RoomSummary[]; total: number }> {
+    const skipN = Math.max(0, Number(skip) || 0);
+    const takeN = Math.min(50, Math.max(1, Number(take) || 20));
+    return this.rooms.list(search, skipN, takeN);
   }
 
   @Get(':code')

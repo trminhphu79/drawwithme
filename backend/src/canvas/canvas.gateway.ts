@@ -443,6 +443,17 @@ export class CanvasGateway implements OnGatewayDisconnect {
     return i;
   }
 
+  /** Live member count + a few avatar keys for a room (for the lobby list). */
+  memberSummary(code: string): { count: number; avatars: string[] } {
+    const members = this.rooms.get((code ?? '').toUpperCase());
+    if (!members) return { count: 0, avatars: [] };
+    const avatars = [...members.values()]
+      .map((m) => m.avatar)
+      .filter((a): a is string => !!a)
+      .slice(0, 5);
+    return { count: members.size, avatars };
+  }
+
   private emitPresence(code: string): void {
     const members = this.rooms.get(code);
     const list = members

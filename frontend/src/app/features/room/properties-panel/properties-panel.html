@@ -169,23 +169,31 @@
     @if (isHost()) {
       <div class="pt-4 border-t border-white/10">
         <label class="text-label-sm font-bold uppercase tracking-tighter mb-3 block opacity-60">Settings</label>
-        <button
-          type="button"
-          (click)="joinModeChange.emit(joinMode() === 'approval' ? 'auto' : 'approval')"
-          class="w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-on-surface/5 hover:bg-on-surface/10 transition-colors text-left">
-          <div class="min-w-0">
-            <p class="text-label-md font-bold text-on-surface">Require my approval to join</p>
-            <p class="text-[11px] text-on-surface-variant">
-              {{ joinMode() === 'approval' ? 'New people wait for you to admit them.' : 'Anyone with the link joins instantly.' }}
-            </p>
+        <div class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-on-surface/5">
+          <div class="min-w-0 flex items-start gap-3">
+            <span class="material-symbols-outlined text-secondary text-[24px] shrink-0 mt-0.5"
+              style="font-variation-settings:'FILL' 1;">verified_user</span>
+            <div class="min-w-0">
+              <p class="text-label-lg font-bold text-on-surface">Require my approval to join</p>
+              <p class="text-body-sm text-on-surface-variant mt-0.5">
+                {{ joinMode() === 'approval' ? 'New people wait for you to admit them.' : 'Anyone with the link joins instantly.' }}
+              </p>
+            </div>
           </div>
-          <span
-            class="material-symbols-outlined text-[32px] shrink-0"
-            [class.text-secondary]="joinMode() === 'approval'"
-            [class.text-on-surface-variant]="joinMode() !== 'approval'">
-            {{ joinMode() === 'approval' ? 'toggle_on' : 'toggle_off' }}
-          </span>
-        </button>
+          <button
+            type="button"
+            role="switch"
+            [attr.aria-checked]="joinMode() === 'approval'"
+            (click)="joinModeChange.emit(joinMode() === 'approval' ? 'auto' : 'approval')"
+            title="Toggle approval"
+            class="relative w-14 h-8 rounded-full shrink-0 transition-colors duration-200 active:scale-95"
+            [class.bg-secondary]="joinMode() === 'approval'"
+            [class.bg-outline-variant]="joinMode() !== 'approval'">
+            <span
+              class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200"
+              [class.translate-x-6]="joinMode() === 'approval'"></span>
+          </button>
+        </div>
       </div>
     }
 

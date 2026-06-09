@@ -37,6 +37,11 @@ let RoomsController = class RoomsController {
     join(dto) {
         return this.rooms.join(dto);
     }
+    list(search, skip, take) {
+        const skipN = Math.max(0, Number(skip) || 0);
+        const takeN = Math.min(50, Math.max(1, Number(take) || 20));
+        return this.rooms.list(search, skipN, takeN);
+    }
     get(code) {
         return this.rooms.findByCode(code);
     }
@@ -71,6 +76,15 @@ __decorate([
     __metadata("design:paramtypes", [join_room_dto_1.JoinRoomDto]),
     __metadata("design:returntype", Promise)
 ], RoomsController.prototype, "join", null);
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Query)('search')),
+    __param(1, (0, common_1.Query)('skip')),
+    __param(2, (0, common_1.Query)('take')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], RoomsController.prototype, "list", null);
 __decorate([
     (0, common_1.Get)(':code'),
     __param(0, (0, common_1.Param)('code')),

@@ -319,6 +319,16 @@ let CanvasGateway = class CanvasGateway {
             i++;
         return i;
     }
+    memberSummary(code) {
+        const members = this.rooms.get((code ?? '').toUpperCase());
+        if (!members)
+            return { count: 0, avatars: [] };
+        const avatars = [...members.values()]
+            .map((m) => m.avatar)
+            .filter((a) => !!a)
+            .slice(0, 5);
+        return { count: members.size, avatars };
+    }
     emitPresence(code) {
         const members = this.rooms.get(code);
         const list = members

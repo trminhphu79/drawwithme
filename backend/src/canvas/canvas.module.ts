@@ -6,6 +6,6 @@ import { MessagesModule } from '../messages/messages.module';
 @Module({
   imports: [MessagesModule],
   providers: [CanvasGateway, OperationsService],
-  exports: [OperationsService],
+  exports: [OperationsService, CanvasGateway],
 })
 export class CanvasModule {}

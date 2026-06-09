@@ -1,8 +1,10 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { LobbyService } from './lobby.service';
-import { JoinMode, Room } from './room.model';
+import { JoinMode, Room, RoomSummary } from './room.model';
 import { PreferencesStore } from '../../core/stores/preferences.store';
+
+const PAGE_SIZE = 20;
 
 /**
  * Feature signal store for the Join/Lobby screen. Owns the room-code input,
@@ -19,10 +21,23 @@ export class JoinRoomStore {
   private readonly _busy = signal(false);
   private readonly _error = signal<string | null>(null);
 
+  // ---- lobby room list ----
+  private readonly _rooms = signal<RoomSummary[]>([]);
+  private readonly _total = signal(0);
+  private readonly _search = signal('');
+  private readonly _listLoading = signal(false);
+  private searchTimer: ReturnType<typeof setTimeout> | undefined;
+
   readonly code = this._code.asReadonly();
   readonly busy = this._busy.asReadonly();
   readonly error = this._error.asReadonly();
   readonly canJoin = computed(() => this._code().trim().length >= 4 && !this._busy());
+
+  readonly rooms = this._rooms.asReadonly();
+  readonly total = this._total.asReadonly();
+  readonly search = this._search.asReadonly();
+  readonly listLoading = this._listLoading.asReadonly();
+  readonly hasMore = computed(() => this._rooms().length < this._total());
 
   setCode(value: string): void {
     this._code.set(value.toUpperCase().replace(/\s+/g, ''));
@@ -45,6 +60,43 @@ export class JoinRoomStore {
     return this.run(() =>
       this.lobby.createRoom({ hostId: this.prefs.clientId(), joinMode }),
     );
+  }
+
+  // ---- room list ----
+  /** Load the first page (or reload after a search change). */
+  async loadRooms(): Promise<void> {
+    await this.fetchPage(true);
+  }
+
+  /** Lazy-load the next page when scrolling. */
+  async loadMore(): Promise<void> {
+    if (this._listLoading() || !this.hasMore()) return;
+    await this.fetchPage(false);
+  }
+
+  /** Debounced search by code / title. */
+  setSearch(value: string): void {
+    this._search.set(value);
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => void this.fetchPage(true), 300);
+  }
+
+  private async fetchPage(reset: boolean): Promise<void> {
+    if (this._listLoading()) return;
+    this._listLoading.set(true);
+    const skip = reset ? 0 : this._rooms().length;
+    try {
+      const res = await firstValueFrom(this.lobby.listRooms(this._search(), skip, PAGE_SIZE));
+      this._total.set(res.total);
+      this._rooms.update((cur) => (reset ? res.rooms : [...cur, ...res.rooms]));
+    } catch {
+      if (reset) {
+        this._rooms.set([]);
+        this._total.set(0);
+      }
+    } finally {
+      this._listLoading.set(false);
+    }
   }
 
   private async run(call: () => ReturnType<LobbyService['joinRoom']>): Promise<Room | null> {

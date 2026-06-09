@@ -7,8 +7,18 @@ import {
 import * as bcrypt from 'bcryptjs';
 import { Room, RoomSettings } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { CanvasGateway } from '../canvas/canvas.gateway';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JoinRoomDto } from './dto/join-room.dto';
+
+/** A room card in the lobby list (with live presence). */
+export interface RoomSummary {
+  code: string;
+  name: string;
+  memberCount: number;
+  avatars: string[];
+  createdAt: string;
+}
 
 /** Public room representation returned to clients (never leaks passwordHash). */
 export interface RoomDto {
@@ -30,7 +40,52 @@ const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 @Injectable()
 export class RoomsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gateway: CanvasGateway,
+  ) {}
+
+  /** Paginated, searchable list of active rooms with live presence. */
+  async list(
+    search: string | undefined,
+    skip: number,
+    take: number,
+  ): Promise<{ rooms: RoomSummary[]; total: number }> {
+    const term = (search ?? '').trim();
+    const where = {
+      status: 'active',
+      ...(term
+        ? {
+            OR: [
+              { code: { contains: term.toUpperCase() } },
+              { name: { contains: term, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
+    };
+    const [rooms, total] = await this.prisma.$transaction([
+      this.prisma.room.findMany({
+        where,
+        orderBy: { lastActivityAt: 'desc' },
+        skip,
+        take,
+      }),
+      this.prisma.room.count({ where }),
+    ]);
+    return {
+      rooms: rooms.map((r) => {
+        const m = this.gateway.memberSummary(r.code);
+        return {
+          code: r.code,
+          name: r.name,
+          memberCount: m.count,
+          avatars: m.avatars,
+          createdAt: r.createdAt.toISOString(),
+        };
+      }),
+      total,
+    };
+  }
 
   async create(dto: CreateRoomDto): Promise<RoomDto> {
     const code = await this.generateUniqueCode();

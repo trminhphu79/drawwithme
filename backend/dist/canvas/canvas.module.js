@@ -18,7 +18,7 @@ exports.CanvasModule = CanvasModule = __decorate([
     (0, common_1.Module)({
         imports: [messages_module_1.MessagesModule],
         providers: [canvas_gateway_1.CanvasGateway, operations_service_1.OperationsService],
-        exports: [operations_service_1.OperationsService],
+        exports: [operations_service_1.OperationsService, canvas_gateway_1.CanvasGateway],
     })
 ], CanvasModule);
 //# sourceMappingURL=canvas.module.js.map
