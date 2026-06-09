@@ -192,17 +192,18 @@ export class ReplayPlayer {
       if (s.style === 'soft') {
         ctx.globalAlpha = s.opacity * 0.55;
         ctx.shadowColor = s.color;
-        ctx.shadowBlur = Math.max(6, s.size * 1.3);
+        // Clamp the blur radius — a big brush would otherwise blur hundreds of
+        // px per segment and stutter the replay (esp. on mobile).
+        ctx.shadowBlur = Math.min(48, Math.max(6, s.size * 1.3));
       } else if (s.style === 'shadow') {
         ctx.shadowColor = s.color;
-        ctx.shadowBlur = Math.max(18, s.size * 3.2);
+        ctx.shadowBlur = Math.min(64, Math.max(18, s.size * 3.2));
       }
     }
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
     ctx.stroke();
-    if (!s.erase && s.style === 'shadow') ctx.stroke(); // intensify the glow
     ctx.restore();
   }
 
