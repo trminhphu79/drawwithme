@@ -19,4 +19,10 @@ export class UpdateRoomDto {
   @Min(2)
   @Max(50)
   capacity?: number;
+
+  /** Stable client id of the new host. Empty string clears the host. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  hostId?: string;
 }

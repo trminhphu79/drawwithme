@@ -55,6 +55,16 @@ const CAPS = [2, 3, 4, 5, 8, 10];
               </span>
             </div>
 
+            <!-- Host (client id) -->
+            <div class="flex items-center gap-2">
+              <span class="text-label-sm font-bold uppercase opacity-60 shrink-0">Host</span>
+              <input
+                class="min-w-0 flex-1 bg-on-surface/5 border border-outline-variant/40 focus:border-secondary focus:ring-0 rounded-lg py-1.5 px-3 font-mono text-xs text-on-surface outline-none"
+                placeholder="(no host — paste a user/client id)"
+                [value]="room.hostId || ''"
+                (input)="patch(room.code, { hostId: $any($event.target).value })" />
+            </div>
+
             <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
               <!-- Status -->
               <div class="flex items-center gap-2">
@@ -198,6 +208,7 @@ export class AdminRooms {
       status: room.status as 'active' | 'archived',
       joinMode: room.joinMode,
       capacity: room.capacity,
+      hostId: room.hostId ?? '',
     };
     try {
       const updated = await firstValueFrom(this.api.updateRoom(room.code, payload));

@@ -37,4 +37,10 @@ __decorate([
     (0, class_validator_1.Max)(50),
     __metadata("design:type", Number)
 ], UpdateRoomDto.prototype, "capacity", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(64),
+    __metadata("design:type", String)
+], UpdateRoomDto.prototype, "hostId", void 0);
 //# sourceMappingURL=update-room.dto.js.map

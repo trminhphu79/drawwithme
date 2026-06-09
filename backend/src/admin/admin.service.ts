@@ -25,6 +25,7 @@ export interface UpdateRoomSettings {
   status?: 'active' | 'archived';
   joinMode?: 'auto' | 'approval';
   capacity?: number;
+  hostId?: string;
 }
 
 @Injectable()
@@ -130,9 +131,10 @@ export class AdminService implements OnModuleInit {
 
   /** Update a room's name/status + settings (joinMode/capacity). */
   async updateRoom(code: string, dto: UpdateRoomSettings): Promise<AdminRoomDto> {
-    const roomData: { name?: string; status?: string } = {};
+    const roomData: { name?: string; status?: string; hostId?: string | null } = {};
     if (typeof dto.name === 'string') roomData.name = dto.name.trim() || 'Untitled Room';
     if (dto.status === 'active' || dto.status === 'archived') roomData.status = dto.status;
+    if (typeof dto.hostId === 'string') roomData.hostId = dto.hostId.trim() || null;
 
     const settings: { joinMode?: string; capacity?: number } = {};
     if (dto.joinMode === 'auto' || dto.joinMode === 'approval') settings.joinMode = dto.joinMode;

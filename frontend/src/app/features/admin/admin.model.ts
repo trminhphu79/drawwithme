@@ -24,4 +24,5 @@ export interface UpdateRoomPayload {
   status?: 'active' | 'archived';
   joinMode?: 'auto' | 'approval';
   capacity?: number;
+  hostId?: string;
 }

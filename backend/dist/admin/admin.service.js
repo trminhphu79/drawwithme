@@ -141,6 +141,8 @@ let AdminService = AdminService_1 = class AdminService {
             roomData.name = dto.name.trim() || 'Untitled Room';
         if (dto.status === 'active' || dto.status === 'archived')
             roomData.status = dto.status;
+        if (typeof dto.hostId === 'string')
+            roomData.hostId = dto.hostId.trim() || null;
         const settings = {};
         if (dto.joinMode === 'auto' || dto.joinMode === 'approval')
             settings.joinMode = dto.joinMode;
