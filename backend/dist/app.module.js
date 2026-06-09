@@ -16,6 +16,7 @@ const rooms_module_1 = require("./rooms/rooms.module");
 const canvas_module_1 = require("./canvas/canvas.module");
 const artworks_module_1 = require("./artworks/artworks.module");
 const cleanup_module_1 = require("./cleanup/cleanup.module");
+const admin_module_1 = require("./admin/admin.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,6 +31,7 @@ exports.AppModule = AppModule = __decorate([
             canvas_module_1.CanvasModule,
             artworks_module_1.ArtworksModule,
             cleanup_module_1.CleanupModule,
+            admin_module_1.AdminModule,
         ],
     })
 ], AppModule);

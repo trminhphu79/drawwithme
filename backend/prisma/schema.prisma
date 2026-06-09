@@ -11,10 +11,12 @@ datasource db {
 /// anonymous; `type` flips to "human" once accounts/login arrive (no password
 /// stored yet).
 model User {
-  id        String   @id // = the browser clientId (uuid)
+  id        String   @id // = the browser clientId (uuid), or a uuid for admins
   username  String?
   avatar    String?
-  type      String   @default("anonymous") // anonymous | human
+  type      String   @default("anonymous") // anonymous | human | admin
+  /// Only set for accounts that log in (admins for now).
+  passwordHash String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   memberships RoomMember[]

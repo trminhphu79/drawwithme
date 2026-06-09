@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { leaveRoomGuard } from './features/room/leave-room.guard';
+import { adminGuard } from './features/admin/admin.guard';
 
 export const routes: Routes = [
   {
@@ -21,6 +22,24 @@ export const routes: Routes = [
     path: 'about',
     title: 'About · DrawWithMe',
     loadComponent: () => import('./features/info/about-page/about-page').then((m) => m.AboutPage),
+  },
+  {
+    path: 'admin/login',
+    title: 'Admin · DrawWithMe',
+    loadComponent: () => import('./features/admin/admin-login/admin-login').then((m) => m.AdminLogin),
+  },
+  {
+    path: 'admin',
+    title: 'Admin · DrawWithMe',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./features/admin/admin-shell/admin-shell').then((m) => m.AdminShell),
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'rooms' },
+      {
+        path: 'rooms',
+        loadComponent: () => import('./features/admin/admin-rooms/admin-rooms').then((m) => m.AdminRooms),
+      },
+    ],
   },
   {
     path: 'room/:code',
