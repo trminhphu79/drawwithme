@@ -15,12 +15,20 @@ const common_1 = require("@nestjs/common");
 const schedule_1 = require("@nestjs/schedule");
 const prisma_service_1 = require("../prisma/prisma.service");
 const INACTIVITY_HOURS = 24;
+const EMPTY_ROOM_INACTIVITY_HOURS = 1;
 let CleanupService = CleanupService_1 = class CleanupService {
     constructor(prisma) {
         this.prisma = prisma;
         this.logger = new common_1.Logger(CleanupService_1.name);
     }
     async purgeStaleRooms() {
+        const emptyCutoff = new Date(Date.now() - EMPTY_ROOM_INACTIVITY_HOURS * 60 * 60 * 1000);
+        const empty = await this.prisma.room.deleteMany({
+            where: { members: { none: {} }, lastActivityAt: { lt: emptyCutoff } },
+        });
+        if (empty.count > 0) {
+            this.logger.log(`Purged ${empty.count} empty room(s) untouched for >${EMPTY_ROOM_INACTIVITY_HOURS}h`);
+        }
         const cutoff = new Date(Date.now() - INACTIVITY_HOURS * 60 * 60 * 1000);
         const { count } = await this.prisma.room.deleteMany({
             where: { lastActivityAt: { lt: cutoff } },

@@ -29,7 +29,7 @@ import { avatarUrl } from '../models/avatars';
 
       @if (open()) {
         <div
-          class="absolute right-0 mt-2 w-52 glass-panel rounded-xl elevation-3 border border-white/10 p-1.5 flex flex-col gap-0.5 z-[130]">
+          class="absolute right-0 mt-2 w-52 bg-surface-container-high rounded-xl elevation-3 border border-outline-variant/40 p-1.5 flex flex-col gap-0.5 z-[130]">
           <div class="px-3 py-2 border-b border-outline-variant/30 mb-1">
             <p class="text-label-md font-bold text-on-surface truncate">{{ name() || 'You' }}</p>
             <p class="text-body-sm text-on-surface-variant">Your account</p>
