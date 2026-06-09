@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateRoomDto {
   @IsOptional()
@@ -11,4 +11,15 @@ export class CreateRoomDto {
   @MinLength(4)
   @MaxLength(64)
   password?: string;
+
+  /** Stable client id of the creator (becomes the room host). */
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  hostId?: string;
+
+  /** "auto" (default) or "approval" (host must admit joiners). */
+  @IsOptional()
+  @IsIn(['auto', 'approval'])
+  joinMode?: 'auto' | 'approval';
 }

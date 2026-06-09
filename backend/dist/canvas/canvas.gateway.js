@@ -17,30 +17,86 @@ const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 const operations_service_1 = require("./operations.service");
 const messages_service_1 = require("../messages/messages.service");
+const prisma_service_1 = require("../prisma/prisma.service");
 let CanvasGateway = class CanvasGateway {
-    constructor(operations, messages) {
+    constructor(operations, messages, prisma) {
         this.operations = operations;
         this.messages = messages;
+        this.prisma = prisma;
         this.rooms = new Map();
+        this.pending = new Map();
+        this.approved = new Map();
+        this.hostByRoom = new Map();
         this.reactionSeq = 0;
         this.sysSeq = 0;
     }
-    onJoin(client, body) {
+    async onJoin(client, body) {
         const code = (body.code ?? '').toUpperCase();
         if (!code)
             return;
+        const name = body.name || 'Guest';
+        const clientId = body.clientId ?? '';
+        const access = await this.getAccess(code);
+        const hostId = access?.hostId ?? null;
+        const joinMode = access?.joinMode ?? 'auto';
+        this.hostByRoom.set(code, hostId);
+        const approvedSet = this.approved.get(code) ?? new Set();
+        if (hostId)
+            approvedSet.add(hostId);
+        this.approved.set(code, approvedSet);
+        const isHost = !!clientId && clientId === hostId;
+        const allowed = joinMode !== 'approval' || isHost || (!!clientId && approvedSet.has(clientId));
+        if (!allowed) {
+            const pend = this.pending.get(code) ?? new Map();
+            pend.set(client.id, { clientId, name, avatar: body.avatar });
+            this.pending.set(code, pend);
+            client.data.code = code;
+            client.data.pending = true;
+            client.emit('join:pending', { code });
+            this.notifyHost(code, { socketId: client.id, clientId, name, avatar: body.avatar });
+            return;
+        }
+        this.admit(client, code, name, body.avatar, clientId, !!body.rejoin);
+        if (isHost)
+            this.sendPendingTo(client, code);
+    }
+    onApprove(client, body) {
+        const code = (body.code ?? '').toUpperCase();
+        if (!this.isHostSocket(client, code))
+            return;
+        const pend = this.pending.get(code)?.get(body.socketId);
+        const target = this.server.sockets.sockets.get(body.socketId);
+        if (!pend || !target)
+            return;
+        if (pend.clientId)
+            this.approved.get(code)?.add(pend.clientId);
+        this.admit(target, code, pend.name, pend.avatar, pend.clientId, false);
+        this.resolveRequest(code, body.socketId);
+    }
+    onDeny(client, body) {
+        const code = (body.code ?? '').toUpperCase();
+        if (!this.isHostSocket(client, code))
+            return;
+        this.server.sockets.sockets.get(body.socketId)?.emit('join:denied', { code });
+        this.pending.get(code)?.delete(body.socketId);
+        this.resolveRequest(code, body.socketId);
+    }
+    admit(client, code, name, avatar, clientId, rejoin) {
         client.join(code);
         const members = this.rooms.get(code) ?? new Map();
-        const name = body.name || 'Guest';
         members.set(client.id, {
             name,
             colorIndex: this.nextColorIndex(members),
-            avatar: body.avatar,
+            avatar,
+            clientId,
         });
         this.rooms.set(code, members);
         client.data.code = code;
+        client.data.pending = false;
+        this.pending.get(code)?.delete(client.id);
         this.emitPresence(code);
         void this.operations.touch(code).catch(() => undefined);
+        client.emit('join:approved', { code });
         void this.operations
             .getReference(code)
             .then((url) => {
@@ -48,7 +104,7 @@ let CanvasGateway = class CanvasGateway {
                 client.emit('reference:updated', { url });
         })
             .catch(() => undefined);
-        if (!body.rejoin) {
+        if (!rejoin) {
             this.server.to(code).emit('chat:message', {
                 id: `sys-${this.sysSeq++}`,
                 authorId: 'system',
@@ -179,6 +235,8 @@ let CanvasGateway = class CanvasGateway {
         const code = client.data.code;
         if (!code)
             return;
+        if (this.pending.get(code)?.delete(client.id))
+            this.resolveRequest(code, client.id);
         const members = this.rooms.get(code);
         if (!members)
             return;
@@ -186,6 +244,57 @@ let CanvasGateway = class CanvasGateway {
         if (members.size === 0)
             this.rooms.delete(code);
         this.emitPresence(code);
+    }
+    async getAccess(code) {
+        try {
+            const room = await this.prisma.room.findUnique({
+                where: { code },
+                include: { settings: true },
+            });
+            if (!room)
+                return null;
+            return {
+                hostId: room.hostId,
+                joinMode: room.settings?.joinMode ?? 'auto',
+            };
+        }
+        catch {
+            return null;
+        }
+    }
+    isHostSocket(client, code) {
+        const hostId = this.hostByRoom.get(code);
+        const presence = this.rooms.get(code)?.get(client.id);
+        return !!hostId && !!presence?.clientId && presence.clientId === hostId;
+    }
+    notifyHost(code, req) {
+        const hostId = this.hostByRoom.get(code);
+        if (!hostId)
+            return;
+        for (const [id, p] of this.rooms.get(code) ?? []) {
+            if (p.clientId === hostId)
+                this.server.to(id).emit('join:request', req);
+        }
+    }
+    sendPendingTo(client, code) {
+        const pend = this.pending.get(code);
+        if (!pend?.size)
+            return;
+        client.emit('join:requests', [...pend.entries()].map(([socketId, p]) => ({
+            socketId,
+            clientId: p.clientId,
+            name: p.name,
+            avatar: p.avatar,
+        })));
+    }
+    resolveRequest(code, socketId) {
+        const hostId = this.hostByRoom.get(code);
+        if (!hostId)
+            return;
+        for (const [id, p] of this.rooms.get(code) ?? []) {
+            if (p.clientId === hostId)
+                this.server.to(id).emit('join:resolved', { socketId });
+        }
     }
     nextColorIndex(members) {
         const used = new Set([...members.values()].map((m) => m.colorIndex));
@@ -213,8 +322,24 @@ __decorate([
     __param(1, (0, websockets_1.MessageBody)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], CanvasGateway.prototype, "onJoin", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('join:approve'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], CanvasGateway.prototype, "onApprove", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('join:deny'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", void 0)
+], CanvasGateway.prototype, "onDeny", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('op:commit'),
     __param(0, (0, websockets_1.ConnectedSocket)()),
@@ -307,6 +432,7 @@ exports.CanvasGateway = CanvasGateway = __decorate([
         cors: { origin: (process.env.CORS_ORIGIN ?? 'http://localhost:4200').split(',') },
     }),
     __metadata("design:paramtypes", [operations_service_1.OperationsService,
-        messages_service_1.MessagesService])
+        messages_service_1.MessagesService,
+        prisma_service_1.PrismaService])
 ], CanvasGateway);
 //# sourceMappingURL=canvas.gateway.js.map

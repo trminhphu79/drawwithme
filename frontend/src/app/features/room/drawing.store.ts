@@ -3,10 +3,22 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { SocketService } from '../../core/services/socket.service';
 import { PreferencesStore } from '../../core/stores/preferences.store';
+import { LobbyService } from '../lobby/lobby.service';
 import { RoomService } from './room.service';
 import { BrushSettings, PencilStyle, ToolId } from './tool.model';
 import { DrawOperation, Point } from './operation.model';
 import { Participant, RemoteCursor } from './participant.model';
+
+/** Someone waiting for the host to admit them. */
+export interface JoinRequest {
+  socketId: string;
+  clientId: string;
+  name: string;
+  avatar?: string;
+}
+
+/** Local join state for the current user. */
+export type JoinState = 'active' | 'pending' | 'denied';
 
 /** Base swatches always shown in the palette, merged with saved colors. */
 const BASE_PALETTE = [
@@ -26,6 +38,7 @@ const BASE_PALETTE = [
 export class DrawingStore {
   private readonly socket = inject(SocketService);
   private readonly rooms = inject(RoomService);
+  private readonly lobby = inject(LobbyService);
   private readonly prefs = inject(PreferencesStore);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -49,6 +62,11 @@ export class DrawingStore {
   /** Set when another member seals the artwork (others get notified + redirected). */
   private readonly _finished = signal<{ artworkId: string; by: string } | null>(null);
 
+  // ---- host approval ----
+  private readonly _joinState = signal<JoinState>('active');
+  private readonly _isHost = signal(false);
+  private readonly _joinRequests = signal<JoinRequest[]>([]);
+
   private code = '';
   private myId = '';
   /** True once we've joined this room at least once (gates the welcome message). */
@@ -66,6 +84,9 @@ export class DrawingStore {
   readonly participants = this._participants.asReadonly();
   readonly cursors = this._cursors.asReadonly();
   readonly finished = this._finished.asReadonly();
+  readonly joinState = this._joinState.asReadonly();
+  readonly isHost = this._isHost.asReadonly();
+  readonly joinRequests = this._joinRequests.asReadonly();
   readonly connected = this.socket.connected;
 
   readonly canUndo = computed(() => this._operations().length > 0);
@@ -136,6 +157,48 @@ export class DrawingStore {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((e) => this._finished.set(e));
 
+    // ---- host-approval events ----
+    this.socket
+      .on<{ code: string }>('join:pending')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this._joinState.set('pending'));
+
+    this.socket
+      .on<{ code: string }>('join:approved')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this._joinState.set('active'));
+
+    this.socket
+      .on<{ code: string }>('join:denied')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this._joinState.set('denied'));
+
+    this.socket
+      .on<JoinRequest>('join:request')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((req) =>
+        this._joinRequests.update((list) =>
+          list.some((r) => r.socketId === req.socketId) ? list : [...list, req],
+        ),
+      );
+
+    this.socket
+      .on<JoinRequest[]>('join:requests')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((list) => this._joinRequests.set(list ?? []));
+
+    this.socket
+      .on<{ socketId: string }>('join:resolved')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ socketId }) =>
+        this._joinRequests.update((list) => list.filter((r) => r.socketId !== socketId)),
+      );
+
+    // Am I the host of this room? (compare my stable client id to room.hostId)
+    void firstValueFrom(this.lobby.getRoom(code))
+      .then((room) => this._isHost.set(!!room.hostId && room.hostId === this.prefs.clientId()))
+      .catch(() => undefined);
+
     // (Re)announce ourselves on every connect — incl. reconnects, where Socket.IO
     // assigns a fresh id. Without this a reconnected client drops out of the room
     // map and stops appearing in / receiving presence updates.
@@ -145,6 +208,7 @@ export class DrawingStore {
         code,
         name: this.prefs.displayName(),
         avatar: this.prefs.avatar(),
+        clientId: this.prefs.clientId(),
         // First join shows the welcome message; reconnects/tab-reopens don't.
         rejoin: this.joinedOnce,
       });
@@ -176,6 +240,18 @@ export class DrawingStore {
     } catch {
       /* API not available yet — start with an empty canvas. */
     }
+  }
+
+  /** Host: admit a waiting joiner. */
+  approveJoin(socketId: string): void {
+    this.socket.emit('join:approve', { code: this.code, socketId });
+    this._joinRequests.update((list) => list.filter((r) => r.socketId !== socketId));
+  }
+
+  /** Host: reject a waiting joiner. */
+  denyJoin(socketId: string): void {
+    this.socket.emit('join:deny', { code: this.code, socketId });
+    this._joinRequests.update((list) => list.filter((r) => r.socketId !== socketId));
   }
 
   /** Tell the room this artwork was sealed, so others can view the result. */

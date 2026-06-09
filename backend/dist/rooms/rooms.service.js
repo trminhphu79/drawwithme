@@ -55,12 +55,22 @@ let RoomsService = class RoomsService {
         const code = await this.generateUniqueCode();
         const passwordHash = dto.password ? await bcrypt.hash(dto.password, 10) : null;
         const room = await this.prisma.room.create({
-            data: { code, name: dto.name ?? 'Untitled Room', passwordHash },
+            data: {
+                code,
+                name: dto.name ?? 'Untitled Room',
+                passwordHash,
+                hostId: dto.hostId ?? null,
+                settings: { create: { joinMode: dto.joinMode ?? 'auto' } },
+            },
+            include: { settings: true },
         });
         return this.toDto(room);
     }
     async join(dto) {
-        const room = await this.prisma.room.findUnique({ where: { code: dto.code.toUpperCase() } });
+        const room = await this.prisma.room.findUnique({
+            where: { code: dto.code.toUpperCase() },
+            include: { settings: true },
+        });
         if (!room)
             throw new common_1.NotFoundException('Room not found');
         if (room.passwordHash) {
@@ -73,10 +83,22 @@ let RoomsService = class RoomsService {
         return this.toDto(room);
     }
     async findByCode(code) {
-        const room = await this.prisma.room.findUnique({ where: { code: code.toUpperCase() } });
+        const room = await this.prisma.room.findUnique({
+            where: { code: code.toUpperCase() },
+            include: { settings: true },
+        });
         if (!room)
             throw new common_1.NotFoundException('Room not found');
         return this.toDto(room);
+    }
+    async getAccess(code) {
+        const room = await this.prisma.room.findUnique({
+            where: { code: code.toUpperCase() },
+            include: { settings: true },
+        });
+        if (!room)
+            return null;
+        return { hostId: room.hostId, joinMode: room.settings?.joinMode ?? 'auto' };
     }
     async generateUniqueCode() {
         for (let attempt = 0; attempt < 10; attempt++) {
@@ -93,6 +115,8 @@ let RoomsService = class RoomsService {
             code: room.code,
             name: room.name,
             hasPassword: !!room.passwordHash,
+            hostId: room.hostId,
+            joinMode: room.settings?.joinMode ?? 'auto',
             width: room.width,
             height: room.height,
             status: room.status,

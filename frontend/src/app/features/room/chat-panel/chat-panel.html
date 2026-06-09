@@ -1,14 +1,14 @@
 <div class="glass-panel rounded-xl elevation-3 flex flex-col h-full overflow-hidden">
-  <!-- Header (romantic) -->
-  <div class="p-4 border-b border-rose-300/20 bg-linear-to-r from-rose-500/10 to-pink-500/10 flex items-center justify-between">
+  <!-- Header (brand gradient) -->
+  <div class="p-4 brand-bg flex items-center justify-between">
     <div class="flex flex-col gap-1">
-      <h2 class="text-label-md font-bold uppercase tracking-wider flex items-center gap-1 text-rose-500 dark:text-rose-300">
+      <h2 class="text-label-md font-bold uppercase tracking-wider flex items-center gap-1 text-white">
         <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1;">chat</span>
         Room Chat
       </h2>
       <div class="flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
-        <p class="text-[10px] text-on-surface-variant/70 font-semibold uppercase">
+        <span class="w-2 h-2 rounded-full bg-white/80 animate-pulse"></span>
+        <p class="text-[10px] text-white/80 font-semibold uppercase">
           {{ memberCount() }} member{{ memberCount() === 1 ? '' : 's' }} active
         </p>
       </div>
@@ -17,7 +17,7 @@
       type="button"
       (click)="toggleMute.emit()"
       [title]="muted() ? 'Unmute sounds' : 'Mute sounds'"
-      class="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors">
+      class="w-9 h-9 flex items-center justify-center rounded-lg text-white hover:bg-white/20 transition-colors">
       <span class="material-symbols-outlined text-[20px]">{{ muted() ? 'volume_off' : 'volume_up' }}</span>
     </button>
   </div>
@@ -27,7 +27,7 @@
     @for (m of messages(); track m.id) {
       @if (m.system) {
         <div class="flex justify-center">
-          <span class="text-[11px] font-semibold text-rose-500/80 dark:text-rose-300/80 bg-rose-500/10 px-3 py-1 rounded-full inline-flex items-center gap-1">
+          <span class="text-[11px] font-semibold text-secondary bg-secondary/10 px-3 py-1 rounded-full inline-flex items-center gap-1">
             <span class="material-symbols-outlined text-[14px]">waving_hand</span>
             {{ m.text }}
           </span>
@@ -40,10 +40,10 @@
             class="w-7 h-7 rounded-full object-cover shrink-0 bg-surface-variant ring-1 ring-black/5" />
           <div class="flex flex-col gap-1 items-end min-w-0">
             <div class="flex items-center gap-2 px-1">
-              <span class="text-[11px] font-bold text-rose-500 dark:text-rose-300">You</span>
+              <span class="text-[11px] font-bold text-secondary">You</span>
               <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>
             </div>
-            <div class="bg-linear-to-br from-rose-400 to-pink-500 text-white p-3 rounded-tl-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm shadow-rose-500/20 max-w-[85%] break-words">
+            <div class="brand-bg p-3 rounded-tl-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm max-w-[85%] break-words">
               {{ m.text }}
             </div>
           </div>
@@ -56,10 +56,10 @@
             class="w-7 h-7 rounded-full object-cover shrink-0 bg-surface-variant ring-1 ring-black/5" />
           <div class="flex flex-col gap-1 min-w-0">
             <div class="flex items-center gap-2 px-1">
-              <span class="text-[11px] font-bold text-pink-500 dark:text-pink-300">{{ m.author }}</span>
+              <span class="text-[11px] font-bold text-secondary">{{ m.author }}</span>
               <span class="text-[10px] opacity-50">{{ m.at | date: 'shortTime' }}</span>
             </div>
-            <div class="bg-rose-500/10 border border-rose-300/25 text-on-surface p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm break-words">
+            <div class="bg-secondary/10 border border-secondary/20 text-on-surface p-3 rounded-tr-xl rounded-bl-xl rounded-br-xl text-body-md shadow-sm break-words">
               {{ m.text }}
             </div>
           </div>
@@ -67,14 +67,14 @@
       }
     } @empty {
       <p class="text-center text-on-surface-variant/60 text-body-sm mt-8 flex flex-col items-center gap-2">
-        <span class="material-symbols-outlined text-rose-300 text-[32px]" style="font-variation-settings:'FILL' 1;">favorite</span>
+        <span class="material-symbols-outlined text-secondary/40 text-[32px]" style="font-variation-settings:'FILL' 1;">forum</span>
         No messages yet. Say hello 👋
       </p>
     }
   </div>
 
   <!-- Input (X close on the left, send on the right) -->
-  <div class="p-4 bg-linear-to-t from-rose-500/10 to-transparent border-t border-rose-300/20 flex items-center gap-2">
+  <div class="p-4 bg-linear-to-t from-secondary/10 to-transparent border-t border-secondary/20 flex items-center gap-2">
     <button
       type="button"
       (click)="close.emit()"
@@ -84,8 +84,8 @@
     </button>
     <div class="relative flex-1">
       <input
-        class="w-full bg-on-surface/5 border-0 border-b-2 border-rose-300/40 focus:border-rose-400 focus:ring-0 text-sm py-2 pl-3 pr-10 rounded-t-lg transition-all outline-none placeholder:text-on-surface-variant/50 text-on-surface"
-        placeholder="Type a sweet message..."
+        class="w-full bg-on-surface/5 border-0 border-b-2 border-secondary/40 focus:border-secondary focus:ring-0 text-sm py-2 pl-3 pr-10 rounded-t-lg transition-all outline-none placeholder:text-on-surface-variant/50 text-on-surface"
+        placeholder="Type a message..."
         type="text"
         [value]="draft()"
         (input)="onInput($event)"
@@ -93,7 +93,7 @@
       <button
         type="button"
         (click)="submit()"
-        class="absolute right-2 top-1.5 text-rose-500 hover:scale-110 active:scale-90 transition-transform p-1"
+        class="absolute right-2 top-1.5 text-secondary hover:scale-110 active:scale-90 transition-transform p-1"
         aria-label="Send message">
         <span class="material-symbols-outlined text-xl">send</span>
       </button>

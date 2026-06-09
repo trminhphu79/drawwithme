@@ -13,7 +13,9 @@
 
   <main class="w-full h-full pt-[var(--app-header-h)] relative">
     <!-- Canvas (fills the workspace; glass panels float over it) -->
-    <section class="absolute inset-0 pt-[var(--app-header-h)] canvas-grid overflow-hidden">
+    <section
+      class="absolute inset-0 pt-[var(--app-header-h)] canvas-grid overflow-hidden"
+      [class.pointer-events-none]="!canInteract()">
       <app-canvas-stage
         [operations]="store.operations()"
         [brush]="store.brush()"
@@ -27,21 +29,25 @@
 
       <app-reaction-overlay [reactions]="chat.reactions()" />
 
-      <!-- Quick reactions, floating above the undo/redo controls (safe-area aware) -->
-      <app-reaction-bar
-        class="absolute left-1/2 -translate-x-1/2 z-30 bottom-[calc(5rem_+_env(safe-area-inset-bottom))] md:bottom-32"
-        (react)="chat.react($event)" />
+      @if (canInteract()) {
+        <!-- Quick reactions, floating above the undo/redo controls (safe-area aware) -->
+        <app-reaction-bar
+          class="absolute left-1/2 -translate-x-1/2 z-30 bottom-[calc(5rem_+_env(safe-area-inset-bottom))] md:bottom-32"
+          (react)="chat.react($event)" />
 
-      <app-canvas-controls
-        [zoom]="zoomPercent()"
-        [canUndo]="store.canUndo()"
-        [canRedo]="store.canRedo()"
-        (undo)="store.undo()"
-        (redo)="store.redo()"
-        (zoomIn)="zoomIn()"
-        (zoomOut)="zoomOut()" />
+        <app-canvas-controls
+          [zoom]="zoomPercent()"
+          [canUndo]="store.canUndo()"
+          [canRedo]="store.canRedo()"
+          (undo)="store.undo()"
+          (redo)="store.redo()"
+          (zoomIn)="zoomIn()"
+          (zoomOut)="zoomOut()" />
+      }
     </section>
 
+    <!-- Tools + chat are hidden until the user is fully in the room (host approval). -->
+    @if (canInteract()) {
     <!-- Floating chat bubble (Messenger-style) — shown when the chat is closed -->
     <button
       type="button"
@@ -145,6 +151,44 @@
         (previewReference)="showRefPreview.set(true)"
         (clear)="onReset()" />
     </aside>
+    }
+
+    <!-- Waiting for host approval (tools/chat hidden above) -->
+    @if (store.joinState() === 'pending') {
+      <div class="absolute left-1/2 -translate-x-1/2 top-[calc(var(--app-header-h)+1.5rem)] z-40 w-[90%] max-w-md">
+        <div class="glass-panel rounded-xl elevation-3 p-5 flex items-center gap-3 text-center sm:text-left">
+          <span class="material-symbols-outlined text-secondary text-[28px] animate-pulse shrink-0">hourglass_top</span>
+          <div>
+            <p class="text-label-lg font-bold text-on-surface">Waiting for the host…</p>
+            <p class="text-body-sm text-on-surface-variant">This room needs the host's approval before you can draw and chat.</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Host: pending join requests -->
+    @if (store.isHost() && store.joinRequests().length) {
+      <div class="absolute right-margin-mobile md:right-4 top-[calc(var(--app-header-h)+1rem)] z-40 w-72 max-w-[85vw] flex flex-col gap-2">
+        @for (req of store.joinRequests(); track req.socketId) {
+          <div class="glass-panel rounded-xl elevation-3 p-3 flex items-center gap-3">
+            <img [src]="avatarUrl(req.avatar)" [alt]="req.name"
+              class="w-9 h-9 rounded-full object-cover bg-surface-variant shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-label-md font-bold text-on-surface truncate">{{ req.name }}</p>
+              <p class="text-[11px] text-on-surface-variant">wants to join</p>
+            </div>
+            <button type="button" (click)="store.approveJoin(req.socketId)" title="Approve"
+              class="w-9 h-9 shrink-0 flex items-center justify-center rounded-full bg-secondary text-on-secondary hover:brightness-105 active:scale-95 transition-all">
+              <span class="material-symbols-outlined text-[20px]">check</span>
+            </button>
+            <button type="button" (click)="store.denyJoin(req.socketId)" title="Deny"
+              class="w-9 h-9 shrink-0 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error/10 hover:text-error active:scale-95 transition-all">
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+        }
+      </div>
+    }
   </main>
 
   @if (showNameGate()) {

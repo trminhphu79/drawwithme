@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { Room } from '@prisma/client';
+import { Room, RoomSettings } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { JoinRoomDto } from './dto/join-room.dto';
@@ -16,11 +16,15 @@ export interface RoomDto {
   code: string;
   name: string;
   hasPassword: boolean;
+  hostId: string | null;
+  joinMode: 'auto' | 'approval';
   width: number;
   height: number;
   status: string;
   createdAt: string;
 }
+
+type RoomWithSettings = Room & { settings: RoomSettings | null };
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -32,13 +36,23 @@ export class RoomsService {
     const code = await this.generateUniqueCode();
     const passwordHash = dto.password ? await bcrypt.hash(dto.password, 10) : null;
     const room = await this.prisma.room.create({
-      data: { code, name: dto.name ?? 'Untitled Room', passwordHash },
+      data: {
+        code,
+        name: dto.name ?? 'Untitled Room',
+        passwordHash,
+        hostId: dto.hostId ?? null,
+        settings: { create: { joinMode: dto.joinMode ?? 'auto' } },
+      },
+      include: { settings: true },
     });
     return this.toDto(room);
   }
 
   async join(dto: JoinRoomDto): Promise<RoomDto> {
-    const room = await this.prisma.room.findUnique({ where: { code: dto.code.toUpperCase() } });
+    const room = await this.prisma.room.findUnique({
+      where: { code: dto.code.toUpperCase() },
+      include: { settings: true },
+    });
     if (!room) throw new NotFoundException('Room not found');
     if (room.passwordHash) {
       if (!dto.password) throw new UnauthorizedException('Password required');
@@ -49,9 +63,22 @@ export class RoomsService {
   }
 
   async findByCode(code: string): Promise<RoomDto> {
-    const room = await this.prisma.room.findUnique({ where: { code: code.toUpperCase() } });
+    const room = await this.prisma.room.findUnique({
+      where: { code: code.toUpperCase() },
+      include: { settings: true },
+    });
     if (!room) throw new NotFoundException('Room not found');
     return this.toDto(room);
+  }
+
+  /** Lightweight host/join-mode lookup for the realtime gateway. */
+  async getAccess(code: string): Promise<{ hostId: string | null; joinMode: 'auto' | 'approval' } | null> {
+    const room = await this.prisma.room.findUnique({
+      where: { code: code.toUpperCase() },
+      include: { settings: true },
+    });
+    if (!room) return null;
+    return { hostId: room.hostId, joinMode: (room.settings?.joinMode as 'auto' | 'approval') ?? 'auto' };
   }
 
   private async generateUniqueCode(): Promise<string> {
@@ -65,12 +92,14 @@ export class RoomsService {
     throw new Error('Could not generate a unique room code');
   }
 
-  private toDto(room: Room): RoomDto {
+  private toDto(room: RoomWithSettings): RoomDto {
     return {
       id: room.id,
       code: room.code,
       name: room.name,
       hasPassword: !!room.passwordHash,
+      hostId: room.hostId,
+      joinMode: (room.settings?.joinMode as 'auto' | 'approval') ?? 'auto',
       width: room.width,
       height: room.height,
       status: room.status,

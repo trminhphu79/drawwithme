@@ -32,7 +32,7 @@ import { AppFooter } from '../../../core/ui/app-footer';
           [error]="store.error()"
           (codeChange)="store.setCode($event)"
           (join)="onJoin()"
-          (create)="onCreate()" />
+          (create)="onCreate($event)" />
 
         <div class="mt-6 flex justify-center">
           <app-install-button />
@@ -54,8 +54,8 @@ export class JoinRoom {
     if (room) this.router.navigate(['/room', room.code]);
   }
 
-  protected async onCreate(): Promise<void> {
-    const room = await this.store.create();
+  protected async onCreate(requireApproval: boolean): Promise<void> {
+    const room = await this.store.create(requireApproval ? 'approval' : 'auto');
     if (room) this.router.navigate(['/room', room.code]);
   }
 }

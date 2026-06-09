@@ -33,11 +33,15 @@ export class PreferencesStore {
   readonly defaultOpacity = computed(() => this._prefs().defaultOpacity);
   readonly referenceLayout = computed(() => this._prefs().referenceLayout);
   readonly avatar = computed(() => this._prefs().avatar);
+  readonly clientId = computed(() => this._prefs().clientId);
 
   constructor() {
-    // Assign a random avatar on first use so members differ by default.
+    // Assign a random avatar + a stable client id on first use.
     if (!this._prefs().avatar) {
       this._prefs.update((p) => ({ ...p, avatar: randomAvatar() }));
+    }
+    if (!this._prefs().clientId) {
+      this._prefs.update((p) => ({ ...p, clientId: crypto.randomUUID() }));
     }
     effect(() => this.storage.write(STORAGE_KEY, this._prefs()));
   }

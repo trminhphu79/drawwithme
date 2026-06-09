@@ -15,7 +15,7 @@ import { REACTION_EMOJIS } from '../chat.model';
         <button
           type="button"
           (click)="react.emit(emoji)"
-          class="w-9 h-9 flex items-center justify-center text-xl rounded-full hover:bg-rose-500/15 hover:scale-125 active:scale-110 transition-transform duration-150"
+          class="w-9 h-9 flex items-center justify-center text-xl rounded-full hover:bg-secondary/15 hover:scale-125 active:scale-110 transition-transform duration-150"
           [attr.aria-label]="'React ' + emoji">
           {{ emoji }}
         </button>

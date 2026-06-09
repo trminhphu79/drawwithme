@@ -27,4 +27,15 @@ __decorate([
     (0, class_validator_1.MaxLength)(64),
     __metadata("design:type", String)
 ], CreateRoomDto.prototype, "password", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(64),
+    __metadata("design:type", String)
+], CreateRoomDto.prototype, "hostId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsIn)(['auto', 'approval']),
+    __metadata("design:type", String)
+], CreateRoomDto.prototype, "joinMode", void 0);
 //# sourceMappingURL=create-room.dto.js.map

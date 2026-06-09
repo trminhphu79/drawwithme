@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { LobbyService } from './lobby.service';
-import { Room } from './room.model';
+import { JoinMode, Room } from './room.model';
+import { PreferencesStore } from '../../core/stores/preferences.store';
 
 /**
  * Feature signal store for the Join/Lobby screen. Owns the room-code input,
@@ -11,6 +12,7 @@ import { Room } from './room.model';
 @Injectable()
 export class JoinRoomStore {
   private readonly lobby = inject(LobbyService);
+  private readonly prefs = inject(PreferencesStore);
 
   private readonly _code = signal('');
   private readonly _password = signal('');
@@ -39,8 +41,10 @@ export class JoinRoomStore {
     );
   }
 
-  async create(): Promise<Room | null> {
-    return this.run(() => this.lobby.createRoom({}));
+  async create(joinMode: JoinMode = 'auto'): Promise<Room | null> {
+    return this.run(() =>
+      this.lobby.createRoom({ hostId: this.prefs.clientId(), joinMode }),
+    );
   }
 
   private async run(call: () => ReturnType<LobbyService['joinRoom']>): Promise<Room | null> {

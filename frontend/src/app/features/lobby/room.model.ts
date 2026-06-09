@@ -1,9 +1,13 @@
+export type JoinMode = 'auto' | 'approval';
+
 /** A collaborative drawing room. */
 export interface Room {
   id: string;
   code: string;
   name: string;
   hasPassword: boolean;
+  hostId: string | null;
+  joinMode: JoinMode;
   width: number;
   height: number;
   status: 'active' | 'archived';
@@ -13,6 +17,8 @@ export interface Room {
 export interface CreateRoomRequest {
   name?: string;
   password?: string;
+  hostId?: string;
+  joinMode?: JoinMode;
 }
 
 export interface JoinRoomRequest {

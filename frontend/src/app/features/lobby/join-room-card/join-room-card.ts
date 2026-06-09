@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { ThemeToggle } from '../../../core/ui/theme-toggle';
 
 /**
@@ -20,7 +20,11 @@ export class JoinRoomCard {
 
   readonly codeChange = output<string>();
   readonly join = output<void>();
-  readonly create = output<void>();
+  /** Emits whether the new room should require host approval to join. */
+  readonly create = output<boolean>();
+
+  /** Local toggle: require my approval before others join the room I create. */
+  protected readonly requireApproval = signal(false);
 
   protected onCode(event: Event): void {
     this.codeChange.emit((event.target as HTMLInputElement).value);

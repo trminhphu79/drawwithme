@@ -9,11 +9,21 @@ import {
 import { Server, Socket } from 'socket.io';
 import { DrawOperationDto, OperationsService } from './operations.service';
 import { MessagesService } from '../messages/messages.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 interface Presence {
   name: string;
   /** Color slot; the frontend maps it to a distinct cursor/label color. */
   colorIndex: number;
+  avatar?: string;
+  /** Stable client id (used to recognise the host + approved members). */
+  clientId?: string;
+}
+
+/** A joiner awaiting host approval (not yet in the room). */
+interface PendingJoin {
+  clientId: string;
+  name: string;
   avatar?: string;
 }
 
@@ -30,6 +40,12 @@ export class CanvasGateway implements OnGatewayDisconnect {
 
   /** roomCode -> (socketId -> presence). */
   private readonly rooms = new Map<string, Map<string, Presence>>();
+  /** roomCode -> (socketId -> pending joiner) awaiting host approval. */
+  private readonly pending = new Map<string, Map<string, PendingJoin>>();
+  /** roomCode -> set of clientIds allowed in (host + approved). */
+  private readonly approved = new Map<string, Set<string>>();
+  /** roomCode -> hostId (cached from the DB on first join). */
+  private readonly hostByRoom = new Map<string, string | null>();
   /** Monotonic counters for unique reaction / system-message ids. */
   private reactionSeq = 0;
   private sysSeq = 0;
@@ -37,29 +53,107 @@ export class CanvasGateway implements OnGatewayDisconnect {
   constructor(
     private readonly operations: OperationsService,
     private readonly messages: MessagesService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @SubscribeMessage('room:join')
-  onJoin(
+  async onJoin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: { code: string; name?: string; avatar?: string; rejoin?: boolean },
-  ): void {
+    @MessageBody()
+    body: { code: string; name?: string; avatar?: string; clientId?: string; rejoin?: boolean },
+  ): Promise<void> {
     const code = (body.code ?? '').toUpperCase();
     if (!code) return;
-    client.join(code);
-
-    const members = this.rooms.get(code) ?? new Map<string, Presence>();
     const name = body.name || 'Guest';
+    const clientId = body.clientId ?? '';
+
+    const access = await this.getAccess(code);
+    const hostId = access?.hostId ?? null;
+    const joinMode = access?.joinMode ?? 'auto';
+    this.hostByRoom.set(code, hostId);
+
+    const approvedSet = this.approved.get(code) ?? new Set<string>();
+    if (hostId) approvedSet.add(hostId); // the host is always allowed
+    this.approved.set(code, approvedSet);
+
+    const isHost = !!clientId && clientId === hostId;
+    const allowed =
+      joinMode !== 'approval' || isHost || (!!clientId && approvedSet.has(clientId));
+
+    if (!allowed) {
+      // Hold the joiner outside the room until the host admits them.
+      const pend = this.pending.get(code) ?? new Map<string, PendingJoin>();
+      pend.set(client.id, { clientId, name, avatar: body.avatar });
+      this.pending.set(code, pend);
+      (client.data as { code?: string; pending?: boolean }).code = code;
+      (client.data as { pending?: boolean }).pending = true;
+      client.emit('join:pending', { code });
+      this.notifyHost(code, { socketId: client.id, clientId, name, avatar: body.avatar });
+      return;
+    }
+
+    this.admit(client, code, name, body.avatar, clientId, !!body.rejoin);
+
+    // A joining host receives any requests that arrived before they connected.
+    if (isHost) this.sendPendingTo(client, code);
+  }
+
+  /** Host admits a pending joiner. */
+  @SubscribeMessage('join:approve')
+  onApprove(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { code: string; socketId: string },
+  ): void {
+    const code = (body.code ?? '').toUpperCase();
+    if (!this.isHostSocket(client, code)) return;
+    const pend = this.pending.get(code)?.get(body.socketId);
+    const target = this.server.sockets.sockets.get(body.socketId);
+    if (!pend || !target) return;
+    if (pend.clientId) this.approved.get(code)?.add(pend.clientId);
+    this.admit(target, code, pend.name, pend.avatar, pend.clientId, false);
+    this.resolveRequest(code, body.socketId);
+  }
+
+  /** Host rejects a pending joiner. */
+  @SubscribeMessage('join:deny')
+  onDeny(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { code: string; socketId: string },
+  ): void {
+    const code = (body.code ?? '').toUpperCase();
+    if (!this.isHostSocket(client, code)) return;
+    this.server.sockets.sockets.get(body.socketId)?.emit('join:denied', { code });
+    this.pending.get(code)?.delete(body.socketId);
+    this.resolveRequest(code, body.socketId);
+  }
+
+  /** Add a socket to the active room + presence (auto-join or after approval). */
+  private admit(
+    client: Socket,
+    code: string,
+    name: string,
+    avatar: string | undefined,
+    clientId: string,
+    rejoin: boolean,
+  ): void {
+    client.join(code);
+    const members = this.rooms.get(code) ?? new Map<string, Presence>();
     members.set(client.id, {
       name,
       colorIndex: this.nextColorIndex(members),
-      avatar: body.avatar,
+      avatar,
+      clientId,
     });
     this.rooms.set(code, members);
-    (client.data as { code?: string }).code = code;
+    (client.data as { code?: string; pending?: boolean }).code = code;
+    (client.data as { pending?: boolean }).pending = false;
+    this.pending.get(code)?.delete(client.id);
 
     this.emitPresence(code);
     void this.operations.touch(code).catch(() => undefined);
+
+    // Confirm entry (the FE flips out of the waiting state on this).
+    client.emit('join:approved', { code });
 
     // Send the current shared reference image to the new joiner.
     void this.operations
@@ -71,7 +165,7 @@ export class CanvasGateway implements OnGatewayDisconnect {
 
     // Announce the arrival as a system chat message (ephemeral, not persisted).
     // Skipped on reconnect/tab-reopen (rejoin) so the welcome shows only once.
-    if (!body.rejoin) {
+    if (!rejoin) {
       this.server.to(code).emit('chat:message', {
         id: `sys-${this.sysSeq++}`,
         authorId: 'system',
@@ -249,11 +343,76 @@ export class CanvasGateway implements OnGatewayDisconnect {
   handleDisconnect(client: Socket): void {
     const code = (client.data as { code?: string }).code;
     if (!code) return;
+    // A waiting joiner left — drop their pending request + clear it on the host.
+    if (this.pending.get(code)?.delete(client.id)) this.resolveRequest(code, client.id);
     const members = this.rooms.get(code);
     if (!members) return;
     members.delete(client.id);
     if (members.size === 0) this.rooms.delete(code);
     this.emitPresence(code);
+  }
+
+  // ---- host approval helpers ----
+  /** Room access (host + join mode) straight from the DB. */
+  private async getAccess(
+    code: string,
+  ): Promise<{ hostId: string | null; joinMode: 'auto' | 'approval' } | null> {
+    try {
+      const room = await this.prisma.room.findUnique({
+        where: { code },
+        include: { settings: true },
+      });
+      if (!room) return null;
+      return {
+        hostId: room.hostId,
+        joinMode: (room.settings?.joinMode as 'auto' | 'approval') ?? 'auto',
+      };
+    } catch {
+      return null; // DB hiccup → fail open (auto join)
+    }
+  }
+
+  /** Is this socket the room's host (by its clientId)? */
+  private isHostSocket(client: Socket, code: string): boolean {
+    const hostId = this.hostByRoom.get(code);
+    const presence = this.rooms.get(code)?.get(client.id);
+    return !!hostId && !!presence?.clientId && presence.clientId === hostId;
+  }
+
+  /** Push a join request to every host socket currently in the room. */
+  private notifyHost(
+    code: string,
+    req: { socketId: string; clientId: string; name: string; avatar?: string },
+  ): void {
+    const hostId = this.hostByRoom.get(code);
+    if (!hostId) return;
+    for (const [id, p] of this.rooms.get(code) ?? []) {
+      if (p.clientId === hostId) this.server.to(id).emit('join:request', req);
+    }
+  }
+
+  /** Send the full pending list to a (host) socket — used when the host joins. */
+  private sendPendingTo(client: Socket, code: string): void {
+    const pend = this.pending.get(code);
+    if (!pend?.size) return;
+    client.emit(
+      'join:requests',
+      [...pend.entries()].map(([socketId, p]) => ({
+        socketId,
+        clientId: p.clientId,
+        name: p.name,
+        avatar: p.avatar,
+      })),
+    );
+  }
+
+  /** Tell host sockets a request was handled (approved/denied/left). */
+  private resolveRequest(code: string, socketId: string): void {
+    const hostId = this.hostByRoom.get(code);
+    if (!hostId) return;
+    for (const [id, p] of this.rooms.get(code) ?? []) {
+      if (p.clientId === hostId) this.server.to(id).emit('join:resolved', { socketId });
+    }
   }
 
   /** Smallest color slot not currently used in the room (keeps cursors distinct). */

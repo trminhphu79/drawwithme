@@ -22,4 +22,4 @@ export interface ReactionEvent {
   x: number;
 }
 
-export const REACTION_EMOJIS = ['❤️', '🔥', '✨', '👏', '🚀', '👎', '🤢'] as const;
+export const REACTION_EMOJIS = ['❤️', '🔥', '✨', '👏', '😭', '👎', '🤢'] as const;

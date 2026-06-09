@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { DrawingStore } from '../drawing.store';
 import { ChatStore } from '../chat.store';
 import { PreferencesStore } from '../../../core/stores/preferences.store';
+import { avatarUrl } from '../../../core/models/avatars';
 import { DRAWING_TOOLS, PENCIL_STYLES } from '../tool.model';
 import { RoomTopBar } from '../room-top-bar/room-top-bar';
 import { ToolRail } from '../tool-rail/tool-rail';
@@ -103,6 +104,10 @@ export class DrawingRoom {
   /** The current user's own avatar + name (for the header profile button). */
   protected readonly myAvatar = this.prefs.avatar;
   protected readonly myName = this.prefs.displayName;
+  /** avatarUrl helper for the host's pending-request list. */
+  protected readonly avatarUrl = avatarUrl;
+  /** Tools + chat are usable only once fully admitted (host approval). */
+  protected readonly canInteract = computed(() => this.store.joinState() === 'active');
 
   private readonly canvas = viewChild(CanvasStage);
   private entered = false;
@@ -137,6 +142,14 @@ export class DrawingRoom {
       this.markCompleted(this.code(), done.artworkId);
       this.showToast(`🎉 ${done.by} finished the masterpiece! Opening the result…`);
       setTimeout(() => this.router.navigate(['/view', done.artworkId]), 1800);
+    });
+
+    // Host denied this user → let them know, then send them home.
+    effect(() => {
+      if (this.store.joinState() !== 'denied' || this.leaving) return;
+      this.leaving = true;
+      this.showToast('The host didn’t let you into this room.');
+      setTimeout(() => this.router.navigate(['/join']), 1800);
     });
   }
 
