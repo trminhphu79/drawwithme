@@ -22,6 +22,9 @@ export class PropertiesPanel {
   readonly referenceUrl = input<string | null>(null);
   readonly referenceVisible = input(true);
   readonly referenceOpacity = input(50);
+  /** Host-only room settings. */
+  readonly isHost = input(false);
+  readonly joinMode = input<'auto' | 'approval'>('auto');
 
   readonly sizeChange = output<number>();
   readonly opacityChange = output<number>();
@@ -31,6 +34,7 @@ export class PropertiesPanel {
   readonly referenceOpacityChange = output<number>();
   readonly previewReference = output<void>();
   readonly clear = output<void>();
+  readonly joinModeChange = output<'auto' | 'approval'>();
 
   /** Custom color-picker popover visibility. */
   protected readonly pickerOpen = signal(false);

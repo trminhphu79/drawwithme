@@ -174,6 +174,22 @@ let CanvasGateway = class CanvasGateway {
             by: body.by || 'Someone',
         });
     }
+    async onSettingsUpdate(client, body) {
+        const code = (body.code ?? '').toUpperCase();
+        const joinMode = body.joinMode === 'approval' ? 'approval' : 'auto';
+        if (!this.isHostSocket(client, code))
+            return;
+        try {
+            await this.prisma.room.update({
+                where: { code },
+                data: {
+                    settings: { upsert: { create: { joinMode }, update: { joinMode } } },
+                },
+            });
+        }
+        catch {
+        }
+    }
     onTitle(client, body) {
         const code = (body.code ?? '').toUpperCase();
         if (!code)
@@ -387,6 +403,14 @@ __decorate([
     __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
     __metadata("design:returntype", void 0)
 ], CanvasGateway.prototype, "onFinish", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('settings:update'),
+    __param(0, (0, websockets_1.ConnectedSocket)()),
+    __param(1, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [socket_io_1.Socket, Object]),
+    __metadata("design:returntype", Promise)
+], CanvasGateway.prototype, "onSettingsUpdate", null);
 __decorate([
     (0, websockets_1.SubscribeMessage)('title:set'),
     __param(0, (0, websockets_1.ConnectedSocket)()),

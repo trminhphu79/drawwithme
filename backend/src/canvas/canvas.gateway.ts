@@ -261,6 +261,26 @@ export class CanvasGateway implements OnGatewayDisconnect {
     });
   }
 
+  @SubscribeMessage('settings:update')
+  async onSettingsUpdate(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { code: string; joinMode: 'auto' | 'approval' },
+  ): Promise<void> {
+    const code = (body.code ?? '').toUpperCase();
+    const joinMode = body.joinMode === 'approval' ? 'approval' : 'auto';
+    if (!this.isHostSocket(client, code)) return; // only the host can change settings
+    try {
+      await this.prisma.room.update({
+        where: { code },
+        data: {
+          settings: { upsert: { create: { joinMode }, update: { joinMode } } },
+        },
+      });
+    } catch {
+      /* room missing / db error — ignore */
+    }
+  }
+
   @SubscribeMessage('title:set')
   onTitle(
     @ConnectedSocket() client: Socket,

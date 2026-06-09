@@ -15,38 +15,54 @@
 
   <main class="flex-grow flex flex-col items-center justify-center p-margin-mobile md:p-margin-desktop relative z-10">
 
-    <div class="w-full max-w-5xl flex flex-col items-center gap-12 mt-16 md:mt-12">
-      <!-- Header -->
-      <div class="text-center space-y-4 max-w-2xl">
-        <h1 class="font-display-lg text-display-lg text-on-surface">
-          {{ store.artwork()?.title ?? 'Loading…' }}
-        </h1>
-        @if (store.artwork(); as art) {
-          <div class="flex flex-wrap justify-center items-center gap-4 text-on-surface-variant font-body-sm text-body-sm">
-            <span class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-[16px]">calendar_today</span>
-              {{ art.createdAt | date: 'mediumDate' }}
-            </span>
-            <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
-            <span class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[16px]">group</span>
-              Participants: {{ art.participants.join(', ') }}
-            </span>
-          </div>
-        }
+    @if (store.loading()) {
+      <!-- Skeleton placeholder while the artwork loads -->
+      <div class="w-full max-w-5xl flex flex-col items-center gap-12 mt-16 md:mt-12">
+        <div class="flex flex-col items-center gap-4 w-full">
+          <app-skeleton class="h-10 w-64 max-w-[80%] rounded-lg" />
+          <app-skeleton class="h-4 w-80 max-w-[90%] rounded-full" />
+        </div>
+        <app-skeleton class="w-full max-w-3xl aspect-[16/10] rounded-2xl" />
+        <div class="flex gap-3">
+          <app-skeleton class="h-12 w-32 rounded-xl" />
+          <app-skeleton class="h-12 w-32 rounded-xl" />
+          <app-skeleton class="h-12 w-32 rounded-xl" />
+        </div>
       </div>
+    } @else {
+      <div class="w-full max-w-5xl flex flex-col items-center gap-12 mt-16 md:mt-12">
+        <!-- Header -->
+        <div class="text-center space-y-4 max-w-2xl">
+          <h1 class="font-display-lg text-display-lg text-on-surface">
+            {{ store.artwork()?.title ?? 'Untitled' }}
+          </h1>
+          @if (store.artwork(); as art) {
+            <div class="flex flex-wrap justify-center items-center gap-4 text-on-surface-variant font-body-sm text-body-sm">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                {{ art.createdAt | date: 'mediumDate' }}
+              </span>
+              <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]">group</span>
+                Participants: {{ art.participants.join(', ') }}
+              </span>
+            </div>
+          }
+        </div>
 
-      <app-artwork-preview
-        [imageUrl]="store.artwork()?.imageUrl ?? null"
-        (replay)="showReplay.set(true)" />
+        <app-artwork-preview
+          [imageUrl]="store.artwork()?.imageUrl ?? null"
+          (replay)="showReplay.set(true)" />
 
-      <app-artwork-actions
-        [canDownload]="store.hasImage()"
-        [canReplay]="store.replayable()"
-        (download)="onDownload()"
-        (replay)="showReplay.set(true)"
-        (copyLink)="onCopyLink()" />
-    </div>
+        <app-artwork-actions
+          [canDownload]="store.hasImage()"
+          [canReplay]="store.replayable()"
+          (download)="onDownload()"
+          (replay)="showReplay.set(true)"
+          (copyLink)="onCopyLink()" />
+      </div>
+    }
   </main>
 
   <footer class="w-full py-6 px-margin-mobile">

@@ -13,7 +13,7 @@ export class ReviewStore {
   private readonly artworks = inject(ArtworkService);
 
   private readonly _artwork = signal<Artwork | null>(null);
-  private readonly _loading = signal(false);
+  private readonly _loading = signal(true);
 
   readonly artwork = this._artwork.asReadonly();
   readonly loading = this._loading.asReadonly();

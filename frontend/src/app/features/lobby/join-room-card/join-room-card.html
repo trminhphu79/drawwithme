@@ -58,24 +58,11 @@
 
     <button
       type="button"
-      (click)="create.emit(requireApproval())"
+      (click)="create.emit()"
       [disabled]="!canCreate() || busy()"
       class="w-full glass-panel border border-outline-variant text-primary font-label-md uppercase py-4 rounded-lg hover:bg-on-surface/5 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
       <span class="material-symbols-outlined text-[18px]">add</span>
       Create New Room
-    </button>
-
-    <!-- Host approval toggle (applies to the room you create) -->
-    <button
-      type="button"
-      (click)="requireApproval.set(!requireApproval())"
-      class="flex items-center justify-center gap-2 text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">
-      <span
-        class="material-symbols-outlined text-[20px]"
-        [class.text-secondary]="requireApproval()">
-        {{ requireApproval() ? 'toggle_on' : 'toggle_off' }}
-      </span>
-      Require my approval to join
     </button>
   </div>
 </div>

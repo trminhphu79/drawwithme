@@ -65,6 +65,7 @@ export class DrawingStore {
   // ---- host approval ----
   private readonly _joinState = signal<JoinState>('active');
   private readonly _isHost = signal(false);
+  private readonly _joinMode = signal<'auto' | 'approval'>('auto');
   private readonly _joinRequests = signal<JoinRequest[]>([]);
 
   private code = '';
@@ -86,6 +87,7 @@ export class DrawingStore {
   readonly finished = this._finished.asReadonly();
   readonly joinState = this._joinState.asReadonly();
   readonly isHost = this._isHost.asReadonly();
+  readonly joinMode = this._joinMode.asReadonly();
   readonly joinRequests = this._joinRequests.asReadonly();
   readonly connected = this.socket.connected;
 
@@ -196,7 +198,10 @@ export class DrawingStore {
 
     // Am I the host of this room? (compare my stable client id to room.hostId)
     void firstValueFrom(this.lobby.getRoom(code))
-      .then((room) => this._isHost.set(!!room.hostId && room.hostId === this.prefs.clientId()))
+      .then((room) => {
+        this._isHost.set(!!room.hostId && room.hostId === this.prefs.clientId());
+        this._joinMode.set(room.joinMode);
+      })
       .catch(() => undefined);
 
     // (Re)announce ourselves on every connect — incl. reconnects, where Socket.IO
@@ -240,6 +245,12 @@ export class DrawingStore {
     } catch {
       /* API not available yet — start with an empty canvas. */
     }
+  }
+
+  /** Host: change the room's join mode (auto ⇄ approval). Optimistic + persisted. */
+  setJoinMode(mode: 'auto' | 'approval'): void {
+    this._joinMode.set(mode);
+    this.socket.emit('settings:update', { code: this.code, joinMode: mode });
   }
 
   /** Host: admit a waiting joiner. */

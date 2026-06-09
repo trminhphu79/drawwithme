@@ -25,6 +25,7 @@ import { PropertiesPanel } from '../properties-panel/properties-panel';
 import { ChatPanel } from '../chat-panel/chat-panel';
 import { ReactionOverlay } from '../reaction-overlay/reaction-overlay';
 import { ProfileGate, Profile } from '../profile-gate/profile-gate';
+import { ReplayPlayer } from '../../review/replay-player/replay-player';
 import { ConfirmDialog } from '../../../core/ui/confirm-dialog';
 import { Toast } from '../../../core/ui/toast';
 
@@ -48,6 +49,7 @@ import { Toast } from '../../../core/ui/toast';
     ChatPanel,
     ReactionOverlay,
     ProfileGate,
+    ReplayPlayer,
     ConfirmDialog,
     Toast,
   ],
@@ -87,6 +89,13 @@ export class DrawingRoom {
   private leaveResolver: ((ok: boolean) => void) | null = null;
   /** "Finish & save?" confirmation before sealing the artwork. */
   protected readonly confirmFinish = signal(false);
+  /** Result modal (replay / share / download) shown after sealing. */
+  protected readonly completeModalOpen = signal(false);
+  protected readonly completeReplayOpen = signal(false);
+  /** The sealed artwork id (for share link + replay). */
+  protected readonly completedArtworkId = signal<string | null>(null);
+  /** Captured PNG of the sealed artwork (for download). */
+  private completedDataUrl: string | null = null;
   /** Reference image view state (local, per-user) + fullscreen preview.
    *  Off by default — the reference only renders on the canvas once the user
    *  chooses to show it. */
@@ -112,36 +121,28 @@ export class DrawingRoom {
   private readonly canvas = viewChild(CanvasStage);
   private entered = false;
 
-  /** Guards the one-shot redirect when another member finishes. */
-  private redirectingToArtwork = false;
+  /** Guards the one-shot "someone finished" toast. */
+  private finishNotified = false;
 
   constructor() {
     effect(() => {
       const code = this.code();
       if (!code || this.entered || this.showNameGate() || this.leaving) return;
-      // If this session was already finished, don't let them back into the
-      // room — bounce to the result with a heads-up toast.
-      const done = this.completedArtwork(code);
-      if (done) {
-        this.redirectToCompleted(done);
-        return;
-      }
       // Show the avatar + name gate on the first entry to this room (incl.
       // joining via a shared link), but skip it on refresh of the same tab.
+      // (Rooms stay re-enterable even after they've been completed.)
       if (this.isConfirmed(code)) this.enter(code);
       else this.showNameGate.set(true);
     });
 
-    // Another member sealed the artwork → alert everyone else, then send them
-    // to view the result.
+    // Another member sealed the artwork → just let everyone know (the room
+    // stays open; nobody is kicked out). The share link is in the result modal.
     effect(() => {
       const done = this.store.finished();
-      if (!done || this.redirectingToArtwork) return;
-      this.redirectingToArtwork = true;
-      this.leaving = true; // auto-redirect — don't prompt the leave guard
-      this.markCompleted(this.code(), done.artworkId);
-      this.showToast(`🎉 ${done.by} finished the masterpiece! Opening the result…`);
-      setTimeout(() => this.router.navigate(['/view', done.artworkId]), 1800);
+      if (!done || this.finishNotified) return;
+      this.finishNotified = true;
+      this.completedArtworkId.set(done.artworkId);
+      this.showToast(`🎉 ${done.by} finished the masterpiece! Share link is ready.`);
     });
 
     // Host denied this user → let them know, then send them home.
@@ -293,22 +294,58 @@ export class DrawingRoom {
     this.confirmFinish.set(false);
   }
 
-  /** Confirmed Save → seal the artwork, notify the room, go to the view page. */
+  /** Confirmed Save → seal the artwork, notify the room, open the result modal. */
   protected async onConfirmFinish(): Promise<void> {
     this.confirmFinish.set(false);
     const dataUrl = this.canvas()?.captureDataUrl();
-    let target = this.code() || 'demo';
-    if (dataUrl) {
-      const id = await this.store.seal(dataUrl);
-      if (id) {
-        target = id;
-        // Notify everyone else so they get redirected to the finished artwork.
-        this.store.notifyFinished(id);
-        this.markCompleted(this.code(), id);
-      }
+    if (!dataUrl) {
+      this.showToast('Could not capture the canvas — try again.');
+      return;
     }
-    this.leaving = true; // skip the leave-confirm guard for the finish redirect
-    this.router.navigate(['/view', target]);
+    const id = await this.store.seal(dataUrl);
+    if (!id) {
+      this.showToast('Saving failed — please try again.');
+      return;
+    }
+    this.completedDataUrl = dataUrl;
+    this.completedArtworkId.set(id);
+    this.finishNotified = true; // don't also toast ourselves from room:finished
+    this.store.notifyFinished(id);
+    this.completeModalOpen.set(true);
+  }
+
+  /** Result-modal actions. */
+  protected openCompleteReplay(): void {
+    this.completeReplayOpen.set(true);
+  }
+  protected onCopyShareLink(): void {
+    const id = this.completedArtworkId();
+    if (!id) return;
+    const url = `${location.origin}/view/${id}`;
+    const done = () => this.showToast('Share link copied — anyone with it can view & replay 🎨');
+    try {
+      navigator.clipboard?.writeText(url).then(done, done) ?? done();
+    } catch {
+      done();
+    }
+  }
+  protected onDownloadComplete(): void {
+    if (!this.completedDataUrl) return;
+    const name = `${(this.store.title() || 'artwork').replace(/\s+/g, '-').toLowerCase()}.png`;
+    const a = document.createElement('a');
+    a.href = this.completedDataUrl;
+    a.download = name;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+  /** Open the full result page (the modal's "view" path). */
+  protected goToResult(): void {
+    const id = this.completedArtworkId();
+    if (!id) return;
+    this.leaving = true; // skip the leave-confirm guard
+    this.router.navigate(['/view', id]);
   }
 
   protected onKeydown(event: KeyboardEvent): void {
@@ -341,32 +378,6 @@ export class DrawingRoom {
     } catch {
       /* sessionStorage unavailable — gate will simply show again */
     }
-  }
-
-  /** Records that a room was finished (→ artwork id) so Back can't re-enter it. */
-  private completedKey(code: string): string {
-    return `dwm.completed.${code.toUpperCase()}`;
-  }
-  private completedArtwork(code: string): string | null {
-    try {
-      return localStorage.getItem(this.completedKey(code));
-    } catch {
-      return null;
-    }
-  }
-  private markCompleted(code: string, artworkId: string): void {
-    try {
-      localStorage.setItem(this.completedKey(code), artworkId);
-    } catch {
-      /* localStorage unavailable — best-effort only */
-    }
-  }
-
-  /** Session already done → toast, then gently send them to the result. */
-  private redirectToCompleted(artworkId: string): void {
-    this.leaving = true;
-    this.showToast('This session is already completed — taking you to the result…');
-    setTimeout(() => this.router.navigate(['/view', artworkId]), 2200);
   }
 
   private enter(code: string): void {

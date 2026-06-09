@@ -165,6 +165,30 @@
       </div>
     </div>
 
+    <!-- Settings (host only) -->
+    @if (isHost()) {
+      <div class="pt-4 border-t border-white/10">
+        <label class="text-label-sm font-bold uppercase tracking-tighter mb-3 block opacity-60">Settings</label>
+        <button
+          type="button"
+          (click)="joinModeChange.emit(joinMode() === 'approval' ? 'auto' : 'approval')"
+          class="w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-on-surface/5 hover:bg-on-surface/10 transition-colors text-left">
+          <div class="min-w-0">
+            <p class="text-label-md font-bold text-on-surface">Require my approval to join</p>
+            <p class="text-[11px] text-on-surface-variant">
+              {{ joinMode() === 'approval' ? 'New people wait for you to admit them.' : 'Anyone with the link joins instantly.' }}
+            </p>
+          </div>
+          <span
+            class="material-symbols-outlined text-[32px] shrink-0"
+            [class.text-secondary]="joinMode() === 'approval'"
+            [class.text-on-surface-variant]="joinMode() !== 'approval'">
+            {{ joinMode() === 'approval' ? 'toggle_on' : 'toggle_off' }}
+          </span>
+        </button>
+      </div>
+    }
+
     <!-- Clear canvas (destructive) -->
     <div class="pt-4 border-t border-white/10">
       <button
