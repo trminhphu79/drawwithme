@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  afterNextRender,
-  inject,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { JoinRoomStore } from '../join-room.store';
 import { AppFooter } from '../../../core/ui/app-footer';
@@ -142,8 +134,24 @@ import { avatarUrl } from '../../../core/models/avatars';
           }
         </div>
 
-        <!-- Infinite-scroll sentinel -->
-        <div #sentinel class="h-1"></div>
+        <!-- Load more -->
+        @if (store.hasMore()) {
+          <div class="flex justify-center pt-2">
+            <button
+              type="button"
+              (click)="store.loadMore()"
+              [disabled]="store.listLoading()"
+              class="glass-panel border border-outline-variant px-6 py-3 rounded-lg font-label-md text-on-surface hover:bg-on-surface/5 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              @if (store.listLoading()) {
+                <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                Loading…
+              } @else {
+                <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                Load more ({{ store.rooms().length }} of {{ store.total() }})
+              }
+            </button>
+          </div>
+        }
 
         <div class="mt-2 flex justify-center">
           <app-install-button />
@@ -156,26 +164,11 @@ import { avatarUrl } from '../../../core/models/avatars';
 export class JoinRoom {
   protected readonly store = inject(JoinRoomStore);
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
   protected readonly avatarUrl = avatarUrl;
   protected readonly skeletons = [0, 1, 2];
 
-  private readonly sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
-
   constructor() {
     void this.store.loadRooms();
-    afterNextRender(() => {
-      const el = this.sentinel()?.nativeElement;
-      if (!el || typeof IntersectionObserver === 'undefined') return;
-      const io = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((e) => e.isIntersecting)) void this.store.loadMore();
-        },
-        { rootMargin: '300px' },
-      );
-      io.observe(el);
-      this.destroyRef.onDestroy(() => io.disconnect());
-    });
   }
 
   protected async onJoin(): Promise<void> {
